@@ -10,6 +10,7 @@ import { requestIdMiddleware } from "./middleware/request-id.middleware.js";
 import { adminLimiter, publicReadLimiter } from "./middleware/rate-limit.middleware.js";
 import { adminOperationsRouter } from "./modules/admin/admin.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
+import { boardingRouter } from "./modules/boarding/boarding.routes.js";
 import { stripeWebhookHandler } from "./modules/payments/payments.controller.js";
 import { paymentsRouter } from "./modules/payments/payments.routes.js";
 import { reservationsRouter } from "./modules/reservations/reservations.routes.js";
@@ -50,6 +51,7 @@ export function createApp(): Express {
   app.use("/api/admin", adminOperationsRouter);
   app.use("/api/trips", publicReadLimiter, publicTripsRouter);
   app.use("/api/reservations", reservationsRouter);
+  app.use("/api/boarding", boardingRouter);
   app.use("/api/payments", paymentsRouter);
 
   app.use(notFoundMiddleware);

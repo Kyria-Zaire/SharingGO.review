@@ -17,6 +17,7 @@ export interface Env {
   stripeCancelUrl: string;
   stripeTicketPriceCents: number;
   stripeCurrency: string;
+  boardingJwtSecret: string;
 }
 
 function requireEnv(name: string): string {
@@ -99,6 +100,13 @@ function parseEnv(): Env {
     throw new Error(`Invalid STRIPE_CURRENCY: "${stripeCurrency}". Only "eur" is supported in V1.`);
   }
 
+  const boardingJwtSecret = requireEnv("BOARDING_JWT_SECRET");
+  if (boardingJwtSecret.length < 32) {
+    throw new Error(
+      `Invalid BOARDING_JWT_SECRET: must be at least 32 characters. Generate a random secret for HS256 signing.`
+    );
+  }
+
   return {
     nodeEnv: nodeEnvRaw,
     port,
@@ -116,6 +124,7 @@ function parseEnv(): Env {
     stripeCancelUrl,
     stripeTicketPriceCents,
     stripeCurrency,
+    boardingJwtSecret,
   };
 }
 

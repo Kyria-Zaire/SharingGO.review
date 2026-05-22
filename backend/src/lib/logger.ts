@@ -17,6 +17,8 @@ const SENSITIVE_KEYS = new Set([
   "authorization",
   "stripe",
   "jwt",
+  "bt",
+  "boardingtoken",
   "signature",
   "stripesignature",
   "rawbody",

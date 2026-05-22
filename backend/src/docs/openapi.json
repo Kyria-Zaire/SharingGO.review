@@ -11,6 +11,7 @@
     { "name": "Auth", "description": "Inscription, connexion, session" },
     { "name": "Public Trips", "description": "Lecture publique des trajets" },
     { "name": "Reservations", "description": "Pending et historique utilisateur" },
+    { "name": "Boarding", "description": "Token JWT d'embarquement (S2-T1)" },
     { "name": "Payments", "description": "Checkout et statut paiements" },
     { "name": "Admin Lines", "description": "CRUD lignes (ADMIN / SUPER_ADMIN)" },
     { "name": "Admin Trips", "description": "CRUD trajets admin" },
@@ -65,6 +66,9 @@
           "TRIP_PAST",
           "TRIP_NOT_FOUND",
           "RESERVATION_NOT_FOUND",
+          "RESERVATION_NOT_CONFIRMED",
+          "BOARDING_NOT_AVAILABLE",
+          "BOARDING_EXPIRED",
           "PAYMENT_NOT_FOUND",
           "CHECKOUT_CREATE_FAILED",
           "STRIPE_SIGNATURE_INVALID",
@@ -208,6 +212,24 @@
           "payment": { "$ref": "#/components/schemas/PaymentSafe", "nullable": true },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "BoardingTokenResponse": {
+        "type": "object",
+        "required": ["reservationId", "tripId", "boardingToken", "expiresAt"],
+        "description": "Le champ `boardingToken` contient le JWT signé HS256 — jamais le token opaque DB.",
+        "properties": {
+          "reservationId": { "type": "string" },
+          "tripId": { "type": "string" },
+          "boardingToken": {
+            "type": "string",
+            "description": "JWT signé (claims: sub, typ=boarding, uid, tid, bt, iat, exp). Non stocké en base."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Expiration = departureTime + 10 minutes"
+          }
         }
       },
       "ReservationAdmin": {
@@ -630,6 +652,71 @@
         "responses": {
           "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReservationUser" } } } },
           "404": { "description": "RESERVATION_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/boarding/{reservationId}/token": {
+      "get": {
+        "tags": ["Boarding"],
+        "summary": "Obtenir le JWT d'embarquement",
+        "description": "Auth obligatoire, propriétaire uniquement. Réservation `CONFIRMED` + paiement `SUCCEEDED` requis. Génère un token opaque en DB (`Reservation.boardingToken`) si absent, puis retourne un JWT signé HS256 (claim `bt` = token opaque). Expiration JWT = `departureTime + 10 min`. Aucune image QR — fondation cryptographique S2-T1.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "reservationId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BoardingTokenResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "description": "RESERVATION_NOT_FOUND (autre utilisateur ou id inconnu)" },
+          "409": {
+            "description": "RESERVATION_NOT_CONFIRMED ou BOARDING_NOT_AVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "notConfirmed": {
+                    "value": {
+                      "error": {
+                        "message": "Reservation is not confirmed",
+                        "code": "RESERVATION_NOT_CONFIRMED",
+                        "requestId": "uuid"
+                      }
+                    }
+                  },
+                  "notAvailable": {
+                    "value": {
+                      "error": {
+                        "message": "Boarding is not available for this reservation",
+                        "code": "BOARDING_NOT_AVAILABLE",
+                        "requestId": "uuid"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "BOARDING_EXPIRED — fenêtre departure + 10 min dépassée",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "error": {
+                    "message": "Boarding window has expired",
+                    "code": "BOARDING_EXPIRED",
+                    "requestId": "uuid"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
