@@ -1,4 +1,4 @@
-import type { PendingReservation, Prisma } from "@prisma/client";
+import type { PendingReservation, Prisma, ReservationStatus } from "@prisma/client";
 import { writeAuditLog } from "../../lib/audit-log.js";
 import { AppError } from "../../lib/errors.js";
 import { logger } from "../../lib/logger.js";
@@ -9,10 +9,22 @@ import {
 } from "../../lib/trip-occupancy.js";
 import { prisma } from "../../lib/prisma.js";
 import { lockTripForUpdate } from "./reservation-locking.js";
+import type { ListReservationsQuery } from "./reservations.schemas.js";
+import {
+  serializeReservationDetail,
+  serializeReservationListItem,
+} from "./reservations.serializers.js";
 import type {
   CreatePendingReservationResult,
+  ListReservationsResult,
   PendingReservationDetail,
 } from "./reservations.types.js";
+import type { SafeReservationDetailDto } from "./reservations.serializers.js";
+
+const reservationInclude = {
+  trip: { include: { line: true } },
+  payment: true,
+} as const;
 
 const PENDING_TTL_MS = 2 * 60 * 1000;
 
@@ -201,4 +213,69 @@ export async function cancelPendingReservation(
   await auditReservation("PENDING_RESERVATION_CANCELED", userId, pending.id, {
     tripId: pending.tripId,
   });
+}
+
+function buildReservationListWhere(
+  userId: string,
+  query: ListReservationsQuery,
+  now: Date
+): Prisma.ReservationWhereInput {
+  const where: Prisma.ReservationWhereInput = { userId };
+
+  if (query.status) {
+    where.status = query.status as ReservationStatus;
+  }
+
+  if (query.upcoming === true) {
+    where.trip = { departureTime: { gte: now } };
+  } else if (query.past === true) {
+    where.trip = { departureTime: { lt: now } };
+  }
+
+  return where;
+}
+
+function reservationListOrderBy(
+  query: ListReservationsQuery
+): Prisma.ReservationOrderByWithRelationInput[] {
+  if (query.upcoming === true) {
+    return [{ trip: { departureTime: "asc" } }];
+  }
+  return [{ trip: { departureTime: "desc" } }];
+}
+
+export async function listUserReservations(
+  userId: string,
+  query: ListReservationsQuery
+): Promise<ListReservationsResult> {
+  const now = new Date();
+  const reservations = await prisma.reservation.findMany({
+    where: buildReservationListWhere(userId, query, now),
+    include: reservationInclude,
+    orderBy: reservationListOrderBy(query),
+    take: query.limit,
+    skip: query.offset,
+  });
+
+  return {
+    reservations: reservations.map(serializeReservationListItem),
+    limit: query.limit,
+    offset: query.offset,
+  };
+}
+
+export async function getUserReservation(
+  userId: string,
+  reservationId: string
+): Promise<SafeReservationDetailDto> {
+  const reservation = await prisma.reservation.findFirst({
+    where: { id: reservationId, userId },
+    include: reservationInclude,
+  });
+
+  if (!reservation) {
+    throw new AppError("Reservation not found", 404, "RESERVATION_NOT_FOUND");
+  }
+
+  return serializeReservationDetail(reservation);
 }

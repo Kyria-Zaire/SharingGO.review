@@ -1,7 +1,11 @@
 import type { Request, Response } from "express";
 import { AppError } from "../../lib/errors.js";
-import { parseBody } from "../../lib/zod-parse.js";
-import { createPendingReservationSchema } from "./reservations.schemas.js";
+import { parseBody, parseQuery } from "../../lib/zod-parse.js";
+import {
+  createPendingReservationSchema,
+  listReservationsQuerySchema,
+  reservationIdParamSchema,
+} from "./reservations.schemas.js";
 import * as reservationsService from "./reservations.service.js";
 
 function requireUserId(req: Request): string {
@@ -31,4 +35,18 @@ export async function cancelPendingHandler(req: Request, res: Response): Promise
   const userId = requireUserId(req);
   await reservationsService.cancelPendingReservation(userId, req.params.id ?? "");
   res.sendStatus(204);
+}
+
+export async function listReservationsHandler(req: Request, res: Response): Promise<void> {
+  const userId = requireUserId(req);
+  const query = parseQuery(listReservationsQuerySchema, req.query);
+  const result = await reservationsService.listUserReservations(userId, query);
+  res.status(200).json(result);
+}
+
+export async function getReservationHandler(req: Request, res: Response): Promise<void> {
+  const userId = requireUserId(req);
+  const { id } = parseQuery(reservationIdParamSchema, { id: req.params.id });
+  const reservation = await reservationsService.getUserReservation(userId, id);
+  res.status(200).json(reservation);
 }

@@ -5,6 +5,8 @@ import {
   cancelPendingHandler,
   createPendingHandler,
   getPendingHandler,
+  getReservationHandler,
+  listReservationsHandler,
 } from "./reservations.controller.js";
 
 export const reservationsRouter = Router();
@@ -25,4 +27,16 @@ reservationsRouter.delete(
   "/pending/:id",
   asyncHandler(requireAuth),
   asyncHandler(cancelPendingHandler)
+);
+
+reservationsRouter.get(
+  "/",
+  asyncHandler(requireAuth),
+  asyncHandler(listReservationsHandler)
+);
+
+reservationsRouter.get(
+  "/:id",
+  asyncHandler(requireAuth),
+  asyncHandler(getReservationHandler)
 );

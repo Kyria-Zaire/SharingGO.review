@@ -13,3 +13,11 @@ export interface PendingReservationDetail {
   expiresAt: string;
   isExpired: boolean;
 }
+
+import type { SafeReservationListItemDto } from "./reservations.serializers.js";
+
+export interface ListReservationsResult {
+  reservations: SafeReservationListItemDto[];
+  limit: number;
+  offset: number;
+}
