@@ -3,7 +3,7 @@
   "info": {
     "title": "Sharing Go API",
     "version": "0.1.0-mvp",
-    "description": "API MVP Sharing Go — auth par cookie de session, trajets publics, réservations pending, paiement Stripe Checkout, administration transport et supervision.\n\n**Rate limiting (S1.5-T4)** : auth 10 req / 15 min ; public trips 120 req / min ; pending 10 / min ; checkout 5 / min ; admin 60 / min. Codes `RATE_LIMITED_*`. Webhook Stripe **exempté** des limiters agressifs.\n\n**Documentation** : désactivable en production via `ENABLE_API_DOCS=false`."
+    "description": "API MVP Sharing Go — auth par cookie de session, trajets publics, réservations pending, paiement Stripe Checkout, administration transport et supervision.\n\n**Rate limiting (S1.5-T4)** : `RATE_LIMITED_AUTH`, `RATE_LIMITED_PUBLIC_READ`, `RATE_LIMITED_RESERVATION`, `RATE_LIMITED_CHECKOUT`, `RATE_LIMITED_ADMIN` (HTTP 429). Webhook Stripe exempté des limiters agressifs.\n\n**Codes d'erreur courants (S1.5-T7)** : voir schéma `ApiErrorCode`. Auth : `UNAUTHORIZED`, `FORBIDDEN`, `VALIDATION_ERROR`. Réservations : `PENDING_ALREADY_EXISTS`, `PENDING_ALREADY_CONSUMED`, `PENDING_EXPIRED`, `PENDING_NOT_FOUND`, `TRIP_FULL`, `TRIP_DISABLED`, `TRIP_PAST` (alias doc `TRIP_IN_PAST`), `TRIP_NOT_FOUND`, `RESERVATION_NOT_FOUND`. Paiements : `PAYMENT_NOT_FOUND`, `CHECKOUT_CREATE_FAILED`, `STRIPE_SIGNATURE_INVALID` (webhook). Doublon réservation webhook : idempotence `WebhookEvent` / P2002 (pas de code HTTP `RESERVATION_ALREADY_EXISTS`).\n\n**Documentation** : désactivable en production via `ENABLE_API_DOCS=false`."
   },
   "servers": [{ "url": "http://localhost:3000", "description": "Développement local" }],
   "tags": [
@@ -36,11 +36,45 @@
             "required": ["message", "code", "requestId"],
             "properties": {
               "message": { "type": "string" },
-              "code": { "type": "string", "description": "Ex. UNAUTHORIZED, VALIDATION_ERROR, RATE_LIMITED_AUTH" },
+              "code": { "$ref": "#/components/schemas/ApiErrorCode" },
               "requestId": { "type": "string" }
             }
           }
         }
+      },
+      "ApiErrorCode": {
+        "type": "string",
+        "description": "Code stable renvoyé dans `error.code` (voir runbook webhook : docs/runbooks/stripe-webhook-failures.md).",
+        "enum": [
+          "UNAUTHORIZED",
+          "FORBIDDEN",
+          "VALIDATION_ERROR",
+          "NOT_FOUND",
+          "INTERNAL_SERVER_ERROR",
+          "RATE_LIMITED_AUTH",
+          "RATE_LIMITED_PUBLIC_READ",
+          "RATE_LIMITED_RESERVATION",
+          "RATE_LIMITED_CHECKOUT",
+          "RATE_LIMITED_ADMIN",
+          "PENDING_ALREADY_EXISTS",
+          "PENDING_ALREADY_CONSUMED",
+          "PENDING_EXPIRED",
+          "PENDING_NOT_FOUND",
+          "TRIP_FULL",
+          "TRIP_DISABLED",
+          "TRIP_PAST",
+          "TRIP_NOT_FOUND",
+          "RESERVATION_NOT_FOUND",
+          "PAYMENT_NOT_FOUND",
+          "CHECKOUT_CREATE_FAILED",
+          "STRIPE_SIGNATURE_INVALID",
+          "WEBHOOK_METADATA_INVALID",
+          "EMAIL_ALREADY_EXISTS",
+          "INVALID_CREDENTIALS",
+          "LINE_NOT_FOUND",
+          "DRIVER_NOT_FOUND",
+          "INVALID_TOTAL_SEATS"
+        ]
       },
       "UserSafe": {
         "type": "object",
@@ -276,6 +310,29 @@
           "email": { "type": "string", "format": "email" },
           "password": { "type": "string" }
         }
+      },
+      "DependencyCheck": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["ok", "error"] }
+        }
+      },
+      "ReadinessResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["ready", "not_ready"] },
+          "service": { "type": "string" },
+          "environment": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "database": { "$ref": "#/components/schemas/DependencyCheck" },
+              "configuration": { "$ref": "#/components/schemas/DependencyCheck" },
+              "stripe": { "$ref": "#/components/schemas/DependencyCheck" }
+            }
+          }
+        }
       }
     },
     "responses": {
@@ -321,26 +378,52 @@
     "/health": {
       "get": {
         "tags": ["Health"],
-        "summary": "Health check",
+        "summary": "Liveness probe",
+        "description": "Processus backend vivant. Ne vérifie pas PostgreSQL (utiliser `/ready` pour la préparation au trafic).",
         "responses": {
           "200": {
-            "description": "Service et base OK",
+            "description": "Process alive",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "status": { "type": "string", "enum": ["ok"] },
-                    "service": { "type": "string" },
+                    "service": { "type": "string", "example": "sharinggo-backend" },
                     "environment": { "type": "string" },
                     "timestamp": { "type": "string", "format": "date-time" },
-                    "database": { "type": "object", "properties": { "status": { "type": "string" } } }
+                    "uptimeSeconds": { "type": "integer" },
+                    "version": { "type": "string", "example": "0.1.0" }
                   }
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Readiness probe",
+        "description": "Prêt à servir du trafic : PostgreSQL, configuration critique, Stripe (présence locale uniquement, pas d'appel réseau).",
+        "responses": {
+          "200": {
+            "description": "Ready",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReadinessResponse" }
+              }
+            }
           },
-          "503": { "description": "Base indisponible" }
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ReadinessResponse" }
+              }
+            }
+          }
         }
       }
     },
@@ -463,7 +546,25 @@
           "201": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreatePendingResult" } } } },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "description": "TRIP_NOT_FOUND" },
-          "409": { "description": "TRIP_FULL ou PENDING_ALREADY_EXISTS" },
+          "409": {
+            "description": "TRIP_FULL ou PENDING_ALREADY_EXISTS",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "pendingExists": {
+                    "value": {
+                      "error": {
+                        "message": "You already have an active pending reservation for this trip",
+                        "code": "PENDING_ALREADY_EXISTS",
+                        "requestId": "uuid"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
           "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }
@@ -554,6 +655,7 @@
           "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckoutResult" } } } },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "description": "PENDING_NOT_FOUND" },
+          "409": { "description": "PENDING_ALREADY_CONSUMED" },
           "410": { "description": "PENDING_EXPIRED" },
           "429": { "$ref": "#/components/responses/RateLimited" }
         }
@@ -812,7 +914,21 @@
               }
             }
           },
-          "400": { "description": "STRIPE_SIGNATURE_INVALID" }
+          "400": {
+            "description": "Signature ou corps invalide",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "error": {
+                    "message": "Invalid Stripe signature",
+                    "code": "STRIPE_SIGNATURE_INVALID",
+                    "requestId": "uuid"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

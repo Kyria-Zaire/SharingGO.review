@@ -18,7 +18,7 @@ async function main(): Promise<void> {
       port: env.port,
       nodeEnv: env.nodeEnv,
     });
-    logger.info("Health endpoint ready", { path: "/health" });
+    logger.info("Health endpoints ready", { paths: ["/health", "/ready"] });
   });
 }
 
