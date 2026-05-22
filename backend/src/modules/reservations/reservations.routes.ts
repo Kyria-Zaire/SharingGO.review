@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { asyncHandler } from "../../lib/async-handler.js";
+import { reservationLimiter } from "../../middleware/rate-limit.middleware.js";
 import { requireAuth } from "../auth/auth.middleware.js";
 import {
   cancelPendingHandler,
@@ -13,6 +14,7 @@ export const reservationsRouter = Router();
 
 reservationsRouter.post(
   "/pending",
+  reservationLimiter,
   asyncHandler(requireAuth),
   asyncHandler(createPendingHandler)
 );

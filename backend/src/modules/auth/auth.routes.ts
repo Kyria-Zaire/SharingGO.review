@@ -1,6 +1,7 @@
 import { UserType } from "@prisma/client";
 import { Router } from "express";
 import { asyncHandler } from "../../lib/async-handler.js";
+import { authLimiter } from "../../middleware/rate-limit.middleware.js";
 import {
   loginHandler,
   logoutHandler,
@@ -12,8 +13,8 @@ import { requireAuth, requireRole } from "./auth.middleware.js";
 
 export const authRouter = Router();
 
-authRouter.post("/register", asyncHandler(registerHandler));
-authRouter.post("/login", asyncHandler(loginHandler));
+authRouter.post("/register", authLimiter, asyncHandler(registerHandler));
+authRouter.post("/login", authLimiter, asyncHandler(loginHandler));
 authRouter.get("/me", asyncHandler(requireAuth), asyncHandler(meHandler));
 authRouter.post("/logout", asyncHandler(logoutHandler));
 
