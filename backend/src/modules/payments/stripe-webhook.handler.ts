@@ -11,10 +11,8 @@ export function constructStripeEvent(rawBody: Buffer, signature: string): Stripe
       signature,
       env.stripeWebhookSecret
     );
-  } catch (error) {
-    logger.warn("Stripe webhook signature verification failed", {
-      error: error instanceof Error ? error.message : String(error),
-    });
+  } catch {
+    logger.warn("Stripe webhook signature verification failed");
     throw new AppError("Invalid Stripe signature", 400, "STRIPE_SIGNATURE_INVALID");
   }
 }

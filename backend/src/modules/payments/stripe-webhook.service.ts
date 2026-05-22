@@ -6,6 +6,7 @@ import {
 } from "@prisma/client";
 import type Stripe from "stripe";
 import { writeAuditLog } from "../../lib/audit-log.js";
+import { stripeLogRef } from "../../lib/stripe-log-refs.js";
 import { AppError } from "../../lib/errors.js";
 import { logger } from "../../lib/logger.js";
 import { countOccupiedSeats, deleteExpiredPendingForTrip } from "../../lib/trip-occupancy.js";
@@ -84,7 +85,7 @@ export async function handleStripeWebhookEvent(event: Stripe.Event): Promise<voi
   });
 
   if (existingEvent) {
-    logger.info("Stripe webhook duplicate ignored", { eventId: event.id, eventType: event.type });
+    logger.debug("Stripe webhook duplicate ignored", { eventId: event.id, eventType: event.type });
     await auditPaymentFlow("STRIPE_WEBHOOK_DUPLICATE", undefined, event.id, {
       eventType: event.type,
     });
@@ -120,8 +121,8 @@ export async function handleStripeWebhookEvent(event: Stripe.Event): Promise<voi
         eventType: event.type,
       },
     });
-    logger.info("Checkout session already fulfilled", {
-      sessionId: session.id,
+    logger.debug("Checkout session already fulfilled", {
+      checkoutSessionRef: stripeLogRef(session.id),
       reservationId: existingSucceeded.reservation.id,
     });
     return;
@@ -285,7 +286,7 @@ export async function handleStripeWebhookEvent(event: Stripe.Event): Promise<voi
       return;
     }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      logger.info("Webhook event race resolved as duplicate", { eventId: event.id });
+      logger.debug("Webhook event race resolved as duplicate", { eventId: event.id });
       return;
     }
     throw error;

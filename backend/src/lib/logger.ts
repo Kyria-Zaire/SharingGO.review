@@ -17,7 +17,23 @@ const SENSITIVE_KEYS = new Set([
   "authorization",
   "stripe",
   "jwt",
+  "signature",
+  "stripesignature",
+  "rawbody",
 ]);
+
+function sanitizeStringValue(value: string): string {
+  if (value.startsWith("postgresql://")) {
+    return "[redacted]";
+  }
+  if (/^whsec_|^sk_|^pk_/.test(value)) {
+    return "[redacted]";
+  }
+  if (/^(pi_|cs_)[a-zA-Z0-9]{12,}/.test(value)) {
+    return `${value.slice(0, 7)}...${value.slice(-4)}`;
+  }
+  return value;
+}
 
 function sanitizeMeta(meta?: LogMeta): LogMeta | undefined {
   if (!meta) return undefined;
@@ -29,8 +45,8 @@ function sanitizeMeta(meta?: LogMeta): LogMeta | undefined {
       sanitized[key] = "[redacted]";
       continue;
     }
-    if (typeof value === "string" && value.startsWith("postgresql://")) {
-      sanitized[key] = "[redacted]";
+    if (typeof value === "string") {
+      sanitized[key] = sanitizeStringValue(value);
       continue;
     }
     sanitized[key] = value;
