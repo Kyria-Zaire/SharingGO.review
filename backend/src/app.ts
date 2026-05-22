@@ -8,6 +8,7 @@ import { errorMiddleware } from "./middleware/error.middleware.js";
 import { notFoundMiddleware } from "./middleware/not-found.middleware.js";
 import { requestIdMiddleware } from "./middleware/request-id.middleware.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
+import { publicTripsRouter } from "./modules/trips/public-trips.routes.js";
 import { transportAdminRouter } from "./modules/transport/transport.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 
@@ -39,6 +40,7 @@ export function createApp(): Express {
   app.use(healthRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/admin", transportAdminRouter);
+  app.use("/api/trips", publicTripsRouter);
 
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);
