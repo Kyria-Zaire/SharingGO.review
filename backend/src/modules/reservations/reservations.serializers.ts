@@ -27,6 +27,22 @@ export interface SafeReservationTripDto {
   };
 }
 
+export interface SafeReservationMinimalDto {
+  id: string;
+  status: Reservation["status"];
+  trip: SafeReservationTripDto;
+}
+
+export function serializeReservationMinimal(
+  reservation: Reservation & { trip: Trip & { line: Line } }
+): SafeReservationMinimalDto {
+  return {
+    id: reservation.id,
+    status: reservation.status,
+    trip: serializeTrip(reservation.trip),
+  };
+}
+
 export interface SafeReservationListItemDto {
   id: string;
   status: Reservation["status"];
@@ -59,7 +75,7 @@ export function serializeSafePayment(payment: Payment | null): SafePaymentDto | 
   };
 }
 
-function serializeTrip(trip: Trip & { line: Line }): SafeReservationTripDto {
+export function serializeTrip(trip: Trip & { line: Line }): SafeReservationTripDto {
   return {
     id: trip.id,
     departureTime: trip.departureTime.toISOString(),
