@@ -1,14 +1,10 @@
-import { ReservationStatus, type Line, type Prisma, type Trip } from "@prisma/client";
+import type { Line, Prisma, Trip } from "@prisma/client";
 import { parisDayBoundsUtc, startOfTodayParisUtc } from "../../lib/paris-time.js";
 import { AppError } from "../../lib/errors.js";
+import { getOccupiedCountsByTripIds } from "../../lib/trip-occupancy.js";
 import { prisma } from "../../lib/prisma.js";
 import type { ListPublicTripsQuery } from "./public-trips.schemas.js";
 import type { PublicTrip, PublicTripsListResult } from "./public-trips.types.js";
-
-const OCCUPIED_STATUSES: ReservationStatus[] = [
-  ReservationStatus.CONFIRMED,
-  ReservationStatus.USED,
-];
 
 type TripWithLine = Trip & { line: Line };
 
@@ -40,26 +36,6 @@ function toPublicTrip(trip: TripWithLine, reservedSeats: number): PublicTrip {
     arrivalTime: trip.arrivalTime?.toISOString() ?? null,
     ...availability,
   };
-}
-
-async function getReservedCountsByTripId(tripIds: string[]): Promise<Map<string, number>> {
-  const map = new Map<string, number>();
-  if (tripIds.length === 0) return map;
-
-  const groups = await prisma.reservation.groupBy({
-    by: ["tripId"],
-    where: {
-      tripId: { in: tripIds },
-      status: { in: OCCUPIED_STATUSES },
-    },
-    _count: { _all: true },
-  });
-
-  for (const group of groups) {
-    map.set(group.tripId, group._count._all);
-  }
-
-  return map;
 }
 
 function buildDepartureTimeFilter(query: ListPublicTripsQuery): Prisma.DateTimeFilter {
@@ -112,7 +88,7 @@ export async function listPublicTrips(query: ListPublicTripsQuery): Promise<Publ
     skip: query.offset,
   });
 
-  const reservedMap = await getReservedCountsByTripId(trips.map((t) => t.id));
+  const reservedMap = await getOccupiedCountsByTripIds(trips.map((t) => t.id));
 
   return {
     trips: trips.map((trip) => toPublicTrip(trip, reservedMap.get(trip.id) ?? 0)),
@@ -131,6 +107,6 @@ export async function getPublicTripById(id: string): Promise<PublicTrip> {
     throw new AppError("Trip not found", 404, "TRIP_NOT_FOUND");
   }
 
-  const reservedMap = await getReservedCountsByTripId([trip.id]);
+  const reservedMap = await getOccupiedCountsByTripIds([trip.id]);
   return toPublicTrip(trip, reservedMap.get(trip.id) ?? 0);
 }
