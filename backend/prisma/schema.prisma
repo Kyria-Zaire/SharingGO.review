@@ -210,9 +210,10 @@ model Payment {
   reservationId String?      @unique
   reservation   Reservation? @relation(fields: [reservationId], references: [id])
 
-  stripePaymentIntentId String? @unique
-  stripeSubscriptionId  String?
-  stripeInvoiceId       String?
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  stripeSubscriptionId    String?
+  stripeInvoiceId         String?
 
   amount   Decimal @db.Decimal(10, 2)
   currency String  @default("eur")
@@ -224,6 +225,21 @@ model Payment {
 
   @@index([userId])
   @@index([status])
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String
+  eventId     String
+  eventType   String
+  processedAt DateTime @default(now())
+  payloadHash String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([provider])
+  @@index([eventType])
 }
 
 model AuditLog {

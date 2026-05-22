@@ -3,7 +3,8 @@ import { logger } from "./logger.js";
 import { prisma } from "./prisma.js";
 
 export interface AuditLogInput {
-  actorUserId: string;
+  /** Omit or null for system/webhook events without a logged-in user. */
+  actorUserId?: string | null;
   action: string;
   targetType: string;
   targetId?: string;
@@ -18,7 +19,7 @@ export async function writeAuditLog(input: AuditLogInput): Promise<void> {
   try {
     await prisma.auditLog.create({
       data: {
-        actorUserId: input.actorUserId,
+        actorUserId: input.actorUserId ?? null,
         action: input.action,
         targetType: input.targetType,
         targetId: input.targetId,

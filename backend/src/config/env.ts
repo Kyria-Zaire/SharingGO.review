@@ -10,6 +10,12 @@ export interface Env {
   argon2MemoryCost: number;
   argon2TimeCost: number;
   argon2Parallelism: number;
+  stripeSecretKey: string;
+  stripeWebhookSecret: string;
+  stripeSuccessUrl: string;
+  stripeCancelUrl: string;
+  stripeTicketPriceCents: number;
+  stripeCurrency: string;
 }
 
 function requireEnv(name: string): string {
@@ -61,6 +67,29 @@ function parseEnv(): Env {
     requireEnv("ARGON2_PARALLELISM")
   );
 
+  const stripeSecretKey = requireEnv("STRIPE_SECRET_KEY");
+  if (!stripeSecretKey.startsWith("sk_")) {
+    throw new Error(
+      'Invalid STRIPE_SECRET_KEY: use the Stripe secret key (sk_test_... or sk_live_...), not the publishable key (pk_test_...). See Developers → API keys in the Stripe Dashboard.'
+    );
+  }
+  const stripeWebhookSecret = requireEnv("STRIPE_WEBHOOK_SECRET");
+  if (!stripeWebhookSecret.startsWith("whsec_") || stripeWebhookSecret.length < 20) {
+    throw new Error(
+      'Invalid STRIPE_WEBHOOK_SECRET: run "stripe listen --forward-to localhost:3000/api/webhooks/stripe" and copy the whsec_... value into .env, then restart the backend.'
+    );
+  }
+  const stripeSuccessUrl = requireEnv("STRIPE_SUCCESS_URL");
+  const stripeCancelUrl = requireEnv("STRIPE_CANCEL_URL");
+  const stripeTicketPriceCents = parsePositiveInt(
+    "STRIPE_TICKET_PRICE_CENTS",
+    requireEnv("STRIPE_TICKET_PRICE_CENTS")
+  );
+  const stripeCurrency = requireEnv("STRIPE_CURRENCY").toLowerCase();
+  if (stripeCurrency !== "eur") {
+    throw new Error(`Invalid STRIPE_CURRENCY: "${stripeCurrency}". Only "eur" is supported in V1.`);
+  }
+
   return {
     nodeEnv: nodeEnvRaw,
     port,
@@ -71,6 +100,12 @@ function parseEnv(): Env {
     argon2MemoryCost,
     argon2TimeCost,
     argon2Parallelism,
+    stripeSecretKey,
+    stripeWebhookSecret,
+    stripeSuccessUrl,
+    stripeCancelUrl,
+    stripeTicketPriceCents,
+    stripeCurrency,
   };
 }
 
