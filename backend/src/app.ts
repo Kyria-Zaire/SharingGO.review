@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { type Express } from "express";
 import rateLimit from "express-rate-limit";
@@ -6,6 +7,7 @@ import { env } from "./config/env.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 import { notFoundMiddleware } from "./middleware/not-found.middleware.js";
 import { requestIdMiddleware } from "./middleware/request-id.middleware.js";
+import { authRouter } from "./modules/auth/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 
 /**
@@ -31,8 +33,10 @@ export function createApp(): Express {
     })
   );
   app.use(express.json());
+  app.use(cookieParser());
 
   app.use(healthRouter);
+  app.use("/api/auth", authRouter);
 
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);

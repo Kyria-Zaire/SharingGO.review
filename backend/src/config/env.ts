@@ -5,6 +5,11 @@ export interface Env {
   port: number;
   databaseUrl: string;
   corsOrigin: string;
+  sessionTtlDays: number;
+  sessionCookieName: string;
+  argon2MemoryCost: number;
+  argon2TimeCost: number;
+  argon2Parallelism: number;
 }
 
 function requireEnv(name: string): string {
@@ -13,6 +18,14 @@ function requireEnv(name: string): string {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value.trim();
+}
+
+function parsePositiveInt(name: string, raw: string): number {
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`Invalid ${name}: "${raw}". Expected a positive integer.`);
+  }
+  return value;
 }
 
 function parseEnv(): Env {
@@ -35,12 +48,29 @@ function parseEnv(): Env {
 
   const databaseUrl = requireEnv("DATABASE_URL");
   const corsOrigin = requireEnv("CORS_ORIGIN");
+  const sessionTtlDays = parsePositiveInt("SESSION_TTL_DAYS", requireEnv("SESSION_TTL_DAYS"));
+  const sessionCookieName = requireEnv("SESSION_COOKIE_NAME");
+
+  const argon2MemoryCost = parsePositiveInt(
+    "ARGON2_MEMORY_COST",
+    requireEnv("ARGON2_MEMORY_COST")
+  );
+  const argon2TimeCost = parsePositiveInt("ARGON2_TIME_COST", requireEnv("ARGON2_TIME_COST"));
+  const argon2Parallelism = parsePositiveInt(
+    "ARGON2_PARALLELISM",
+    requireEnv("ARGON2_PARALLELISM")
+  );
 
   return {
     nodeEnv: nodeEnvRaw,
     port,
     databaseUrl,
     corsOrigin,
+    sessionTtlDays,
+    sessionCookieName,
+    argon2MemoryCost,
+    argon2TimeCost,
+    argon2Parallelism,
   };
 }
 
