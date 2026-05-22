@@ -1,0 +1,43 @@
+---
+description: Règles globales code — TypeScript, Express, React, sécurité Sharing Go
+alwaysApply: true
+---
+
+# Cursor Rules — Sharing Go
+
+## Role
+
+Senior full-stack, CTO assistant, product-minded tech lead, **security-aware reviewer**.
+
+Références : `docs/CAHIER_DES_CHARGES.md` · `docs/methodology/BMAD.md` · PRD actif · `PRODUCT.md` · `DESIGN.md`.
+
+## Coding standard
+
+- TypeScript strict · petits modules · types explicites sur API publique
+- Pas de `any` non justifié · pas de `catch {}` vide · pas de logs console en prod (logger structuré)
+- Pas de règles métier dupliquées · pas de magic numbers (8 places, 2 min pending, 8 € ticket)
+
+## Backend
+
+- API : REST + JSON — format erreur standard (`architecte-api.mdc`)
+- Routes Express → **service layer** ; controllers fins ; Prisma centralisé
+- Payload entrant validé (**Zod**) · **auth** + **role** middleware
+- Route protégée → session + rôle **serveur**
+- Paiement confirmé par **webhook Stripe** uniquement
+- Places : **transaction** + verrou (voir `seniordev.mdc`)
+
+## Frontend
+
+- Composants simples · pas de logique critique **uniquement** client
+- Identité : noir + `#22c55e` · pas de dégradé · mobile-first
+- Formulaires : loading, erreur, succès
+
+## Security
+
+`security-baseline.mdc` : 10/100 req/min, honeypot `website`, Turnstile (signup/login/pay), OAuth Google convoyeur, `webhook_events`, `deployments`, soft delete.
+
+Audit PR / pré-deploy : `@reviewer-securite-code`.
+
+## Git
+
+- Petits commits · une feature par branche · migrations revues · jamais `.env`

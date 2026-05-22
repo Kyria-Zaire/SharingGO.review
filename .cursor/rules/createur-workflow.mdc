@@ -1,0 +1,54 @@
+---
+description: Créateur workflow — GitHub Actions, CI/CD VPS, qualité pipeline
+globs: ".github/workflows/**"
+alwaysApply: false
+---
+
+# Créateur workflow — Sharing Go
+
+## Pipeline CI (`.github/workflows/`)
+
+```yaml
+# Étapes minimales V1
+# 1. checkout
+# 2. install (api + frontend)
+# 3. lint + typecheck
+# 4. test (si présents)
+# 5. build frontend + build api
+# 6. deploy (main uniquement, secrets VPS)
+```
+
+## Règles
+
+- **Pas de secrets** en clair dans YAML — `secrets.STRIPE_*`, `secrets.DATABASE_URL`, `SSH_*`
+- Cache deps (npm) par lockfile
+- `prisma migrate deploy` en deploy, pas en PR sauf job dédié preview DB
+
+## Deploy VPS
+
+1. Build images ou artefacts sur CI
+2. SSH ou runner self-hosted → `docker compose pull && up -d`
+3. Healthcheck `/api/health` avant trafic
+
+## Branches & deploy
+
+| Branche / trigger | Cible |
+|-------------------|--------|
+| PR | CI only (pas RECETTE/PROD auto sans garde) |
+| `recette` ou manuel | RECETTE |
+| `preprod` ou manuel | PREPROD + migrate dry-run |
+| `main` | PROD (secrets live, backups vérifiés) |
+
+DB et secrets **séparés par env** — voir `environments.mdc`.
+
+## Jobs données (imposés)
+
+- **Hebdo** : GitHub Action ou cron — recréer **REC** depuis PROD + anonymisation SQL
+- **Quotidien** : backup PROD → VPS secondaire ou S3
+- Jamais refresh DEV/REC/PREPROD → PROD
+
+## Interdit pipeline
+
+- Deploy sans migration Prisma revue
+- Push forcé main (alerter utilisateur)
+- Commit auto par l’agent sans demande explicite

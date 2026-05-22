@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserType {
+  CONVOYEUR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+  USED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  TICKET
+  SUBSCRIPTION
+}
+
+enum PromoCodeType {
+  MOSOLF
+}
+
+enum SubscriptionType {
+  MOSOLF_MONTHLY
+  CONVOYEUR_MONTHLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  firstName    String?
+  lastName     String?
+  passwordHash String?
+  userType     UserType @default(CONVOYEUR)
+
+  reservations  Reservation[]
+  payments      Payment[]
+  subscriptions Subscription[]
+
+  driverTrips Trip[] @relation("DriverTrips")
+
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  deletedAt           DateTime?
+  promoCodes          PromoCode[]
+  pendingReservations PendingReservation[]
+  auditLogs           AuditLog[]
+
+  @@index([email])
+}
+
+model PromoCode {
+  id           String        @id @default(cuid())
+  code         String        @unique
+  type         PromoCodeType
+  usedByUserId String?
+  usedByUser   User?         @relation(fields: [usedByUserId], references: [id])
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  @@index([code])
+}
+
+model Line {
+  id        String @id @default(cuid())
+  name      String
+  startCity String
+  endCity   String
+
+  trips Trip[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trip {
+  id String @id @default(cuid())
+
+  lineId String
+  line   Line   @relation(fields: [lineId], references: [id])
+
+  driverId String?
+  driver   User?   @relation("DriverTrips", fields: [driverId], references: [id])
+
+  departureTime DateTime
+  arrivalTime   DateTime?
+
+  totalSeats Int @default(8)
+
+  reservations        Reservation[]
+  pendingReservations PendingReservation[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([departureTime])
+  @@index([lineId])
+}
+
+model PendingReservation {
+  id String @id @default(cuid())
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  expiresAt  DateTime
+  consumedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([tripId])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Reservation {
+  id String @id @default(cuid())
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  status ReservationStatus @default(PENDING)
+
+  boardingToken String?
+
+  payment Payment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([userId])
+  @@index([status])
+}
+
+model Subscription {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  type SubscriptionType
+
+  stripeSubscriptionId String? @unique
+
+  status SubscriptionStatus
+
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Payment {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  reservationId String?      @unique
+  reservation   Reservation? @relation(fields: [reservationId], references: [id])
+
+  stripePaymentIntentId String? @unique
+  stripeSubscriptionId  String?
+  stripeInvoiceId       String?
+
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @default("eur")
+
+  status PaymentStatus
+  type   PaymentType
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  actorUserId String?
+  actorUser   User?   @relation(fields: [actorUserId], references: [id])
+
+  action     String
+  targetType String
+  targetId   String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([action])
+}

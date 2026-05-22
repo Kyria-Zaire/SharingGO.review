@@ -1,0 +1,58 @@
+---
+description: Code review — checklist PR alignée CDC V1 Sharing Go
+alwaysApply: false
+---
+
+# Code review — Sharing Go
+
+## 0. PRD & BMAD
+
+- [ ] PRD actif dans `docs/prd/active/` (lien PR dans description)
+- [ ] Statut PRD cohérent (≥ VERIFY pour merge)
+- [ ] DoD PRD §13 coché
+- [ ] BMAD respecté (`docs/methodology/BMAD.md`)
+
+## 1. Conformité CDC
+
+- [ ] Respecte `docs/CAHIER_DES_CHARGES.md`
+- [ ] Pas de feature V2/V3 déguisée en « petit plus »
+- [ ] Pas Supabase/Neon/BaaS ajouté
+
+## 2. Métier
+
+- [ ] Pas de panier multi-trajets
+- [ ] Pending 2 min implémenté ou préservé
+- [ ] 8 places max enforced en transaction
+- [ ] Mosolf désactive autres abos
+
+## 3. Qualité
+
+- [ ] Types stricts, erreurs explicites
+- [ ] Pas de refactor hors scope PR
+- [ ] Migrations Prisma nommées et réversibles si possible
+
+## 4. UI (si frontend)
+
+- [ ] `DESIGN.md` : noir + vert, pas de dégradé
+- [ ] Parcours convoyeur ≤ 6 étapes logiques
+
+## 5. Sécurité
+
+Appliquer `@reviewer-securite-code` — format de sortie :
+
+1. Critical issues · 2. High-risk · 3. Medium-risk · 4. Required fixes · 5. **APPROVE / BLOCK**
+
+## Format de retour review (général)
+
+```markdown
+## Bloquant
+- ...
+
+## Suggestions
+- ...
+
+## OK
+- ...
+```
+
+Ne pas approuver si **Bloquant** non résolu ou si Security Reviewer = **BLOCK**.

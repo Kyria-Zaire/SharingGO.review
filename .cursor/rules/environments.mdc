@@ -1,0 +1,71 @@
+---
+description: Environnements DEV/REC/PREPROD/PROD — schéma imposé, backups, rabattages
+globs: "{.env*,docker-compose*.yml,docker-compose*.yaml,**/.env.example,**/deploy/**,.github/workflows/**,**/scripts/**}"
+alwaysApply: false
+---
+
+# Environments — Sharing Go
+
+`APP_ENV=dev|recette|preprod|prod` · CDC §5.1 · **schéma imposé**.
+
+## Matrice (référence)
+
+| Env | DB | Données | Paiement (Stripe) | Accès |
+|-----|-----|---------|-------------------|--------|
+| **DEV** | PostgreSQL Docker local | Faker + quelques users réels (dev) | **Test** — cartes `4242…` · Stripe CLI | `localhost` |
+| **REC** (recette) | PostgreSQL VPS conteneur dédié | Snapshot PROD **anonymisé** (rabattage hebdo) | **Test** + simulation **3D Secure** | Équipe interne, **VPN** |
+| **PREPROD** | PostgreSQL VPS (réplica dédié) | **Clone PROD** avant migration | **Live** — webhook vers **endpoint/copie test** | QA + lead dev |
+| **PROD** | PostgreSQL VPS + backup auto | Données **réelles** | **Live** + webhook **réel** | Clients finaux |
+
+## DEV
+
+- Compose local · seeds **faker** · debug logs OK
+- `.env` gitignored · jamais de dump PROD brut en local
+
+## REC (recette)
+
+- DB **isolée** sur VPS (conteneur dédié)
+- **Pas** de données client réelles non anonymisées
+- Stripe test + parcours 3DS simulé pour QA paiement
+
+## PREPROD
+
+- Clone PROD pour valider **migrations** (`prisma migrate deploy` dry-run réel)
+- Clés Stripe **live** mais webhooks routés vers env de test (pas le handler PROD)
+- Pas de trafic client final
+
+## PROD
+
+- Backup automatique · monitoring · admin restreint · pas de debug
+- Aucun compte « test » dans la DB prod
+
+## Database rule
+
+**Une DB par env** — jamais partager DEV ↔ REC ↔ PREPROD ↔ PROD.
+
+| Direction | Statut |
+|-----------|--------|
+| PROD → REC / PREPROD (anonymisé) | ✅ |
+| DEV / REC / PREPROD → PROD | ❌ **Interdit** |
+
+## Backup (PROD)
+
+- **Quotidien** (cron) : backup automatisé PROD → autre VPS ou **S3-compatible**
+- Script **`restore-backup.sh`** : restaurer depuis le dernier backup
+- Restore **testé** mensuellement (`security-baseline.mdc`)
+
+## Rabattages données
+
+- **Hebdomadaire** : cron ou **GitHub Action** recrée **REC** depuis PROD
+- Anonymisation obligatoire : emails, numéros carte, etc. (**fonction SQL** dédiée)
+- PREPROD : clone PROD **avant** migration majeure (pas le même rythme que REC)
+
+## Variables
+
+`DATABASE_URL`, `APP_ENV`, `SESSION_SECRET`, `JWT_PRIVATE_KEY`, `STRIPE_*`, `STRIPE_WEBHOOK_SECRET` (distinct PREPROD test vs PROD), `API_URL`, `FRONTEND_URL`
+
+## Règles Stripe
+
+- DEV / REC : **test only** — jamais simuler succès paiement en SQL
+- PREPROD : **live keys** + webhook test séparé
+- PROD : live + webhook production HTTPS

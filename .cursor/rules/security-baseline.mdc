@@ -1,0 +1,95 @@
+---
+description: Security Baseline V1 — rate limit, Turnstile, OAuth, webhooks, DB, deploy (always on)
+alwaysApply: true
+---
+
+# Security Baseline — Sharing Go
+
+**Obligatoire avant tout déploiement.** Audit : `@reviewer-securite-code` · envs : `environments.mdc`.
+
+Contexte : garde-fous post-incidents (redirections malveillantes, infections).
+
+## Mandatory protections V1
+
+- [ ] **Helmet** · **CORS whitelist** (pas `*` en prod/preprod)
+- [ ] **Rate limiting** (voir quotas ci-dessous)
+- [ ] **Zod** sur toutes entrées API
+- [ ] Cookies **HttpOnly** · **Secure** (prod) · **SameSite**
+- [ ] **CSRF** (auth cookie-based)
+- [ ] **Turnstile** + **honeypot** (voir ci-dessous)
+- [ ] Stripe webhook **`constructEvent`** + table **`webhook_events`**
+- [ ] DB : pas de DROP / DELETE massif app · **`deleted_at`** · backup avant migration destructive
+- [ ] Table **`deployments`** (hash commit, date) — code sur GitHub uniquement
+- [ ] Migrations Prisma revues · pas de secrets en repo · secret scanning · Dependabot
+
+## Rate limiting
+
+| Contexte | Quota |
+|----------|--------|
+| Routes **non authentifiées** | **10 req/min** par IP |
+| Routes **authentifiées** | **100 req/min** par utilisateur (ou IP si pas de session) |
+
+Appliquer aussi sur auth, réservation, webhooks (seuils dédiés si besoin).
+
+## Honeypot
+
+- Champ caché **`website`** sur formulaire **inscription**
+- Si rempli → **bloquer IP** (log + refus, pas de compte créé)
+
+## Cloudflare Turnstile (obligatoire)
+
+- **Inscription**
+- **Connexion**
+- **Paiement** (Checkout / confirm)
+
+Validation **serveur** du token avant traitement.
+
+## Auth
+
+| Profil | Règle |
+|--------|--------|
+| **Convoyeur** (utilisateur final) | **Google OAuth obligatoire** — pas de magic link seul |
+| **Admin** | Magic link / OTP autorisé · Google OAuth optionnel |
+| **2FA** | Magic link possible comme **second facteur** (plus tard V1.x si scope) |
+
+Toujours : email verification · rôle **backend** · admin routes protégées · invalidation session si suspect · pas de token en `localStorage`.
+
+## Webhooks Stripe
+
+```typescript
+const event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+```
+
+- Idempotence : table **`webhook_events`** (`idempotency_key` = `event.id` ou clé Stripe)
+- Échec traitement → **abandonner la transaction** (rollback) — **pas de suppression** de données non liées
+- Metadata de confiance uniquement · log incohérences
+
+## Base de données
+
+- Rôle applicatif : **pas** de droit `DROP` ni `DELETE` large (pas de `TRUNCATE` métier)
+- Suppressions **logiques** : colonne **`deleted_at`** (Prisma soft delete)
+- **Backup obligatoire** avant toute migration destructive
+- Jamais simuler paiement réussi en SQL
+
+## Traçabilité déploiement
+
+Table **`deployments`** : `commit_hash`, `deployed_at`, `app_env`, `deployed_by` (optionnel).
+
+- **Code source** : GitHub uniquement — **ne pas** stocker le code dans la DB
+- Rollback = redéployer un commit/tag connu (hash enregistré)
+
+## Payment & réservations
+
+- DEV/REC : Stripe test · PREPROD : live + webhook test · PROD : live
+- Pending expiré → pas de paiement · 8 places · transaction + verrou
+- JWT QR : exp = départ + 10 min
+
+## Admin audit log
+
+`actor_id`, `action`, `target_type`, `target_id`, `timestamp`, `metadata`
+
+## Interdits
+
+- Open redirect · CORS `*` prod · secrets Git
+- Confiance client (places, rôle, paiement) · refresh non anonymisé → PROD
+- DELETE massif sur échec webhook · utilisateurs test en PROD

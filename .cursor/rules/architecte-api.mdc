@@ -1,0 +1,116 @@
+---
+description: API Architect — modules core, REST/Zod, auth, checks obligatoires par route
+globs: "{backend,api,server}/**/*.{ts,js},**/routes/**/*.{ts,js},**/middleware/**/*.{ts,js},**/services/**/*.{ts,js},**/modules/**/*.{ts,js},**/prisma/**"
+alwaysApply: false
+---
+
+# API Architect — Sharing Go
+
+APIs à **frontières nettes** : `routes/` → middleware → **`modules/<name>/`** (service + Zod schemas).
+
+CDC : `docs/CAHIER_DES_CHARGES.md` · sécurité : `reviewer-securite-code.mdc`.
+
+## Required API style
+
+REST · JSON · erreurs uniformes · **Zod** · **auth middleware** · **role middleware** · **service layer** (pas de métier dans les controllers).
+
+## Core modules
+
+Un module = `routes.ts` + `service.ts` + `schemas.ts` (+ `types.ts` si besoin).
+
+| Module | Responsabilité | Auth typique |
+|--------|----------------|--------------|
+| `auth` | login, logout, session | public / auth |
+| `users` | profil, historique trajets | auth (self) |
+| `lines` | ligne Châlons ↔ Vatry | public read |
+| `trips` | créneaux, places restantes | public read · admin write |
+| `reservations` | confirmées, QR, statut | auth (owner) |
+| `pending-reservations` | hold 2 min, expire | auth · **transaction DB** |
+| `payments` | Checkout, historique | auth · webhook Stripe |
+| `subscriptions` | abo 30 € / Mosolf 40 € | auth · Stripe |
+| `promo-codes` | Mosolf usage unique | auth + validation serveur |
+| `admin` | stats, dashboard | **admin only** |
+| `boarding` | validation QR / scan chauffeur | auth chauffeur ou token dédié |
+| `webhook-events` | idempotence Stripe | signature only · table `webhook_events` |
+
+```
+modules/
+  auth/ · users/ · lines/ · trips/
+  reservations/ · pending-reservations/
+  payments/ · subscriptions/ · promo-codes/
+  admin/ · boarding/
+```
+
+## Mandatory checks (chaque nouvelle route)
+
+Documenter dans la PR ou le commentaire route :
+
+| Question | Si oui → action |
+|----------|-----------------|
+| **Can this route be abused?** | rate limit, validation stricte, pas de mass assignment |
+| **Does this route require auth?** | `requireAuth` |
+| **Does it require admin?** | `requireRole('admin')` |
+| **Does it mutate payment/reservation state?** | transaction + idempotence + audit log |
+| **Is it idempotent?** | clé `event.id` / `Idempotency-Key` / garde « déjà traité » |
+| **Does it need a DB transaction?** | oui pour places, pending→confirmed, promo Mosolf |
+
+```typescript
+// ❌ Route sans checks documentés
+router.post('/reservations/pending', createPending);
+
+// ✅
+router.post(
+  '/reservations/pending',
+  requireAuth,
+  validate(CreatePendingSchema),
+  createPending, // service: transaction FOR UPDATE, expires_at +2min
+);
+```
+
+## Standard error format
+
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "Human readable message",
+    "details": {}
+  }
+}
+```
+
+Succès : `{ "data": { ... } }`.
+
+| HTTP | `code` |
+|------|--------|
+| 400 | `VALIDATION_ERROR` |
+| 401 | `UNAUTHORIZED` |
+| 403 | `FORBIDDEN` |
+| 404 | `RESOURCE_NOT_FOUND` |
+| 409 | `TRIP_FULL` |
+| 410 | `PENDING_EXPIRED` |
+| 422 | `PAYMENT_REQUIRED` |
+| 500 | `INTERNAL_ERROR` |
+
+## Routes V1 (par module)
+
+| Module | Route | Checks clés |
+|--------|-------|-------------|
+| `trips` | GET `/trips?date=` | public · places serveur |
+| `pending-reservations` | POST `/reservations/pending` | auth · **transaction** · abuse: spam hold |
+| `reservations` | POST `/:id/confirm` | auth · mutate · idempotent confirm |
+| `reservations` | GET `/:id/qr` | auth owner · JWT |
+| `payments` | POST `/webhooks/stripe` | raw body · signature · **idempotent** |
+| `admin` | CRUD `/admin/trips` | **admin** · mutate trips |
+| `boarding` | POST `/boarding/validate` | auth · verify JWT exp |
+
+## Stripe & métier
+
+- Webhook : `stripe.webhooks.constructEvent()` · persister dans **`webhook_events`** (`idempotency_key`)
+- Échec handler → **rollback** transaction — interdit DELETE hors scope
+- 1 Checkout = 1 trajet · metadata `reservationId` validée webhook
+- Pending expiré → `PENDING_EXPIRED`
+
+## Hors périmètre V1
+
+GraphQL · panier multi-items · WebSockets.

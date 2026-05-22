@@ -1,0 +1,41 @@
+---
+description: Constitution projet Sharing Go — CDC v1.0, périmètre V1, sources de vérité
+alwaysApply: true
+---
+
+# Constitution — Navette Sharing Go
+
+## Sources de vérité (ordre)
+
+1. `docs/CAHIER_DES_CHARGES.md` — produit global
+2. `docs/methodology/BMAD.md` — exécution obligatoire (humains + IA)
+3. `docs/prd/active/*.md` — **par feature** (modèle : `docs/prd/templates/PRD-template.md`)
+4. `PRODUCT.md` · `DESIGN.md` — contexte agents / UI
+5. `AGENTS.md` — skills · règles Cursor/Claude
+
+Toute divergence → versionner le document concerné (CDC, PRD, ou ADR dans `docs/decisions/`), pas improviser en code.
+
+**Aucune feature significative sans PRD** dans `docs/prd/active/`.
+
+## Produit verrouillé
+
+- Ligne **unique** : Châlons-en-Champagne ↔ Paris-Vatry
+- 8 trajets/jour, **8 places**/trajet
+- **Pas de panier** ; pending **2 min** ; ticket **8 €**/trajet
+- Mosolf : code **usage unique**, désactive les autres abos
+
+## Périmètre V1 uniquement
+
+Inclus : réservation, abos Stripe, planning admin, QR JWT, dashboard stats simples.
+
+**Interdit sans validation CDC** : multi-lignes, notifications V2, analytics avancés, Supabase/Neon.
+
+## Stack imposée
+
+Docker Compose · Postgres · Prisma · Express/TS · React/Vite/Tailwind · Nginx · Stripe · Lucia ou Auth.js · VPS.
+
+## Décisions
+
+- Diff minimal, pas de sur-ingénierie
+- Commits **uniquement sur demande** explicite utilisateur
+- Ne jamais versionner `.env`, clés Stripe, secrets JWT

@@ -1,0 +1,50 @@
+---
+description: Ingénieur infra — Docker Compose, Postgres, Nginx, Prisma, VPS
+globs: "{docker-compose*.yml,docker-compose*.yaml,**/Dockerfile*,**/nginx/**,**/prisma/schema.prisma}"
+alwaysApply: false
+---
+
+# Ingénieur — Sharing Go
+
+## Docker Compose (obligatoire)
+
+Services minimum V1 :
+
+| Service | Rôle |
+|---------|------|
+| `postgres` | Volume persistant, healthcheck |
+| `api` | Node Express/TS, dépend de postgres healthy |
+| `frontend` | Build Vite → artefacts statiques |
+| `nginx` | Reverse proxy, sert static + proxy `/api` |
+
+```yaml
+# ✅ Postgres avec volume nommé
+volumes:
+  pgdata:
+
+# ❌ Pas de Supabase, pas de Neon managed dans le compose
+```
+
+## Nginx
+
+- `/` → static React · `/api` → upstream api
+- Timeouts adaptés webhooks Stripe (body brut non transformé)
+
+## Prisma
+
+- `DATABASE_URL` via env ; migrations au deploy (`prisma migrate deploy`)
+- Seed dev séparé ; pas de données prod en seed
+
+## Prod VPS
+
+- Compose ou stack équivalent ; TLS termination (Nginx ou reverse externe)
+- Backup **quotidien** PROD → autre VPS ou S3 · script **`restore-backup.sh`** dans `scripts/`
+- REC : conteneur Postgres **dédié** sur VPS · PREPROD : réplica/clone séparé
+
+## Environnements
+
+4 env isolés : **DEV · RECETTE · PREPROD · PROD** — une DB chacun. Détail : `environments.mdc`.
+
+## Local dev (DEV)
+
+- Stripe CLI : `stripe listen --forward-to localhost:PORT/webhooks/stripe`
