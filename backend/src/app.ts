@@ -8,6 +8,7 @@ import { asyncHandler } from "./lib/async-handler.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 import { notFoundMiddleware } from "./middleware/not-found.middleware.js";
 import { requestIdMiddleware } from "./middleware/request-id.middleware.js";
+import { adminOperationsRouter } from "./modules/admin/admin.routes.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { stripeWebhookHandler } from "./modules/payments/payments.controller.js";
 import { paymentsRouter } from "./modules/payments/payments.routes.js";
@@ -52,6 +53,7 @@ export function createApp(): Express {
   app.use(healthRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/admin", transportAdminRouter);
+  app.use("/api/admin", adminOperationsRouter);
   app.use("/api/trips", publicTripsRouter);
   app.use("/api/reservations", reservationsRouter);
   app.use("/api/payments", paymentsRouter);
