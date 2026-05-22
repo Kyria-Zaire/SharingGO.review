@@ -1,0 +1,820 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Sharing Go API",
+    "version": "0.1.0-mvp",
+    "description": "API MVP Sharing Go — auth par cookie de session, trajets publics, réservations pending, paiement Stripe Checkout, administration transport et supervision.\n\n**Rate limiting (S1.5-T4)** : auth 10 req / 15 min ; public trips 120 req / min ; pending 10 / min ; checkout 5 / min ; admin 60 / min. Codes `RATE_LIMITED_*`. Webhook Stripe **exempté** des limiters agressifs.\n\n**Documentation** : désactivable en production via `ENABLE_API_DOCS=false`."
+  },
+  "servers": [{ "url": "http://localhost:3000", "description": "Développement local" }],
+  "tags": [
+    { "name": "Health", "description": "Santé du service" },
+    { "name": "Auth", "description": "Inscription, connexion, session" },
+    { "name": "Public Trips", "description": "Lecture publique des trajets" },
+    { "name": "Reservations", "description": "Pending et historique utilisateur" },
+    { "name": "Payments", "description": "Checkout et statut paiements" },
+    { "name": "Admin Lines", "description": "CRUD lignes (ADMIN / SUPER_ADMIN)" },
+    { "name": "Admin Trips", "description": "CRUD trajets admin" },
+    { "name": "Admin Operations", "description": "Supervision réservations, paiements, pending, occupation" },
+    { "name": "Webhooks", "description": "Stripe uniquement — ne pas appeler depuis le frontend" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sharinggo_session",
+        "description": "Cookie HttpOnly émis après `POST /api/auth/login` ou `register`. Nom configurable via `SESSION_COOKIE_NAME` (défaut `sharinggo_session`). Routes admin requièrent en plus le rôle `ADMIN` ou `SUPER_ADMIN`."
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["message", "code", "requestId"],
+            "properties": {
+              "message": { "type": "string" },
+              "code": { "type": "string", "description": "Ex. UNAUTHORIZED, VALIDATION_ERROR, RATE_LIMITED_AUTH" },
+              "requestId": { "type": "string" }
+            }
+          }
+        }
+      },
+      "UserSafe": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "firstName": { "type": "string", "nullable": true },
+          "lastName": { "type": "string", "nullable": true },
+          "userType": { "type": "string", "enum": ["PASSENGER", "CONVOYEUR", "ADMIN", "SUPER_ADMIN"] }
+        }
+      },
+      "Line": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "startCity": { "type": "string" },
+          "endCity": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TripPublicLine": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "startCity": { "type": "string" },
+          "endCity": { "type": "string" }
+        }
+      },
+      "TripPublic": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "line": { "$ref": "#/components/schemas/TripPublicLine" },
+          "departureTime": { "type": "string", "format": "date-time" },
+          "arrivalTime": { "type": "string", "format": "date-time", "nullable": true },
+          "totalSeats": { "type": "integer" },
+          "reservedSeats": { "type": "integer" },
+          "remainingSeats": { "type": "integer" },
+          "isFull": { "type": "boolean" }
+        }
+      },
+      "DriverSummary": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "id": { "type": "string" },
+          "email": { "type": "string" },
+          "firstName": { "type": "string", "nullable": true },
+          "lastName": { "type": "string", "nullable": true },
+          "userType": { "type": "string" }
+        }
+      },
+      "TripAdmin": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "lineId": { "type": "string" },
+          "line": { "$ref": "#/components/schemas/Line" },
+          "driverId": { "type": "string", "nullable": true },
+          "driver": { "$ref": "#/components/schemas/DriverSummary" },
+          "departureTime": { "type": "string", "format": "date-time" },
+          "arrivalTime": { "type": "string", "format": "date-time", "nullable": true },
+          "totalSeats": { "type": "integer" },
+          "deletedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaymentSafe": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string", "enum": ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"] },
+          "type": { "type": "string", "enum": ["TICKET", "SUBSCRIPTION"] },
+          "amount": { "type": "string", "example": "8.00" },
+          "currency": { "type": "string", "example": "eur" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaymentSafeWithReservation": {
+        "allOf": [
+          { "$ref": "#/components/schemas/PaymentSafe" },
+          {
+            "type": "object",
+            "properties": {
+              "reservation": { "$ref": "#/components/schemas/ReservationUserMinimal", "nullable": true }
+            }
+          }
+        ]
+      },
+      "PaymentAdmin": {
+        "allOf": [
+          { "$ref": "#/components/schemas/PaymentSafe" },
+          {
+            "type": "object",
+            "properties": {
+              "reservationId": { "type": "string", "nullable": true },
+              "user": { "$ref": "#/components/schemas/UserSafe" },
+              "stripePaymentIntentRef": { "type": "string", "nullable": true, "example": "pi_abc1...wxyz", "description": "Référence courte — jamais l'ID Stripe complet" },
+              "stripeCheckoutSessionRef": { "type": "string", "nullable": true, "example": "cs_test...9xyz" }
+            }
+          }
+        ]
+      },
+      "ReservationTrip": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "departureTime": { "type": "string", "format": "date-time" },
+          "arrivalTime": { "type": "string", "format": "date-time", "nullable": true },
+          "line": { "$ref": "#/components/schemas/TripPublicLine" }
+        }
+      },
+      "ReservationUserMinimal": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string", "enum": ["CONFIRMED", "USED", "CANCELLED"] },
+          "trip": { "$ref": "#/components/schemas/ReservationTrip" }
+        }
+      },
+      "ReservationUser": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string" },
+          "trip": { "$ref": "#/components/schemas/ReservationTrip" },
+          "payment": { "$ref": "#/components/schemas/PaymentSafe", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ReservationAdmin": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "status": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/UserSafe" },
+          "trip": { "$ref": "#/components/schemas/ReservationTrip" },
+          "payment": { "$ref": "#/components/schemas/PaymentSafe", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PendingReservation": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "trip": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "departureTime": { "type": "string", "format": "date-time" }
+            }
+          },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "isExpired": { "type": "boolean" }
+        }
+      },
+      "PendingReservationAdmin": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "user": { "$ref": "#/components/schemas/UserSafe" },
+          "trip": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "departureTime": { "type": "string", "format": "date-time" },
+              "line": { "$ref": "#/components/schemas/TripPublicLine" }
+            }
+          },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "consumedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "isActive": { "type": "boolean" },
+          "isExpired": { "type": "boolean" },
+          "isConsumed": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreatePendingResult": {
+        "type": "object",
+        "properties": {
+          "pendingReservationId": { "type": "string" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "remainingSeats": { "type": "integer" }
+        }
+      },
+      "CheckoutResult": {
+        "type": "object",
+        "properties": {
+          "checkoutUrl": { "type": "string", "format": "uri", "description": "URL Stripe Checkout (redirection navigateur)" },
+          "stripeCheckoutSessionId": { "type": "string", "description": "ID session Stripe (usage serveur / redirection)" }
+        }
+      },
+      "Occupancy": {
+        "type": "object",
+        "properties": {
+          "trip": { "type": "object" },
+          "totalSeats": { "type": "integer" },
+          "confirmedSeats": { "type": "integer" },
+          "usedSeats": { "type": "integer" },
+          "activePendingSeats": { "type": "integer" },
+          "occupiedSeats": { "type": "integer" },
+          "remainingSeats": { "type": "integer" },
+          "isFull": { "type": "boolean" }
+        }
+      },
+      "PaginatedMeta": {
+        "type": "object",
+        "properties": {
+          "limit": { "type": "integer" },
+          "offset": { "type": "integer" }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 8 },
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Non authentifié",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "error": { "message": "Authentication required", "code": "UNAUTHORIZED", "requestId": "uuid" } }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Permissions insuffisantes",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "error": { "message": "Insufficient permissions", "code": "FORBIDDEN", "requestId": "uuid" } }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Corps ou query invalides",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "error": { "message": "Validation failed", "code": "VALIDATION_ERROR", "requestId": "uuid" } }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Quota dépassé (voir code RATE_LIMITED_*)",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": { "error": { "message": "Too many requests", "code": "RATE_LIMITED_AUTH", "requestId": "uuid" } }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Service et base OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "enum": ["ok"] },
+                    "service": { "type": "string" },
+                    "environment": { "type": "string" },
+                    "timestamp": { "type": "string", "format": "date-time" },
+                    "database": { "type": "object", "properties": { "status": { "type": "string" } } }
+                  }
+                }
+              }
+            }
+          },
+          "503": { "description": "Base indisponible" }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Inscription",
+        "description": "Rate limit : 10 req / 15 min / IP (`RATE_LIMITED_AUTH`).",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RegisterRequest" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Compte créé, cookie de session posé",
+            "content": { "application/json": { "schema": { "type": "object", "properties": { "user": { "$ref": "#/components/schemas/UserSafe" } } } } }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "description": "Email déjà utilisé", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Connexion",
+        "description": "Rate limit : 10 req / 15 min / IP (`RATE_LIMITED_AUTH`).",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion OK, cookie de session",
+            "content": { "application/json": { "schema": { "type": "object", "properties": { "user": { "$ref": "#/components/schemas/UserSafe" } } } } }
+          },
+          "401": { "description": "Identifiants invalides" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Utilisateur courant",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserSafe" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Déconnexion",
+        "responses": { "204": { "description": "Session révoquée, cookie effacé" } }
+      }
+    },
+    "/api/trips": {
+      "get": {
+        "tags": ["Public Trips"],
+        "summary": "Liste des trajets publics",
+        "description": "Rate limit : 120 req / min / IP (`RATE_LIMITED_PUBLIC_READ`).",
+        "parameters": [
+          { "name": "lineId", "in": "query", "schema": { "type": "string" } },
+          { "name": "date", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "from", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "to", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "default": 0 } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "trips": { "type": "array", "items": { "$ref": "#/components/schemas/TripPublic" } },
+                    "limit": { "type": "integer" },
+                    "offset": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/trips/{id}": {
+      "get": {
+        "tags": ["Public Trips"],
+        "summary": "Détail trajet public",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TripPublic" } } } },
+          "404": { "description": "TRIP_NOT_FOUND" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/reservations/pending": {
+      "post": {
+        "tags": ["Reservations"],
+        "summary": "Créer une pending reservation",
+        "description": "Rate limit : 10 req / min / IP (`RATE_LIMITED_RESERVATION`). TTL ~2 minutes.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["tripId"], "properties": { "tripId": { "type": "string" } } }
+            }
+          }
+        },
+        "responses": {
+          "201": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CreatePendingResult" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "description": "TRIP_NOT_FOUND" },
+          "409": { "description": "TRIP_FULL ou PENDING_ALREADY_EXISTS" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/reservations/pending/{id}": {
+      "get": {
+        "tags": ["Reservations"],
+        "summary": "Détail pending",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PendingReservation" } } } },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "description": "PENDING_NOT_FOUND" },
+          "410": { "description": "PENDING_EXPIRED" }
+        }
+      },
+      "delete": {
+        "tags": ["Reservations"],
+        "summary": "Annuler pending",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "204": { "description": "Annulée" }, "403": { "$ref": "#/components/responses/Forbidden" } }
+      }
+    },
+    "/api/reservations": {
+      "get": {
+        "tags": ["Reservations"],
+        "summary": "Historique réservations utilisateur",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "upcoming", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "past", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reservations": { "type": "array", "items": { "$ref": "#/components/schemas/ReservationUser" } },
+                    "limit": { "type": "integer" },
+                    "offset": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/api/reservations/{id}": {
+      "get": {
+        "tags": ["Reservations"],
+        "summary": "Détail réservation utilisateur",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReservationUser" } } } },
+          "404": { "description": "RESERVATION_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/payments/checkout": {
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Créer session Stripe Checkout",
+        "description": "Rate limit : 5 req / min / IP (`RATE_LIMITED_CHECKOUT`). Ticket unique 8 EUR.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["pendingReservationId"],
+                "properties": { "pendingReservationId": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckoutResult" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "description": "PENDING_NOT_FOUND" },
+          "410": { "description": "PENDING_EXPIRED" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/payments": {
+      "get": {
+        "tags": ["Payments"],
+        "summary": "Liste paiements utilisateur",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "type", "in": "query", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "payments": { "type": "array", "items": { "$ref": "#/components/schemas/PaymentSafeWithReservation" } },
+                    "limit": { "type": "integer" },
+                    "offset": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/payments/{id}": {
+      "get": {
+        "tags": ["Payments"],
+        "summary": "Détail paiement utilisateur",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaymentSafeWithReservation" } } } },
+          "404": { "description": "PAYMENT_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/admin/lines": {
+      "post": {
+        "tags": ["Admin Lines"],
+        "summary": "Créer une ligne",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "startCity", "endCity"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "startCity": { "type": "string" },
+                  "endCity": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Ligne créée" }, "403": { "$ref": "#/components/responses/Forbidden" } }
+      },
+      "get": {
+        "tags": ["Admin Lines"],
+        "summary": "Liste lignes",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "200": { "description": "OK" }, "429": { "$ref": "#/components/responses/RateLimited" } }
+      }
+    },
+    "/api/admin/lines/{id}": {
+      "get": {
+        "tags": ["Admin Lines"],
+        "summary": "Détail ligne",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "OK" }, "404": { "description": "LINE_NOT_FOUND" } }
+      },
+      "patch": {
+        "tags": ["Admin Lines"],
+        "summary": "Mettre à jour ligne",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/admin/trips": {
+      "post": {
+        "tags": ["Admin Trips"],
+        "summary": "Créer un trajet",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "201": { "description": "Trajet créé" } }
+      },
+      "get": {
+        "tags": ["Admin Trips"],
+        "summary": "Liste trajets admin",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/admin/trips/{id}": {
+      "get": {
+        "tags": ["Admin Trips"],
+        "summary": "Détail trajet admin",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TripAdmin" } } } } }
+      },
+      "patch": {
+        "tags": ["Admin Trips"],
+        "summary": "Mettre à jour trajet",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/admin/trips/{id}/disable": {
+      "post": {
+        "tags": ["Admin Trips"],
+        "summary": "Désactiver trajet",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/admin/trips/{id}/enable": {
+      "post": {
+        "tags": ["Admin Trips"],
+        "summary": "Réactiver trajet",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/admin/reservations": {
+      "get": {
+        "tags": ["Admin Operations"],
+        "summary": "Liste réservations (admin)",
+        "description": "Rate limit admin : 60 req / min / IP.",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reservations": { "type": "array", "items": { "$ref": "#/components/schemas/ReservationAdmin" } },
+                    "limit": { "type": "integer" },
+                    "offset": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/admin/reservations/{id}": {
+      "get": {
+        "tags": ["Admin Operations"],
+        "summary": "Détail réservation admin",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReservationAdmin" } } } } }
+      }
+    },
+    "/api/admin/payments": {
+      "get": {
+        "tags": ["Admin Operations"],
+        "summary": "Liste paiements admin",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "payments": { "type": "array", "items": { "$ref": "#/components/schemas/PaymentAdmin" } },
+                    "limit": { "type": "integer" },
+                    "offset": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/pending-reservations": {
+      "get": {
+        "tags": ["Admin Operations"],
+        "summary": "Liste pending (admin)",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pendingReservations": { "type": "array", "items": { "$ref": "#/components/schemas/PendingReservationAdmin" } },
+                    "limit": { "type": "integer" },
+                    "offset": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/trips/{id}/occupancy": {
+      "get": {
+        "tags": ["Admin Operations"],
+        "summary": "Occupation d'un trajet",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Occupancy" } } } },
+          "404": { "description": "TRIP_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/webhooks/stripe": {
+      "post": {
+        "tags": ["Webhooks"],
+        "summary": "Webhook Stripe (serveur Stripe uniquement)",
+        "description": "**Ne pas appeler depuis le frontend.** Corps raw JSON + header `Stripe-Signature`. Validé par `constructEvent`. **Exempté** des rate limiters API. Réponse `{ received: true }` si traité.",
+        "parameters": [
+          {
+            "name": "Stripe-Signature",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Signature Stripe (whsec configuré côté serveur)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "type": "object", "description": "Événement Stripe brut" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Événement accepté",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "received": { "type": "boolean" } } }
+              }
+            }
+          },
+          "400": { "description": "STRIPE_SIGNATURE_INVALID" }
+        }
+      }
+    }
+  }
+}

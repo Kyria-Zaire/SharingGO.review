@@ -15,6 +15,7 @@ import { paymentsRouter } from "./modules/payments/payments.routes.js";
 import { reservationsRouter } from "./modules/reservations/reservations.routes.js";
 import { publicTripsRouter } from "./modules/trips/public-trips.routes.js";
 import { transportAdminRouter } from "./modules/transport/transport.routes.js";
+import { docsRouter } from "./routes/docs.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 
 export function createApp(): Express {
@@ -40,6 +41,9 @@ export function createApp(): Express {
   app.use(cookieParser());
 
   app.use(healthRouter);
+  if (env.enableApiDocs) {
+    app.use("/api", docsRouter);
+  }
   app.use("/api/auth", authRouter);
   app.use("/api/admin", adminLimiter);
   app.use("/api/admin", transportAdminRouter);

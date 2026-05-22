@@ -3,6 +3,7 @@ export type NodeEnv = "development" | "test" | "production";
 export interface Env {
   nodeEnv: NodeEnv;
   port: number;
+  enableApiDocs: boolean;
   databaseUrl: string;
   corsOrigin: string;
   sessionTtlDays: number;
@@ -24,6 +25,14 @@ function requireEnv(name: string): string {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value.trim();
+}
+
+function parseEnableApiDocs(nodeEnv: NodeEnv): boolean {
+  const raw = process.env.ENABLE_API_DOCS;
+  if (raw !== undefined && raw.trim() !== "") {
+    return raw.trim().toLowerCase() === "true";
+  }
+  return nodeEnv === "development";
 }
 
 function parsePositiveInt(name: string, raw: string): number {
@@ -93,6 +102,7 @@ function parseEnv(): Env {
   return {
     nodeEnv: nodeEnvRaw,
     port,
+    enableApiDocs: parseEnableApiDocs(nodeEnvRaw),
     databaseUrl,
     corsOrigin,
     sessionTtlDays,
