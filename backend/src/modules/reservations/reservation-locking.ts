@@ -23,3 +23,18 @@ export async function lockTripForUpdate(
 
   return rows[0] ?? null;
 }
+
+/** Locks a reservation row with PostgreSQL `FOR UPDATE` inside an open transaction. */
+export async function lockReservationForUpdate(
+  tx: Prisma.TransactionClient,
+  reservationId: string
+): Promise<{ id: string } | null> {
+  const rows = await tx.$queryRaw<{ id: string }[]>`
+    SELECT id
+    FROM "Reservation"
+    WHERE id = ${reservationId}
+    FOR UPDATE
+  `;
+
+  return rows[0] ?? null;
+}

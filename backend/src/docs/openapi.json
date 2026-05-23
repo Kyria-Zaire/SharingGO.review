@@ -304,6 +304,72 @@
           "reason": { "$ref": "#/components/schemas/BoardingValidationReason" }
         }
       },
+      "BoardingConsumptionReason": {
+        "type": "string",
+        "enum": [
+          "INVALID_TOKEN",
+          "EXPIRED_TOKEN",
+          "INVALID_TYPE",
+          "INVALID_PAYLOAD",
+          "RESERVATION_NOT_FOUND",
+          "TOKEN_REVOKED",
+          "RESERVATION_NOT_CONFIRMED",
+          "TRIP_DISABLED",
+          "BOARDING_WINDOW_EXPIRED",
+          "PAYMENT_NOT_SUCCEEDED",
+          "BOARDING_ALREADY_USED",
+          "INTERNAL_CONSUMPTION_ERROR"
+        ]
+      },
+      "BoardingConsumptionSuccess": {
+        "type": "object",
+        "required": ["valid", "consumed", "reservation", "trip", "passenger"],
+        "properties": {
+          "valid": { "type": "boolean", "enum": [true] },
+          "consumed": { "type": "boolean", "enum": [true] },
+          "reservation": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "status": { "type": "string", "enum": ["USED"] },
+              "usedAt": { "type": "string", "format": "date-time" }
+            }
+          },
+          "trip": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "departureTime": { "type": "string", "format": "date-time" }
+            }
+          },
+          "passenger": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "firstName": { "type": "string", "nullable": true },
+              "lastName": { "type": "string", "nullable": true }
+            }
+          }
+        }
+      },
+      "BoardingConsumptionAlreadyUsed": {
+        "type": "object",
+        "required": ["valid", "consumed", "reason"],
+        "properties": {
+          "valid": { "type": "boolean", "enum": [true] },
+          "consumed": { "type": "boolean", "enum": [false] },
+          "reason": { "type": "string", "enum": ["BOARDING_ALREADY_USED"] }
+        }
+      },
+      "BoardingConsumptionFailure": {
+        "type": "object",
+        "required": ["valid", "consumed", "reason"],
+        "properties": {
+          "valid": { "type": "boolean", "enum": [false] },
+          "consumed": { "type": "boolean", "enum": [false] },
+          "reason": { "$ref": "#/components/schemas/BoardingConsumptionReason" }
+        }
+      },
       "ReservationAdmin": {
         "type": "object",
         "properties": {
@@ -724,6 +790,42 @@
         "responses": {
           "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReservationUser" } } } },
           "404": { "description": "RESERVATION_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/boarding/consume": {
+      "post": {
+        "tags": ["Boarding"],
+        "summary": "Consommer un JWT d'embarquement (admin)",
+        "description": "Auth cookie + rôle `ADMIN` ou `SUPER_ADMIN` (S2-T3). Valide le JWT puis passe la réservation en `USED` de façon transactionnelle (`SELECT FOR UPDATE`). Double scan : `valid=true`, `consumed=false`, `reason=BOARDING_ALREADY_USED` uniquement si le JWT correspond encore à la réservation. HTTP **200** pour tous les cas métier.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BoardingValidationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consommation ou rejet métier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/BoardingConsumptionSuccess" },
+                    { "$ref": "#/components/schemas/BoardingConsumptionAlreadyUsed" },
+                    { "$ref": "#/components/schemas/BoardingConsumptionFailure" }
+                  ]
+                }
+              }
+            }
+          },
+          "400": { "description": "Body invalide" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }
     },

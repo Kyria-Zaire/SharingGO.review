@@ -6,6 +6,7 @@ import {
   validateBoardingTokenBodySchema,
 } from "./boarding.schemas.js";
 import { generateBoardingToken } from "./boarding.service.js";
+import { consumeBoardingTokenSubmission } from "./boarding.consumption.service.js";
 import { validateBoardingTokenSubmission } from "./boarding.validation.service.js";
 
 function requireUserId(req: Request): string {
@@ -29,6 +30,17 @@ export async function validateBoardingTokenHandler(req: Request, res: Response):
   const adminUserId = requireUserId(req);
   const { boardingToken } = parseBody(validateBoardingTokenBodySchema, req.body);
   const result = await validateBoardingTokenSubmission(
+    boardingToken,
+    adminUserId,
+    req.requestId
+  );
+  res.status(200).json(result);
+}
+
+export async function consumeBoardingTokenHandler(req: Request, res: Response): Promise<void> {
+  const adminUserId = requireUserId(req);
+  const { boardingToken } = parseBody(validateBoardingTokenBodySchema, req.body);
+  const result = await consumeBoardingTokenSubmission(
     boardingToken,
     adminUserId,
     req.requestId
