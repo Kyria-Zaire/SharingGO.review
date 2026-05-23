@@ -355,12 +355,27 @@
           "INTERNAL_CONSUMPTION_ERROR"
         ]
       },
+      "BoardingUiMessage": {
+        "type": "object",
+        "required": ["status", "title", "message"],
+        "description": "Métadonnées d'affichage pour l'écran chauffeur (S2-T5). Le client affiche status/title/message sans logique métier locale.",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "warning", "error"],
+            "description": "success = embarquement OK, warning = déjà utilisé / fenêtre, error = rejet"
+          },
+          "title": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      },
       "BoardingConsumptionSuccess": {
         "type": "object",
-        "required": ["valid", "consumed", "reservation", "trip", "passenger"],
+        "required": ["valid", "consumed", "ui", "reservation", "trip", "passenger"],
         "properties": {
           "valid": { "type": "boolean", "enum": [true] },
           "consumed": { "type": "boolean", "enum": [true] },
+          "ui": { "$ref": "#/components/schemas/BoardingUiMessage" },
           "reservation": {
             "type": "object",
             "properties": {
@@ -388,20 +403,45 @@
       },
       "BoardingConsumptionAlreadyUsed": {
         "type": "object",
-        "required": ["valid", "consumed", "reason"],
+        "required": ["valid", "consumed", "reason", "ui"],
         "properties": {
           "valid": { "type": "boolean", "enum": [true] },
           "consumed": { "type": "boolean", "enum": [false] },
-          "reason": { "type": "string", "enum": ["BOARDING_ALREADY_USED"] }
+          "reason": { "type": "string", "enum": ["BOARDING_ALREADY_USED"] },
+          "ui": { "$ref": "#/components/schemas/BoardingUiMessage" },
+          "reservation": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "status": { "type": "string" },
+              "usedAt": { "type": "string", "format": "date-time", "nullable": true }
+            }
+          },
+          "trip": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "departureTime": { "type": "string", "format": "date-time" }
+            }
+          },
+          "passenger": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "firstName": { "type": "string", "nullable": true },
+              "lastName": { "type": "string", "nullable": true }
+            }
+          }
         }
       },
       "BoardingConsumptionFailure": {
         "type": "object",
-        "required": ["valid", "consumed", "reason"],
+        "required": ["valid", "consumed", "reason", "ui"],
         "properties": {
           "valid": { "type": "boolean", "enum": [false] },
           "consumed": { "type": "boolean", "enum": [false] },
-          "reason": { "$ref": "#/components/schemas/BoardingConsumptionReason" }
+          "reason": { "$ref": "#/components/schemas/BoardingConsumptionReason" },
+          "ui": { "$ref": "#/components/schemas/BoardingUiMessage" }
         }
       },
       "ReservationAdmin": {
@@ -831,7 +871,7 @@
       "post": {
         "tags": ["Boarding"],
         "summary": "Consommer un JWT d'embarquement (admin)",
-        "description": "Auth cookie + rôle `ADMIN` ou `SUPER_ADMIN` (S2-T3). Valide le JWT puis passe la réservation en `USED` de façon transactionnelle (`SELECT FOR UPDATE`). Double scan : `valid=true`, `consumed=false`, `reason=BOARDING_ALREADY_USED` uniquement si le JWT correspond encore à la réservation. HTTP **200** pour tous les cas métier.",
+        "description": "Auth cookie + rôle `ADMIN` ou `SUPER_ADMIN` (S2-T3). Valide le JWT puis passe la réservation en `USED` de façon transactionnelle (`SELECT FOR UPDATE`). Double scan : `valid=true`, `consumed=false`, `reason=BOARDING_ALREADY_USED` uniquement si le JWT correspond encore à la réservation. HTTP **200** pour tous les cas métier. **S2-T5** : chaque réponse inclut `ui: { status, title, message }` (`success` | `warning` | `error`) pour l'écran chauffeur sans logique métier côté mobile.",
         "security": [{ "cookieAuth": [] }],
         "requestBody": {
           "required": true,

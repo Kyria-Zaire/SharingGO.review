@@ -2,6 +2,7 @@ import {
   BOARDING_CONSUMPTION_REASONS,
   type BoardingConsumptionReason,
 } from "./boarding-consumption-reasons.js";
+import type { BoardingUiMessage } from "./boarding-ui.types.js";
 
 export interface BoardingConsumptionPassengerDto {
   id: string;
@@ -23,6 +24,7 @@ export interface BoardingConsumptionReservationDto {
 export interface BoardingConsumptionSuccessResponse {
   valid: true;
   consumed: true;
+  ui: BoardingUiMessage;
   reservation: BoardingConsumptionReservationDto;
   trip: BoardingConsumptionTripDto;
   passenger: BoardingConsumptionPassengerDto;
@@ -32,12 +34,17 @@ export interface BoardingConsumptionAlreadyUsedResponse {
   valid: true;
   consumed: false;
   reason: typeof BOARDING_CONSUMPTION_REASONS.BOARDING_ALREADY_USED;
+  ui: BoardingUiMessage;
+  reservation?: BoardingConsumptionReservationDto;
+  trip?: BoardingConsumptionTripDto;
+  passenger?: BoardingConsumptionPassengerDto;
 }
 
 export interface BoardingConsumptionFailureResponse {
   valid: false;
   consumed: false;
   reason: BoardingConsumptionReason;
+  ui: BoardingUiMessage;
 }
 
 export type BoardingConsumptionResponse =

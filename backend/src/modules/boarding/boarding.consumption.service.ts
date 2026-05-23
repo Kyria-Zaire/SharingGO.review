@@ -13,6 +13,11 @@ import {
 } from "./boarding-eligibility.js";
 import { verifyBoardingToken } from "./boarding-jwt.js";
 import type { BoardingConsumptionResponse } from "./boarding.consumption.types.js";
+import {
+  getConsumeAlreadyUsedUi,
+  getConsumeFailureUi,
+  getConsumeSuccessUi,
+} from "./boarding-ui-messages.js";
 import { BoardingTokenVerificationError } from "./boarding.types.js";
 import type { VerifiedBoardingPayload } from "./boarding.types.js";
 
@@ -76,7 +81,7 @@ function failure(
     requestId: context.requestId,
   });
 
-  return { valid: false, consumed: false, reason };
+  return { valid: false, consumed: false, reason, ui: getConsumeFailureUi(reason) };
 }
 
 function toSuccessResponse(
@@ -91,6 +96,7 @@ function toSuccessResponse(
   return {
     valid: true,
     consumed: true,
+    ui: getConsumeSuccessUi(),
     reservation: {
       id: reservation.id,
       status: reservation.status,
@@ -110,15 +116,14 @@ function toSuccessResponse(
 
 async function handleAlreadyUsed(
   adminUserId: string,
-  reservationId: string,
-  tripId: string,
+  reservation: ReservationForBoarding,
   requestId: string | undefined
 ): Promise<BoardingConsumptionResponse> {
   await auditConsumption({
     actorUserId: adminUserId,
     action: "BOARDING_ALREADY_USED",
-    reservationId,
-    tripId,
+    reservationId: reservation.id,
+    tripId: reservation.trip.id,
     reason: BOARDING_CONSUMPTION_REASONS.BOARDING_ALREADY_USED,
     requestId,
   });
@@ -127,6 +132,21 @@ async function handleAlreadyUsed(
     valid: true,
     consumed: false,
     reason: BOARDING_CONSUMPTION_REASONS.BOARDING_ALREADY_USED,
+    ui: getConsumeAlreadyUsedUi(),
+    reservation: {
+      id: reservation.id,
+      status: reservation.status,
+      usedAt: reservation.usedAt?.toISOString(),
+    },
+    trip: {
+      id: reservation.trip.id,
+      departureTime: reservation.trip.departureTime.toISOString(),
+    },
+    passenger: {
+      id: reservation.user.id,
+      firstName: reservation.user.firstName,
+      lastName: reservation.user.lastName,
+    },
   };
 }
 
@@ -217,7 +237,7 @@ export async function consumeBoardingTokenSubmission(
     if (preCheck.status === ReservationStatus.USED) {
       const usedReason = evaluateUsedBoardingMatch(preCheck, payload);
       if (usedReason === null) {
-        return handleAlreadyUsed(adminUserId, preCheck.id, preCheck.trip.id, requestId);
+        return handleAlreadyUsed(adminUserId, preCheck, requestId);
       }
       return failure(adminUserId, usedReason, context);
     }
@@ -247,7 +267,14 @@ export async function consumeBoardingTokenSubmission(
     }
 
     if (txResult.type === "already_used") {
-      return handleAlreadyUsed(adminUserId, payload.reservationId, payload.tripId, requestId);
+      const usedReservation = await prisma.reservation.findUnique({
+        where: { id: payload.reservationId },
+        include: reservationBoardingInclude,
+      });
+      if (!usedReservation) {
+        return failure(adminUserId, BOARDING_CONSUMPTION_REASONS.RESERVATION_NOT_FOUND, context);
+      }
+      return handleAlreadyUsed(adminUserId, usedReservation, requestId);
     }
 
     await auditConsumption({
@@ -288,6 +315,7 @@ export async function consumeBoardingTokenSubmission(
       valid: false,
       consumed: false,
       reason: BOARDING_CONSUMPTION_REASONS.INTERNAL_CONSUMPTION_ERROR,
+      ui: getConsumeFailureUi(BOARDING_CONSUMPTION_REASONS.INTERNAL_CONSUMPTION_ERROR),
     };
   }
 }
