@@ -232,6 +232,40 @@
           }
         }
       },
+      "BoardingQrContractResponse": {
+        "type": "object",
+        "required": ["reservationId", "tripId", "expiresAt", "qr"],
+        "description": "Contrat QR pour affichage côté client (S2-T4). **Aucune image** PNG/SVG/base64 — le frontend/mobile encode `qr.payload` en QR localement.",
+        "properties": {
+          "reservationId": { "type": "string" },
+          "tripId": { "type": "string" },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Expiration du JWT = departureTime + 10 minutes"
+          },
+          "qr": {
+            "type": "object",
+            "required": ["format", "payload", "recommendedEncoding"],
+            "properties": {
+              "format": {
+                "type": "string",
+                "enum": ["jwt"],
+                "description": "Format du contenu à encoder dans le QR"
+              },
+              "payload": {
+                "type": "string",
+                "description": "JWT boarding signé HS256 — chaîne exacte à passer au générateur QR (QR_TEXT)"
+              },
+              "recommendedEncoding": {
+                "type": "string",
+                "enum": ["QR_TEXT"],
+                "description": "Encoder le JWT comme texte brut dans le QR"
+              }
+            }
+          }
+        }
+      },
       "BoardingValidationRequest": {
         "type": "object",
         "required": ["boardingToken"],
@@ -861,6 +895,36 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "403": { "$ref": "#/components/responses/Forbidden" },
           "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/boarding/{reservationId}/qr": {
+      "get": {
+        "tags": ["Boarding"],
+        "summary": "Contrat QR d'embarquement (passager)",
+        "description": "Auth obligatoire, **propriétaire uniquement** (S2-T4). Réutilise la génération S2-T1 : retourne le JWT à encoder + métadonnées. Le client (web/mobile) **génère l'image QR localement** — le backend ne retourne jamais PNG, SVG, data URL ni base64 image. `qr.payload` est validable via `POST /api/boarding/validate` (admin).",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          { "name": "reservationId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BoardingQrContractResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "description": "RESERVATION_NOT_FOUND" },
+          "409": {
+            "description": "RESERVATION_NOT_CONFIRMED ou BOARDING_NOT_AVAILABLE",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "410": {
+            "description": "BOARDING_EXPIRED",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          }
         }
       }
     },

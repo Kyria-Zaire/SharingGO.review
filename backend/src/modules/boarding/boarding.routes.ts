@@ -5,6 +5,7 @@ import { adminLimiter } from "../../middleware/rate-limit.middleware.js";
 import { requireAuth, requireRole } from "../auth/auth.middleware.js";
 import {
   consumeBoardingTokenHandler,
+  getBoardingQrContractHandler,
   getBoardingTokenHandler,
   validateBoardingTokenHandler,
 } from "./boarding.controller.js";
@@ -25,6 +26,12 @@ boardingRouter.post(
   asyncHandler(requireAuth),
   requireRole(UserType.ADMIN, UserType.SUPER_ADMIN),
   asyncHandler(validateBoardingTokenHandler)
+);
+
+boardingRouter.get(
+  "/:reservationId/qr",
+  asyncHandler(requireAuth),
+  asyncHandler(getBoardingQrContractHandler)
 );
 
 boardingRouter.get(

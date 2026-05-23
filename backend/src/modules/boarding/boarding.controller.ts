@@ -5,6 +5,7 @@ import {
   boardingReservationIdParamSchema,
   validateBoardingTokenBodySchema,
 } from "./boarding.schemas.js";
+import { getBoardingQrContract } from "./boarding.qr.service.js";
 import { generateBoardingToken } from "./boarding.service.js";
 import { consumeBoardingTokenSubmission } from "./boarding.consumption.service.js";
 import { validateBoardingTokenSubmission } from "./boarding.validation.service.js";
@@ -23,6 +24,16 @@ export async function getBoardingTokenHandler(req: Request, res: Response): Prom
   });
 
   const result = await generateBoardingToken(reservationId, userId);
+  res.status(200).json(result);
+}
+
+export async function getBoardingQrContractHandler(req: Request, res: Response): Promise<void> {
+  const userId = requireUserId(req);
+  const { reservationId } = parseQuery(boardingReservationIdParamSchema, {
+    reservationId: req.params.reservationId,
+  });
+
+  const result = await getBoardingQrContract(reservationId, userId);
   res.status(200).json(result);
 }
 
