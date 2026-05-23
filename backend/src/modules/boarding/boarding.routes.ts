@@ -9,8 +9,14 @@ import {
   getBoardingTokenHandler,
   validateBoardingTokenHandler,
 } from "./boarding.controller.js";
+import { getBoardingOfflineCapabilitiesHandler } from "./boarding-offline.controller.js";
 
 export const boardingRouter = Router();
+
+boardingRouter.get(
+  "/offline-capabilities",
+  asyncHandler(getBoardingOfflineCapabilitiesHandler)
+);
 
 boardingRouter.post(
   "/consume",

@@ -444,6 +444,53 @@
           "ui": { "$ref": "#/components/schemas/BoardingUiMessage" }
         }
       },
+      "BoardingOfflineValidationCapabilities": {
+        "type": "object",
+        "required": [
+          "supported",
+          "reason",
+          "currentAlgorithm",
+          "targetAlgorithms",
+          "canDecodePayloadOffline",
+          "canVerifySignatureOffline",
+          "canCheckRevocationOffline",
+          "canPreventDoubleScanOffline"
+        ],
+        "properties": {
+          "supported": { "type": "boolean", "enum": [false], "description": "V1 : validation offline cryptographique non activée" },
+          "reason": {
+            "type": "string",
+            "enum": ["ASYMMETRIC_SIGNATURE_NOT_ENABLED"],
+            "description": "Signature asymétrique (RS256/EdDSA) requise pour vérifier offline sans secret"
+          },
+          "currentAlgorithm": { "type": "string", "enum": ["HS256"] },
+          "targetAlgorithms": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["RS256", "EdDSA"] }
+          },
+          "canDecodePayloadOffline": { "type": "boolean", "enum": [true] },
+          "canVerifySignatureOffline": { "type": "boolean", "enum": [false] },
+          "canCheckRevocationOffline": { "type": "boolean", "enum": [false] },
+          "canPreventDoubleScanOffline": { "type": "boolean", "enum": [false] }
+        }
+      },
+      "BoardingServerValidationCapabilities": {
+        "type": "object",
+        "required": ["validateEndpoint", "consumeEndpoint", "recommendedMode"],
+        "properties": {
+          "validateEndpoint": { "type": "string", "example": "/api/boarding/validate" },
+          "consumeEndpoint": { "type": "string", "example": "/api/boarding/consume" },
+          "recommendedMode": { "type": "string", "enum": ["ONLINE_FIRST"] }
+        }
+      },
+      "BoardingOfflineCapabilitiesResponse": {
+        "type": "object",
+        "required": ["offlineValidation", "serverValidation"],
+        "properties": {
+          "offlineValidation": { "$ref": "#/components/schemas/BoardingOfflineValidationCapabilities" },
+          "serverValidation": { "$ref": "#/components/schemas/BoardingServerValidationCapabilities" }
+        }
+      },
       "ReservationAdmin": {
         "type": "object",
         "properties": {
@@ -864,6 +911,23 @@
         "responses": {
           "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReservationUser" } } } },
           "404": { "description": "RESERVATION_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/boarding/offline-capabilities": {
+      "get": {
+        "tags": ["Boarding"],
+        "summary": "Capacités validation offline (manifest public)",
+        "description": "**Public, sans auth** (S2-T6). Indique si la validation offline cryptographique est supportée (`supported: false` en V1 avec HS256). Aucun secret, clé privée, JWT ni donnée réservation. Mode recommandé : `ONLINE_FIRST` via `validate` / `consume`. Futur : signature RS256/EdDSA + JWKS pour vérification mobile offline.",
+        "responses": {
+          "200": {
+            "description": "Manifest des capacités offline et serveur",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BoardingOfflineCapabilitiesResponse" }
+              }
+            }
+          }
         }
       }
     },
