@@ -17,6 +17,10 @@ export interface Env {
   stripeCancelUrl: string;
   stripeTicketPriceCents: number;
   stripeCurrency: string;
+  stripePriceMosolfMonthly: string;
+  stripePriceConvoyeurMonthly: string;
+  stripeSubscriptionSuccessUrl: string;
+  stripeSubscriptionCancelUrl: string;
   boardingJwtSecret: string;
 }
 
@@ -100,6 +104,21 @@ function parseEnv(): Env {
     throw new Error(`Invalid STRIPE_CURRENCY: "${stripeCurrency}". Only "eur" is supported in V1.`);
   }
 
+  const stripePriceMosolfMonthly = requireEnv("STRIPE_PRICE_MOSOLF_MONTHLY");
+  const stripePriceConvoyeurMonthly = requireEnv("STRIPE_PRICE_CONVOYEUR_MONTHLY");
+  if (!stripePriceMosolfMonthly.startsWith("price_")) {
+    throw new Error(
+      `Invalid STRIPE_PRICE_MOSOLF_MONTHLY: expected a Stripe Price id (price_...).`
+    );
+  }
+  if (!stripePriceConvoyeurMonthly.startsWith("price_")) {
+    throw new Error(
+      `Invalid STRIPE_PRICE_CONVOYEUR_MONTHLY: expected a Stripe Price id (price_...).`
+    );
+  }
+  const stripeSubscriptionSuccessUrl = requireEnv("STRIPE_SUBSCRIPTION_SUCCESS_URL");
+  const stripeSubscriptionCancelUrl = requireEnv("STRIPE_SUBSCRIPTION_CANCEL_URL");
+
   const boardingJwtSecret = requireEnv("BOARDING_JWT_SECRET");
   if (boardingJwtSecret.length < 32) {
     throw new Error(
@@ -124,6 +143,10 @@ function parseEnv(): Env {
     stripeCancelUrl,
     stripeTicketPriceCents,
     stripeCurrency,
+    stripePriceMosolfMonthly,
+    stripePriceConvoyeurMonthly,
+    stripeSubscriptionSuccessUrl,
+    stripeSubscriptionCancelUrl,
     boardingJwtSecret,
   };
 }

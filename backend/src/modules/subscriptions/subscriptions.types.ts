@@ -15,3 +15,8 @@ export interface SubscriptionMeResponse {
 }
 
 export type SubscriptionRecord = Subscription;
+
+export interface SubscriptionCheckoutResult {
+  checkoutUrl: string;
+  stripeCheckoutSessionId: string;
+}

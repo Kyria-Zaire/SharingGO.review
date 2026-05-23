@@ -13,7 +13,7 @@
     { "name": "Reservations", "description": "Pending et historique utilisateur" },
     { "name": "Boarding", "description": "Token JWT d'embarquement (S2-T1)" },
     { "name": "Payments", "description": "Checkout et statut paiements" },
-    { "name": "Subscriptions", "description": "Abonnements récurrents — lecture seule (S2-T8A)" },
+    { "name": "Subscriptions", "description": "Abonnements récurrents — lecture + checkout Stripe Billing (S2-T8A / S2-T8B)" },
     { "name": "Admin Lines", "description": "CRUD lignes (ADMIN / SUPER_ADMIN)" },
     { "name": "Admin Trips", "description": "CRUD trajets admin" },
     { "name": "Admin Operations", "description": "Supervision réservations, paiements, pending, occupation" },
@@ -188,6 +188,21 @@
             "type": "boolean",
             "description": "true si status=ACTIVE et currentPeriodEnd > now"
           }
+        }
+      },
+      "SubscriptionCheckoutRequest": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": { "$ref": "#/components/schemas/SubscriptionType" }
+        }
+      },
+      "SubscriptionCheckoutResponse": {
+        "type": "object",
+        "required": ["checkoutUrl", "stripeCheckoutSessionId"],
+        "properties": {
+          "checkoutUrl": { "type": "string", "format": "uri" },
+          "stripeCheckoutSessionId": { "type": "string", "description": "cs_... Stripe Checkout Session id" }
         }
       },
       "PaymentSafe": {
@@ -1141,7 +1156,7 @@
       "get": {
         "tags": ["Subscriptions"],
         "summary": "Mon abonnement",
-        "description": "Auth obligatoire (S2-T8A). Retourne l'abonnement actif le plus récent (`status=ACTIVE` et `currentPeriodEnd` futur) ou le dernier enregistrement avec `isActive=false`. Aucun checkout Stripe ni bypass réservation dans ce ticket. Mosolf eligibility (code promo) : ticket futur.",
+        "description": "Auth obligatoire (S2-T8A). Reflète les webhooks Stripe Billing (S2-T8B) : activation, `PAST_DUE`, `CANCELED`, `EXPIRED`. `isActive=true` uniquement si `ACTIVE` + `currentPeriodEnd` futur. Pas de bypass réservation (S2-T8C).",
         "security": [{ "cookieAuth": [] }],
         "responses": {
           "200": {
@@ -1156,11 +1171,41 @@
         }
       }
     },
+    "/api/subscriptions/checkout": {
+      "post": {
+        "tags": ["Subscriptions"],
+        "summary": "Créer session Stripe Checkout abonnement",
+        "description": "Auth obligatoire (S2-T8B). Mode Stripe `subscription` — **pas** de réservation créée. Bloque si abonnement actif (`SUBSCRIPTION_ALREADY_ACTIVE` 409). Mosolf : email `@mosolf.com` ou `@sharinggo.demo` (`SUBSCRIPTION_NOT_ELIGIBLE` 403). Webhooks : `checkout.session.completed` (mode subscription), `customer.subscription.*`.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SubscriptionCheckoutRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SubscriptionCheckoutResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "description": "SUBSCRIPTION_NOT_ELIGIBLE" },
+          "409": { "description": "SUBSCRIPTION_ALREADY_ACTIVE" },
+          "429": { "$ref": "#/components/responses/RateLimited" },
+          "502": { "description": "CHECKOUT_CREATE_FAILED" }
+        }
+      }
+    },
     "/api/payments/checkout": {
       "post": {
         "tags": ["Payments"],
         "summary": "Créer session Stripe Checkout",
-        "description": "Rate limit : 5 req / min / IP (`RATE_LIMITED_CHECKOUT`). Ticket unique 8 EUR.",
+        "description": "Rate limit : 5 req / min / IP (`RATE_LIMITED_CHECKOUT`). Ticket unique 8 EUR — mode `payment` (inchangé S2-T8B).",
         "security": [{ "cookieAuth": [] }],
         "requestBody": {
           "required": true,
