@@ -226,6 +226,14 @@ async function main(): Promise<void> {
     "Demo"
   );
 
+  await upsertDemoUser(
+    "driver@sharinggo.demo",
+    UserType.DRIVER,
+    passwordHash,
+    "Chauffeur",
+    "Demo"
+  );
+
   const convoyeurIds: string[] = [];
   for (let i = 1; i <= 4; i++) {
     const id = await upsertDemoUser(
@@ -426,9 +434,13 @@ async function main(): Promise<void> {
   console.log("[demo-seed] Done.");
   console.log(`  Line: ${DEMO_LINE_NAME}`);
   console.log(`  Trips (future): ${tripRecords.length}`);
-  console.log(`  Users: admin + 4 convoyeurs + ${passengerIds.length} passagers demo`);
+  console.log(
+    `  Users: admin + driver + 4 convoyeurs + ${passengerIds.length} passagers demo`
+  );
   console.log(`  Password (all demo accounts): ${DEMO_PASSWORD}`);
-  console.log("  Accounts: admin@sharinggo.demo, convoyeur1..4@sharinggo.demo");
+  console.log(
+    "  Accounts: admin@sharinggo.demo, driver@sharinggo.demo, convoyeur1..4@sharinggo.demo"
+  );
 }
 
 main()

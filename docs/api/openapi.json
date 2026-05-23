@@ -24,7 +24,7 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "sharinggo_session",
-        "description": "Cookie HttpOnly émis après `POST /api/auth/login` ou `register`. Nom configurable via `SESSION_COOKIE_NAME` (défaut `sharinggo_session`). Routes admin requièrent en plus le rôle `ADMIN` ou `SUPER_ADMIN`."
+        "description": "Cookie HttpOnly émis après `POST /api/auth/login` ou `register`. Nom configurable via `SESSION_COOKIE_NAME` (défaut `sharinggo_session`). Routes `/api/admin/*` : `ADMIN` ou `SUPER_ADMIN`. Boarding validate/consume : `ADMIN`, `SUPER_ADMIN` ou `DRIVER` (S2-T7)."
       }
     },
     "schemas": {
@@ -87,7 +87,10 @@
           "email": { "type": "string", "format": "email" },
           "firstName": { "type": "string", "nullable": true },
           "lastName": { "type": "string", "nullable": true },
-          "userType": { "type": "string", "enum": ["PASSENGER", "CONVOYEUR", "ADMIN", "SUPER_ADMIN"] }
+          "userType": {
+            "type": "string",
+            "enum": ["PASSENGER", "CONVOYEUR", "DRIVER", "ADMIN", "SUPER_ADMIN"]
+          }
         }
       },
       "Line": {
@@ -934,8 +937,8 @@
     "/api/boarding/consume": {
       "post": {
         "tags": ["Boarding"],
-        "summary": "Consommer un JWT d'embarquement (admin)",
-        "description": "Auth cookie + rôle `ADMIN` ou `SUPER_ADMIN` (S2-T3). Valide le JWT puis passe la réservation en `USED` de façon transactionnelle (`SELECT FOR UPDATE`). Double scan : `valid=true`, `consumed=false`, `reason=BOARDING_ALREADY_USED` uniquement si le JWT correspond encore à la réservation. HTTP **200** pour tous les cas métier. **S2-T5** : chaque réponse inclut `ui: { status, title, message }` (`success` | `warning` | `error`) pour l'écran chauffeur sans logique métier côté mobile.",
+        "summary": "Consommer un JWT d'embarquement (terrain)",
+        "description": "Auth cookie + rôle `ADMIN`, `SUPER_ADMIN` ou `DRIVER` (S2-T3, S2-T7). Valide le JWT puis passe la réservation en `USED` de façon transactionnelle (`SELECT FOR UPDATE`). Double scan : `valid=true`, `consumed=false`, `reason=BOARDING_ALREADY_USED` uniquement si le JWT correspond encore à la réservation. HTTP **200** pour tous les cas métier. **S2-T5** : chaque réponse inclut `ui: { status, title, message }` (`success` | `warning` | `error`) pour l'écran chauffeur sans logique métier côté mobile. `CONVOYEUR` et passagers : **403**.",
         "security": [{ "cookieAuth": [] }],
         "requestBody": {
           "required": true,
@@ -970,8 +973,8 @@
     "/api/boarding/validate": {
       "post": {
         "tags": ["Boarding"],
-        "summary": "Valider un JWT d'embarquement (admin)",
-        "description": "Auth cookie + rôle `ADMIN` ou `SUPER_ADMIN` requis (S2-T2). Vérifie signature JWT, claim `bt` vs `Reservation.boardingToken`, statut CONFIRMED, paiement SUCCEEDED, fenêtre departure+10min. Réponse HTTP **200** même si `valid: false` (raison métier). Body `boardingToken` = JWT signé.",
+        "summary": "Valider un JWT d'embarquement (terrain)",
+        "description": "Auth cookie + rôle `ADMIN`, `SUPER_ADMIN` ou `DRIVER` (S2-T2, S2-T7). Vérifie signature JWT, claim `bt` vs `Reservation.boardingToken`, statut CONFIRMED, paiement SUCCEEDED, fenêtre departure+10min. Réponse HTTP **200** même si `valid: false` (raison métier). Body `boardingToken` = JWT signé. `CONVOYEUR` : **403**.",
         "security": [{ "cookieAuth": [] }],
         "requestBody": {
           "required": true,
@@ -1006,7 +1009,7 @@
       "get": {
         "tags": ["Boarding"],
         "summary": "Contrat QR d'embarquement (passager)",
-        "description": "Auth obligatoire, **propriétaire uniquement** (S2-T4). Réutilise la génération S2-T1 : retourne le JWT à encoder + métadonnées. Le client (web/mobile) **génère l'image QR localement** — le backend ne retourne jamais PNG, SVG, data URL ni base64 image. `qr.payload` est validable via `POST /api/boarding/validate` (admin).",
+        "description": "Auth obligatoire, **propriétaire passager uniquement** (S2-T4) — `DRIVER` / admin : **403** ou erreur ownership. Réutilise la génération S2-T1 : retourne le JWT à encoder + métadonnées. Le client (web/mobile) **génère l'image QR localement** — le backend ne retourne jamais PNG, SVG, data URL ni base64 image. `qr.payload` est validable via `POST /api/boarding/validate` (ADMIN / SUPER_ADMIN / DRIVER).",
         "security": [{ "cookieAuth": [] }],
         "parameters": [
           { "name": "reservationId", "in": "path", "required": true, "schema": { "type": "string" } }
