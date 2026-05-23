@@ -232,6 +232,78 @@
           }
         }
       },
+      "BoardingValidationRequest": {
+        "type": "object",
+        "required": ["boardingToken"],
+        "properties": {
+          "boardingToken": {
+            "type": "string",
+            "description": "JWT boarding signé (pas le token opaque DB)"
+          }
+        }
+      },
+      "BoardingValidationReason": {
+        "type": "string",
+        "enum": [
+          "INVALID_TOKEN",
+          "EXPIRED_TOKEN",
+          "INVALID_TYPE",
+          "INVALID_PAYLOAD",
+          "RESERVATION_NOT_FOUND",
+          "TOKEN_REVOKED",
+          "RESERVATION_NOT_CONFIRMED",
+          "TRIP_DISABLED",
+          "BOARDING_WINDOW_EXPIRED",
+          "PAYMENT_NOT_SUCCEEDED",
+          "INTERNAL_VALIDATION_ERROR"
+        ]
+      },
+      "BoardingValidationSuccess": {
+        "type": "object",
+        "required": ["valid", "reservation", "trip", "passenger"],
+        "properties": {
+          "valid": { "type": "boolean", "enum": [true] },
+          "reservation": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "status": { "type": "string" }
+            }
+          },
+          "trip": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "departureTime": { "type": "string", "format": "date-time" },
+              "line": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "startCity": { "type": "string" },
+                  "endCity": { "type": "string" }
+                }
+              }
+            }
+          },
+          "passenger": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "firstName": { "type": "string", "nullable": true },
+              "lastName": { "type": "string", "nullable": true }
+            }
+          }
+        }
+      },
+      "BoardingValidationFailure": {
+        "type": "object",
+        "required": ["valid", "reason"],
+        "properties": {
+          "valid": { "type": "boolean", "enum": [false] },
+          "reason": { "$ref": "#/components/schemas/BoardingValidationReason" }
+        }
+      },
       "ReservationAdmin": {
         "type": "object",
         "properties": {
@@ -652,6 +724,41 @@
         "responses": {
           "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReservationUser" } } } },
           "404": { "description": "RESERVATION_NOT_FOUND" }
+        }
+      }
+    },
+    "/api/boarding/validate": {
+      "post": {
+        "tags": ["Boarding"],
+        "summary": "Valider un JWT d'embarquement (admin)",
+        "description": "Auth cookie + rôle `ADMIN` ou `SUPER_ADMIN` requis (S2-T2). Vérifie signature JWT, claim `bt` vs `Reservation.boardingToken`, statut CONFIRMED, paiement SUCCEEDED, fenêtre departure+10min. Réponse HTTP **200** même si `valid: false` (raison métier). Body `boardingToken` = JWT signé.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BoardingValidationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Résultat validation (valid true ou false)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/BoardingValidationSuccess" },
+                    { "$ref": "#/components/schemas/BoardingValidationFailure" }
+                  ]
+                }
+              }
+            }
+          },
+          "400": { "description": "Body invalide (VALIDATION_ERROR)" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }
     },

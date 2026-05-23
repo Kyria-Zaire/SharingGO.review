@@ -1,8 +1,12 @@
 import type { Request, Response } from "express";
 import { AppError } from "../../lib/errors.js";
-import { parseQuery } from "../../lib/zod-parse.js";
-import { boardingReservationIdParamSchema } from "./boarding.schemas.js";
+import { parseBody, parseQuery } from "../../lib/zod-parse.js";
+import {
+  boardingReservationIdParamSchema,
+  validateBoardingTokenBodySchema,
+} from "./boarding.schemas.js";
 import { generateBoardingToken } from "./boarding.service.js";
+import { validateBoardingTokenSubmission } from "./boarding.validation.service.js";
 
 function requireUserId(req: Request): string {
   if (!req.user) {
@@ -18,5 +22,16 @@ export async function getBoardingTokenHandler(req: Request, res: Response): Prom
   });
 
   const result = await generateBoardingToken(reservationId, userId);
+  res.status(200).json(result);
+}
+
+export async function validateBoardingTokenHandler(req: Request, res: Response): Promise<void> {
+  const adminUserId = requireUserId(req);
+  const { boardingToken } = parseBody(validateBoardingTokenBodySchema, req.body);
+  const result = await validateBoardingTokenSubmission(
+    boardingToken,
+    adminUserId,
+    req.requestId
+  );
   res.status(200).json(result);
 }

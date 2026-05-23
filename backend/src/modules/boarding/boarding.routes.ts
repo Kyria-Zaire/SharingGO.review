@@ -1,9 +1,22 @@
+import { UserType } from "@prisma/client";
 import { Router } from "express";
 import { asyncHandler } from "../../lib/async-handler.js";
-import { requireAuth } from "../auth/auth.middleware.js";
-import { getBoardingTokenHandler } from "./boarding.controller.js";
+import { adminLimiter } from "../../middleware/rate-limit.middleware.js";
+import { requireAuth, requireRole } from "../auth/auth.middleware.js";
+import {
+  getBoardingTokenHandler,
+  validateBoardingTokenHandler,
+} from "./boarding.controller.js";
 
 export const boardingRouter = Router();
+
+boardingRouter.post(
+  "/validate",
+  adminLimiter,
+  asyncHandler(requireAuth),
+  requireRole(UserType.ADMIN, UserType.SUPER_ADMIN),
+  asyncHandler(validateBoardingTokenHandler)
+);
 
 boardingRouter.get(
   "/:reservationId/token",
