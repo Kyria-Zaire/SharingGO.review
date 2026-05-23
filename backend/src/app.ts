@@ -14,6 +14,7 @@ import { boardingRouter } from "./modules/boarding/boarding.routes.js";
 import { stripeWebhookHandler } from "./modules/payments/payments.controller.js";
 import { paymentsRouter } from "./modules/payments/payments.routes.js";
 import { reservationsRouter } from "./modules/reservations/reservations.routes.js";
+import { subscriptionsRouter } from "./modules/subscriptions/subscriptions.routes.js";
 import { publicTripsRouter } from "./modules/trips/public-trips.routes.js";
 import { transportAdminRouter } from "./modules/transport/transport.routes.js";
 import { docsRouter } from "./routes/docs.routes.js";
@@ -53,6 +54,7 @@ export function createApp(): Express {
   app.use("/api/reservations", reservationsRouter);
   app.use("/api/boarding", boardingRouter);
   app.use("/api/payments", paymentsRouter);
+  app.use("/api/subscriptions", subscriptionsRouter);
 
   app.use(notFoundMiddleware);
   app.use(errorMiddleware);

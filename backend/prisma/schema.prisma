@@ -47,6 +47,7 @@ enum SubscriptionStatus {
   ACTIVE
   PAST_DUE
   CANCELED
+  EXPIRED
   INCOMPLETE
 }
 
@@ -195,17 +196,21 @@ model Subscription {
   type SubscriptionType
 
   stripeSubscriptionId String? @unique
+  stripeCustomerId     String?
 
   status SubscriptionStatus
 
-  currentPeriodStart DateTime
+  currentPeriodStart DateTime?
   currentPeriodEnd   DateTime
+
+  canceledAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([status])
+  @@index([currentPeriodEnd])
 }
 
 model Payment {

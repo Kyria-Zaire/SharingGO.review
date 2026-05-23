@@ -13,6 +13,7 @@
     { "name": "Reservations", "description": "Pending et historique utilisateur" },
     { "name": "Boarding", "description": "Token JWT d'embarquement (S2-T1)" },
     { "name": "Payments", "description": "Checkout et statut paiements" },
+    { "name": "Subscriptions", "description": "Abonnements récurrents — lecture seule (S2-T8A)" },
     { "name": "Admin Lines", "description": "CRUD lignes (ADMIN / SUPER_ADMIN)" },
     { "name": "Admin Trips", "description": "CRUD trajets admin" },
     { "name": "Admin Operations", "description": "Supervision réservations, paiements, pending, occupation" },
@@ -151,6 +152,42 @@
           "deletedAt": { "type": "string", "format": "date-time", "nullable": true },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SubscriptionType": {
+        "type": "string",
+        "enum": ["MOSOLF_MONTHLY", "CONVOYEUR_MONTHLY"]
+      },
+      "SubscriptionStatus": {
+        "type": "string",
+        "enum": ["ACTIVE", "PAST_DUE", "CANCELED", "EXPIRED", "INCOMPLETE"]
+      },
+      "SubscriptionSafe": {
+        "type": "object",
+        "required": ["id", "type", "status", "currentPeriodEnd", "createdAt"],
+        "description": "Abonnement utilisateur — sans IDs Stripe complets (S2-T8A).",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "$ref": "#/components/schemas/SubscriptionType" },
+          "status": { "$ref": "#/components/schemas/SubscriptionStatus" },
+          "currentPeriodStart": { "type": "string", "format": "date-time", "nullable": true },
+          "currentPeriodEnd": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fin de période courante — source d'expiration (aligné Stripe)"
+          },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SubscriptionMeResponse": {
+        "type": "object",
+        "required": ["subscription", "isActive"],
+        "properties": {
+          "subscription": { "$ref": "#/components/schemas/SubscriptionSafe", "nullable": true },
+          "isActive": {
+            "type": "boolean",
+            "description": "true si status=ACTIVE et currentPeriodEnd > now"
+          }
         }
       },
       "PaymentSafe": {
@@ -1097,6 +1134,25 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/subscriptions/me": {
+      "get": {
+        "tags": ["Subscriptions"],
+        "summary": "Mon abonnement",
+        "description": "Auth obligatoire (S2-T8A). Retourne l'abonnement actif le plus récent (`status=ACTIVE` et `currentPeriodEnd` futur) ou le dernier enregistrement avec `isActive=false`. Aucun checkout Stripe ni bypass réservation dans ce ticket. Mosolf eligibility (code promo) : ticket futur.",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "État abonnement utilisateur",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SubscriptionMeResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
         }
       }
     },

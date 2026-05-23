@@ -11,6 +11,8 @@ import {
   Prisma,
   PrismaClient,
   ReservationStatus,
+  SubscriptionStatus,
+  SubscriptionType,
   UserType,
 } from "@prisma/client";
 
@@ -183,6 +185,7 @@ async function cleanupDemoData(): Promise<void> {
   }
 
   if (demoUserIds.length > 0) {
+    await prisma.subscription.deleteMany({ where: { userId: { in: demoUserIds } } });
     await prisma.session.deleteMany({ where: { userId: { in: demoUserIds } } });
     await prisma.auditLog.deleteMany({ where: { actorUserId: { in: demoUserIds } } });
     await prisma.user.deleteMany({ where: { id: { in: demoUserIds } } });
@@ -206,6 +209,24 @@ async function upsertDemoUser(
     },
   });
   return user.id;
+}
+
+async function createDemoSubscription(
+  userId: string,
+  type: SubscriptionType,
+  status: SubscriptionStatus,
+  currentPeriodEnd: Date,
+  currentPeriodStart: Date
+): Promise<void> {
+  await prisma.subscription.create({
+    data: {
+      userId,
+      type,
+      status,
+      currentPeriodStart,
+      currentPeriodEnd,
+    },
+  });
 }
 
 async function main(): Promise<void> {
@@ -245,6 +266,54 @@ async function main(): Promise<void> {
     );
     convoyeurIds.push(id);
   }
+
+  const mosolfActiveId = await upsertDemoUser(
+    "mosolf-active@sharinggo.demo",
+    UserType.CONVOYEUR,
+    passwordHash,
+    "Mosolf",
+    "Actif"
+  );
+  const mosolfExpiredId = await upsertDemoUser(
+    "mosolf-expired@sharinggo.demo",
+    UserType.CONVOYEUR,
+    passwordHash,
+    "Mosolf",
+    "Expire"
+  );
+  const convoyeurMonthlyId = await upsertDemoUser(
+    "convoyeur-monthly@sharinggo.demo",
+    UserType.CONVOYEUR,
+    passwordHash,
+    "Convoyeur",
+    "Mensuel"
+  );
+
+  const periodStart = now;
+  const activePeriodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const expiredPeriodEnd = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  await createDemoSubscription(
+    mosolfActiveId,
+    SubscriptionType.MOSOLF_MONTHLY,
+    SubscriptionStatus.ACTIVE,
+    activePeriodEnd,
+    periodStart
+  );
+  await createDemoSubscription(
+    mosolfExpiredId,
+    SubscriptionType.MOSOLF_MONTHLY,
+    SubscriptionStatus.EXPIRED,
+    expiredPeriodEnd,
+    new Date(expiredPeriodEnd.getTime() - 30 * 24 * 60 * 60 * 1000)
+  );
+  await createDemoSubscription(
+    convoyeurMonthlyId,
+    SubscriptionType.CONVOYEUR_MONTHLY,
+    SubscriptionStatus.ACTIVE,
+    activePeriodEnd,
+    periodStart
+  );
 
   const passengerIds: string[] = [];
   for (let i = 1; i <= 24; i++) {
@@ -440,6 +509,9 @@ async function main(): Promise<void> {
   console.log(`  Password (all demo accounts): ${DEMO_PASSWORD}`);
   console.log(
     "  Accounts: admin@sharinggo.demo, driver@sharinggo.demo, convoyeur1..4@sharinggo.demo"
+  );
+  console.log(
+    "  Subscriptions: mosolf-active@, mosolf-expired@, convoyeur-monthly@sharinggo.demo"
   );
 }
 
