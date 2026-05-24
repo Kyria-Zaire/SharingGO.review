@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getAdminReservation, listAdminReservations } from "@/api/admin-reservations.api";
 import { listAdminLines } from "@/api/admin-trips.api";
 import { ApiError } from "@/api/http";
@@ -17,11 +18,19 @@ const RESERVATIONS_STALE_TIME_MS = 30_000;
 const DEFAULT_LIMIT = 50;
 
 export function ReservationsPage() {
+  const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState<AdminReservationFilters>({
     limit: DEFAULT_LIMIT,
     offset: 0,
   });
   const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const selected = searchParams.get("selected");
+    if (selected) {
+      setSelectedReservationId(selected);
+    }
+  }, [searchParams]);
 
   const filterKey = useMemo(() => ({ ...filters }), [filters]);
 

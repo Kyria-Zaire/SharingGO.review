@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ROUTES } from "@/constants/routes";
 import { ROLE_LABELS } from "@/constants/roles";
+import { OperationsSearch } from "@/features/search/components/OperationsSearch";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { invalidateAuthQueries } from "@/lib/query";
 import { displayName } from "@/lib/utils";
@@ -24,9 +25,11 @@ export function Topbar() {
   });
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 lg:px-6">
-      <p className="text-sm text-muted-foreground lg:hidden">SharingGO Admin</p>
-      <div className="hidden flex-1 lg:block" />
+    <header className="flex h-14 items-center justify-between gap-4 border-b border-border bg-background px-4 lg:px-6">
+      <p className="shrink-0 text-sm text-muted-foreground lg:hidden">SharingGO Admin</p>
+      <div className="hidden min-w-0 flex-1 justify-center lg:flex">
+        <OperationsSearch />
+      </div>
       {user ? (
         <div className="flex items-center gap-3">
           <div className="hidden text-right sm:block">

@@ -1,0 +1,5 @@
+export const SEARCH_DEBOUNCE_MS = 300;
+export const SEARCH_MIN_QUERY_LENGTH = 2;
+export const SEARCH_RESULT_LIMIT_PER_CATEGORY = 5;
+export const SEARCH_FETCH_LIMIT = 50;
+export const SEARCH_LOADING_MIN_MS = 150;

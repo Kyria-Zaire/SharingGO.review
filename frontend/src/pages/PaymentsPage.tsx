@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { listAdminPayments } from "@/api/admin-payments.api";
 import { ApiError } from "@/api/http";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -11,12 +12,15 @@ import { PaymentsFilters } from "@/features/payments/components/PaymentsFilters"
 import { PaymentsPageKpis } from "@/features/payments/components/PaymentsPageKpis";
 import { PaymentsTable } from "@/features/payments/components/PaymentsTable";
 import { computePaymentPageKpis } from "@/features/payments/utils/payment-page-kpis";
+import { formatShortId } from "@/lib/format-id";
 import type { AdminPaymentFilters } from "@/types/payments.types";
 
 const PAYMENTS_STALE_TIME_MS = 30_000;
 const DEFAULT_LIMIT = 50;
 
 export function PaymentsPage() {
+  const [searchParams] = useSearchParams();
+  const highlightedPaymentId = searchParams.get("paymentId");
   const [filters, setFilters] = useState<AdminPaymentFilters>({
     limit: DEFAULT_LIMIT,
     offset: 0,
@@ -31,6 +35,9 @@ export function PaymentsPage() {
   });
 
   const payments = listQuery.data?.payments ?? [];
+  const isHighlightedPaymentVisible = highlightedPaymentId
+    ? payments.some((payment) => payment.id === highlightedPaymentId)
+    : false;
   const limit = filters.limit ?? DEFAULT_LIMIT;
   const offset = filters.offset ?? 0;
   const hasNextPage = payments.length >= limit;
@@ -91,13 +98,23 @@ export function PaymentsPage() {
         />
       ) : null}
 
+      {!listQuery.isLoading && !listQuery.isError && highlightedPaymentId && !isHighlightedPaymentVisible ? (
+        <p className="mb-3 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-foreground">
+          Paiement recherché #{formatShortId(highlightedPaymentId)} non visible sur cette page — ajustez
+          pagination ou filtres.
+        </p>
+      ) : null}
+
       {!listQuery.isLoading && !listQuery.isError && payments.length > 0 ? (
         <>
           <PaymentsPageKpis kpis={pageKpis} />
           <p className="mb-3 text-sm text-muted-foreground">
             {payments.length} paiement(s) — offset {offset}, limite {limit}
           </p>
-          <PaymentsTable payments={payments} />
+          <PaymentsTable
+            payments={payments}
+            highlightedPaymentId={highlightedPaymentId}
+          />
         </>
       ) : null}
     </>

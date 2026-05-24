@@ -1,3 +1,4 @@
+import { cn } from "@/lib/cn";
 import { formatDate } from "@/lib/format-date";
 import { formatCurrency } from "@/lib/format-currency";
 import { formatShortId } from "@/lib/format-id";
@@ -9,9 +10,10 @@ import { PaymentContextBadge } from "./PaymentContextBadge";
 
 export interface PaymentsTableProps {
   payments: AdminPayment[];
+  highlightedPaymentId?: string | null;
 }
 
-export function PaymentsTable({ payments }: PaymentsTableProps) {
+export function PaymentsTable({ payments, highlightedPaymentId }: PaymentsTableProps) {
   return (
     <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full min-w-[1200px] text-left text-sm">
@@ -30,7 +32,13 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
         </thead>
         <tbody className="divide-y divide-border">
           {payments.map((payment) => (
-            <tr key={payment.id} className="hover:bg-muted/20">
+            <tr
+              key={payment.id}
+              className={cn(
+                "hover:bg-muted/20",
+                payment.id === highlightedPaymentId && "bg-primary/10 ring-1 ring-inset ring-primary/30"
+              )}
+            >
               <td className="px-4 py-3 font-mono text-foreground" title={payment.id}>
                 {formatShortId(payment.id)}
               </td>

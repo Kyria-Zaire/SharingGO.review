@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getAdminTripOccupancy, listAdminLines, listAdminTrips } from "@/api/admin-trips.api";
 import { ApiError } from "@/api/http";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -15,10 +16,18 @@ import type { AdminTripsListFilters } from "@/types/trips.types";
 const TRIPS_STALE_TIME_MS = 30_000;
 
 export function TripsPage() {
+  const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState<AdminTripsListFilters>({
     includeDisabled: false,
   });
   const [occupancyTripId, setOccupancyTripId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const tripId = searchParams.get("tripId");
+    if (tripId) {
+      setOccupancyTripId(tripId);
+    }
+  }, [searchParams]);
 
   const filterKey = useMemo(() => ({ ...filters }), [filters]);
 
