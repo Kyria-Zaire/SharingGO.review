@@ -3,6 +3,7 @@ import {
   Bus,
   CreditCard,
   LayoutDashboard,
+  PlaneTakeoff,
   QrCode,
   Repeat,
   Settings,
@@ -25,6 +26,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Payments", href: ROUTES.payments, icon: CreditCard },
   { label: "Subscriptions", href: ROUTES.subscriptions, icon: Repeat },
   { label: "Boarding", href: ROUTES.boarding, icon: QrCode },
+  { label: "Departures", href: ROUTES.departures, icon: PlaneTakeoff },
   { label: "Monitoring", href: ROUTES.monitoring, icon: Activity },
   { label: "Settings", href: ROUTES.settings, icon: Settings },
 ];

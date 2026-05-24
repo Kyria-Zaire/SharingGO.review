@@ -31,4 +31,8 @@ export const queryKeys = {
     all: ["monitoring"] as const,
     snapshot: ["monitoring", "snapshot"] as const,
   },
+  departures: {
+    all: ["departures"] as const,
+    board: (filters: Record<string, unknown>) => ["departures", "board", filters] as const,
+  },
 } as const;

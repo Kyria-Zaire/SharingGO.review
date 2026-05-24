@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ROUTES } from "@/constants/routes";
 import { AdminRoute } from "@/guards/AdminRoute";
 import { BoardingPage } from "@/pages/BoardingPage";
+import { DeparturesPage } from "@/pages/DeparturesPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MonitoringPage } from "@/pages/MonitoringPage";
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       { path: "payments", element: <PaymentsPage /> },
       { path: "subscriptions", element: <SubscriptionsPage /> },
       { path: "boarding", element: <BoardingPage /> },
+      { path: "departures", element: <DeparturesPage /> },
       { path: "monitoring", element: <MonitoringPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],

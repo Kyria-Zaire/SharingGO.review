@@ -7,6 +7,7 @@ export const ROUTES = {
   subscriptions: "/subscriptions",
   boarding: "/boarding",
   monitoring: "/monitoring",
+  departures: "/departures",
   settings: "/settings",
 } as const;
 
