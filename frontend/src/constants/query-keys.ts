@@ -24,4 +24,7 @@ export const queryKeys = {
     },
     subscriptions: ["admin", "subscriptions"] as const,
   },
+  boarding: {
+    offlineCapabilities: ["boarding", "offline-capabilities"] as const,
+  },
 } as const;

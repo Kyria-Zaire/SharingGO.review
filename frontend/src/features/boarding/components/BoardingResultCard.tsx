@@ -1,0 +1,78 @@
+import { cn } from "@/lib/cn";
+import { formatDate } from "@/lib/format-date";
+import { formatShortId } from "@/lib/format-id";
+import type { BoardingPassenger, BoardingTrip, BoardingUiMessage } from "@/types/boarding.types";
+import { formatBoardingPassenger } from "@/features/boarding/utils/passenger-display";
+import { BoardingReasonBadge } from "./BoardingReasonBadge";
+import { BoardingStatusBadge } from "./BoardingStatusBadge";
+
+export interface BoardingResultCardProps {
+  ui: BoardingUiMessage;
+  reason?: string;
+  passenger?: BoardingPassenger;
+  trip?: BoardingTrip;
+  reservationId?: string;
+  consumed?: boolean;
+  className?: string;
+}
+
+export function BoardingResultCard({
+  ui,
+  reason,
+  passenger,
+  trip,
+  reservationId,
+  consumed,
+  className,
+}: BoardingResultCardProps) {
+  const borderClass =
+    ui.status === "success"
+      ? "border-primary/40 bg-primary/5"
+      : ui.status === "warning"
+        ? "border-warning/40 bg-warning/5"
+        : "border-destructive/40 bg-destructive/5";
+
+  return (
+    <div className={cn("rounded-lg border p-4", borderClass, className)}>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <BoardingStatusBadge status={ui.status} />
+        {reason ? <BoardingReasonBadge reason={reason} /> : null}
+        {consumed === true ? (
+          <span className="text-xs font-medium text-primary">Embarquement consommé</span>
+        ) : null}
+      </div>
+      <h3 className="text-lg font-semibold text-foreground">{ui.title}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{ui.message}</p>
+
+      {passenger || trip || reservationId ? (
+        <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+          {passenger ? (
+            <div>
+              <dt className="text-muted-foreground">Passager</dt>
+              <dd className="font-medium text-foreground">{formatBoardingPassenger(passenger)}</dd>
+            </div>
+          ) : null}
+          {trip ? (
+            <div>
+              <dt className="text-muted-foreground">Départ</dt>
+              <dd className="font-medium text-foreground">{formatDate(trip.departureTime)}</dd>
+              {trip.line ? (
+                <dd className="text-xs text-muted-foreground">
+                  {trip.line.name} — {trip.line.startCity} → {trip.line.endCity}
+                </dd>
+              ) : null}
+            </div>
+          ) : null}
+          {reservationId ? (
+            <div>
+              <dt className="text-muted-foreground">Réservation</dt>
+              <dd className="font-mono text-foreground" title={reservationId}>
+                {formatShortId(reservationId)}
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+    </div>
+  );
+}

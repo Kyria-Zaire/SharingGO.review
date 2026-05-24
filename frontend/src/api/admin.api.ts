@@ -10,6 +10,11 @@ export {
 } from "./admin-trips.api";
 export { getAdminReservation, listAdminReservations } from "./admin-reservations.api";
 export { listAdminPayments } from "./admin-payments.api";
+export {
+  consumeBoarding,
+  getBoardingOfflineCapabilities,
+  validateBoarding,
+} from "./admin-boarding.api";
 import { http } from "./http";
 
 export const adminApi = {
