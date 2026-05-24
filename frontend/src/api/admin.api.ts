@@ -8,6 +8,7 @@ export {
   listAdminLines,
   listAdminTrips,
 } from "./admin-trips.api";
+export { getAdminReservation, listAdminReservations } from "./admin-reservations.api";
 import { http } from "./http";
 
 export const adminApi = {

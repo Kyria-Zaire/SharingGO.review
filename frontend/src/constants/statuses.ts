@@ -4,6 +4,13 @@ export const RESERVATION_STATUS_LABELS = {
   CONFIRMED: "Confirmée",
   USED: "Utilisée",
   CANCELED: "Annulée",
+  EXPIRED: "Expirée",
+} as const;
+
+export const PAYMENT_TYPE_LABELS = {
+  TICKET: "Ticket",
+  SUBSCRIPTION_ACCESS: "Accès abonnement",
+  SUBSCRIPTION: "Abonnement",
 } as const;
 
 export const PAYMENT_STATUS_LABELS = {
