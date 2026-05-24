@@ -14,14 +14,18 @@ const variantByStatus: Record<
 };
 
 export interface PaymentStatusBadgeProps {
-  status: PaymentStatus;
+  status: PaymentStatus | string;
   className?: string;
 }
 
 export function PaymentStatusBadge({ status, className }: PaymentStatusBadgeProps) {
+  const variant = variantByStatus[status as PaymentStatus] ?? "muted";
+  const label =
+    PAYMENT_STATUS_LABELS[status as PaymentStatus] ?? (status || "Inconnu");
+
   return (
-    <Badge variant={variantByStatus[status]} className={cn(className)}>
-      {PAYMENT_STATUS_LABELS[status] ?? status}
+    <Badge variant={variant} className={cn(className)}>
+      {label}
     </Badge>
   );
 }

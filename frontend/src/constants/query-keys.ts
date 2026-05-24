@@ -17,7 +17,11 @@ export const queryKeys = {
         ["admin", "reservations", "list", filters] as const,
       detail: (id: string) => ["admin", "reservations", id, "detail"] as const,
     },
-    payments: ["admin", "payments"] as const,
+    payments: {
+      all: ["admin", "payments"] as const,
+      list: (filters: Record<string, unknown>) =>
+        ["admin", "payments", "list", filters] as const,
+    },
     subscriptions: ["admin", "subscriptions"] as const,
   },
 } as const;
