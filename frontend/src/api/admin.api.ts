@@ -15,8 +15,4 @@ export {
   getBoardingOfflineCapabilities,
   validateBoarding,
 } from "./admin-boarding.api";
-import { http } from "./http";
-
-export const adminApi = {
-  health: () => http<{ status: string }>("/health"),
-} as const;
+export { fetchMonitoringSnapshot } from "./system.api";

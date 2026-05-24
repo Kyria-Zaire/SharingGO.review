@@ -1,4 +1,5 @@
 import {
+  Activity,
   Bus,
   CreditCard,
   LayoutDashboard,
@@ -24,5 +25,6 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Payments", href: ROUTES.payments, icon: CreditCard },
   { label: "Subscriptions", href: ROUTES.subscriptions, icon: Repeat },
   { label: "Boarding", href: ROUTES.boarding, icon: QrCode },
+  { label: "Monitoring", href: ROUTES.monitoring, icon: Activity },
   { label: "Settings", href: ROUTES.settings, icon: Settings },
 ];

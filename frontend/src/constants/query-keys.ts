@@ -27,4 +27,8 @@ export const queryKeys = {
   boarding: {
     offlineCapabilities: ["boarding", "offline-capabilities"] as const,
   },
+  monitoring: {
+    all: ["monitoring"] as const,
+    snapshot: ["monitoring", "snapshot"] as const,
+  },
 } as const;

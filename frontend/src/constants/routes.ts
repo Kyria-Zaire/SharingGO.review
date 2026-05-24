@@ -6,6 +6,7 @@ export const ROUTES = {
   payments: "/payments",
   subscriptions: "/subscriptions",
   boarding: "/boarding",
+  monitoring: "/monitoring",
   settings: "/settings",
 } as const;
 
