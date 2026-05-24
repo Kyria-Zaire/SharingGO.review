@@ -21,3 +21,18 @@ export interface ListReservationsResult {
   limit: number;
   offset: number;
 }
+
+export interface BookWithSubscriptionResult {
+  reservation: {
+    id: string;
+    status: string;
+  };
+  payment: {
+    id: string;
+    type: string;
+    status: string;
+    amount: string;
+    currency: string;
+  };
+  remainingSeats: number;
+}

@@ -32,6 +32,7 @@ enum PaymentStatus {
 enum PaymentType {
   TICKET
   SUBSCRIPTION
+  SUBSCRIPTION_ACCESS
 }
 
 enum PromoCodeType {

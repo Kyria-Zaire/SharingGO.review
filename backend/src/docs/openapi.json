@@ -66,6 +66,8 @@
           "TRIP_DISABLED",
           "TRIP_PAST",
           "TRIP_NOT_FOUND",
+          "SUBSCRIPTION_REQUIRED",
+          "RESERVATION_ALREADY_EXISTS",
           "RESERVATION_NOT_FOUND",
           "RESERVATION_NOT_CONFIRMED",
           "BOARDING_NOT_AVAILABLE",
@@ -210,7 +212,7 @@
         "properties": {
           "id": { "type": "string" },
           "status": { "type": "string", "enum": ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"] },
-          "type": { "type": "string", "enum": ["TICKET", "SUBSCRIPTION"] },
+          "type": { "type": "string", "enum": ["TICKET", "SUBSCRIPTION", "SUBSCRIPTION_ACCESS"] },
           "amount": { "type": "string", "example": "8.00" },
           "currency": { "type": "string", "example": "eur" },
           "createdAt": { "type": "string", "format": "date-time" }
@@ -860,6 +862,90 @@
         "responses": {
           "200": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TripPublic" } } } },
           "404": { "description": "TRIP_NOT_FOUND" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/api/reservations/book-with-subscription": {
+      "post": {
+        "tags": ["Reservations"],
+        "summary": "Réserver avec abonnement actif (S2-T8C)",
+        "description": "Bypass Stripe ticket checkout pour utilisateurs avec abonnement ACTIVE et `currentPeriodEnd` futur. Crée `Reservation` CONFIRMED + `Payment` SUBSCRIPTION_ACCESS (0,00 €, SUCCEEDED). Même sécurité capacité que pending/ticket : verrou FOR UPDATE, anti-surbooking, pending actives comptées. Rate limit : `RATE_LIMITED_RESERVATION`.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tripId"],
+                "properties": { "tripId": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["reservation", "payment", "remainingSeats"],
+                  "properties": {
+                    "reservation": {
+                      "type": "object",
+                      "required": ["id", "status"],
+                      "properties": {
+                        "id": { "type": "string" },
+                        "status": { "type": "string", "enum": ["CONFIRMED"] }
+                      }
+                    },
+                    "payment": {
+                      "type": "object",
+                      "required": ["id", "type", "status", "amount", "currency"],
+                      "properties": {
+                        "id": { "type": "string" },
+                        "type": { "type": "string", "enum": ["SUBSCRIPTION_ACCESS"] },
+                        "status": { "type": "string", "enum": ["SUCCEEDED"] },
+                        "amount": { "type": "string", "example": "0.00" },
+                        "currency": { "type": "string", "example": "eur" }
+                      }
+                    },
+                    "remainingSeats": { "type": "integer", "minimum": 0 }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": {
+            "description": "SUBSCRIPTION_REQUIRED — pas d'abonnement actif",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "examples": {
+                  "subscriptionRequired": {
+                    "value": {
+                      "error": {
+                        "message": "Active subscription required",
+                        "code": "SUBSCRIPTION_REQUIRED",
+                        "requestId": "uuid"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "TRIP_NOT_FOUND" },
+          "400": {
+            "description": "TRIP_DISABLED ou TRIP_PAST (alias doc TRIP_IN_PAST)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "409": {
+            "description": "TRIP_FULL, RESERVATION_ALREADY_EXISTS ou PENDING_ALREADY_EXISTS",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
           "429": { "$ref": "#/components/responses/RateLimited" }
         }
       }

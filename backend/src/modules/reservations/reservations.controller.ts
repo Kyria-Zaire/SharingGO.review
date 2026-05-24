@@ -2,17 +2,26 @@ import type { Request, Response } from "express";
 import { AppError } from "../../lib/errors.js";
 import { parseBody, parseQuery } from "../../lib/zod-parse.js";
 import {
+  bookWithSubscriptionSchema,
   createPendingReservationSchema,
   listReservationsQuerySchema,
   reservationIdParamSchema,
 } from "./reservations.schemas.js";
 import * as reservationsService from "./reservations.service.js";
+import { bookWithSubscription } from "./subscription-booking.service.js";
 
 function requireUserId(req: Request): string {
   if (!req.user) {
     throw new AppError("Authentication required", 401, "UNAUTHORIZED");
   }
   return req.user.id;
+}
+
+export async function bookWithSubscriptionHandler(req: Request, res: Response): Promise<void> {
+  const userId = requireUserId(req);
+  const { tripId } = parseBody(bookWithSubscriptionSchema, req.body);
+  const result = await bookWithSubscription(userId, tripId);
+  res.status(201).json(result);
 }
 
 export async function createPendingHandler(req: Request, res: Response): Promise<void> {

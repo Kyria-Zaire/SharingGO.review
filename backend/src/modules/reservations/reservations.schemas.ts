@@ -7,6 +7,12 @@ export const createPendingReservationSchema = z.object({
 
 export type CreatePendingReservationInput = z.infer<typeof createPendingReservationSchema>;
 
+export const bookWithSubscriptionSchema = z.object({
+  tripId: z.string().trim().min(1, "tripId is required"),
+});
+
+export type BookWithSubscriptionInput = z.infer<typeof bookWithSubscriptionSchema>;
+
 const optionalQueryBoolean = z
   .enum(["true", "false"])
   .optional()

@@ -3,6 +3,7 @@ import { asyncHandler } from "../../lib/async-handler.js";
 import { reservationLimiter } from "../../middleware/rate-limit.middleware.js";
 import { requireAuth } from "../auth/auth.middleware.js";
 import {
+  bookWithSubscriptionHandler,
   cancelPendingHandler,
   createPendingHandler,
   getPendingHandler,
@@ -11,6 +12,13 @@ import {
 } from "./reservations.controller.js";
 
 export const reservationsRouter = Router();
+
+reservationsRouter.post(
+  "/book-with-subscription",
+  reservationLimiter,
+  asyncHandler(requireAuth),
+  asyncHandler(bookWithSubscriptionHandler)
+);
 
 reservationsRouter.post(
   "/pending",
