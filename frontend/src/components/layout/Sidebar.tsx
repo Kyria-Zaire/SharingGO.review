@@ -1,8 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { ADMIN_NAV_ITEMS } from "@/constants/navigation";
+import { useOpenIncidentCount } from "@/features/incidents/hooks/useOpenIncidentCount";
 import { cn } from "@/lib/cn";
 
 export function Sidebar() {
+  const openIncidentCount = useOpenIncidentCount();
+
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-muted/30">
       <div className="border-b border-border px-4 py-5">
@@ -25,7 +28,12 @@ export function Sidebar() {
             }
           >
             <item.icon className="h-4 w-4 shrink-0" aria-hidden />
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {item.showOpenIncidentBadge && openIncidentCount > 0 ? (
+              <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
+                {openIncidentCount}
+              </span>
+            ) : null}
           </NavLink>
         ))}
       </nav>

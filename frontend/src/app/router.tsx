@@ -3,6 +3,7 @@ import { ROUTES } from "@/constants/routes";
 import { AdminRoute } from "@/guards/AdminRoute";
 import { BoardingPage } from "@/pages/BoardingPage";
 import { DeparturesPage } from "@/pages/DeparturesPage";
+import { IncidentsPage } from "@/pages/IncidentsPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { MonitoringPage } from "@/pages/MonitoringPage";
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: "subscriptions", element: <SubscriptionsPage /> },
       { path: "boarding", element: <BoardingPage /> },
       { path: "departures", element: <DeparturesPage /> },
+      { path: "incidents", element: <IncidentsPage /> },
       { path: "monitoring", element: <MonitoringPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],

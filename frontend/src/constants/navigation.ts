@@ -1,5 +1,6 @@
 import {
   Activity,
+  AlertTriangle,
   Bus,
   CreditCard,
   LayoutDashboard,
@@ -17,6 +18,8 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   end?: boolean;
+  /** Future: dynamic badge via useOpenIncidentCount for incidents */
+  showOpenIncidentBadge?: boolean;
 }
 
 export const ADMIN_NAV_ITEMS: NavItem[] = [
@@ -27,6 +30,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Subscriptions", href: ROUTES.subscriptions, icon: Repeat },
   { label: "Boarding", href: ROUTES.boarding, icon: QrCode },
   { label: "Departures", href: ROUTES.departures, icon: PlaneTakeoff },
+  { label: "Incidents", href: ROUTES.incidents, icon: AlertTriangle, showOpenIncidentBadge: true },
   { label: "Monitoring", href: ROUTES.monitoring, icon: Activity },
   { label: "Settings", href: ROUTES.settings, icon: Settings },
 ];

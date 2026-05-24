@@ -1,10 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchMonitoringSnapshot } from "@/api/system.api";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { queryKeys } from "@/constants/query-keys";
+import { ROUTES } from "@/constants/routes";
 import { MonitoringLastUpdated } from "@/features/monitoring/components/MonitoringLastUpdated";
 import { MonitoringUnavailableCard } from "@/features/monitoring/components/MonitoringUnavailableCard";
 import { OfflineModeCard } from "@/features/monitoring/components/OfflineModeCard";
@@ -91,16 +93,25 @@ export function MonitoringPage() {
             <p className="text-sm text-muted-foreground">Actualisation des sondes…</p>
           ) : null}
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={refreshCooldown || monitoringQuery.isFetching}
-          isLoading={monitoringQuery.isFetching}
-        >
-          <RefreshCw className="h-4 w-4" />
-          Actualiser
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to={`${ROUTES.incidents}?category=system&create=1`}
+            className="inline-flex h-8 items-center gap-2 rounded-md border border-border bg-muted px-3 text-xs font-medium text-foreground hover:bg-muted/80"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            Créer incident système
+          </Link>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshCooldown || monitoringQuery.isFetching}
+            isLoading={monitoringQuery.isFetching}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Actualiser
+          </Button>
+        </div>
       </div>
 
       {unavailable ? (

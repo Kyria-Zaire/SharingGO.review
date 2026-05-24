@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/cn";
+import { ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
 import type { DepartureTripView } from "@/types/departures.types";
 import { BoardingProgressBar } from "./BoardingProgressBar";
@@ -69,6 +71,13 @@ export function DepartureProgressCard({ view }: DepartureProgressCardProps) {
           ))}
         </div>
       ) : null}
+
+      <Link
+        to={`${ROUTES.incidents}?tripId=${encodeURIComponent(view.tripId)}&category=departure&create=1`}
+        className="mt-3 inline-flex h-8 items-center rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-muted/30"
+      >
+        Signaler incident
+      </Link>
     </article>
   );
 }

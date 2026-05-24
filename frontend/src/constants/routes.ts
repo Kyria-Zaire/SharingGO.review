@@ -8,6 +8,7 @@ export const ROUTES = {
   boarding: "/boarding",
   monitoring: "/monitoring",
   departures: "/departures",
+  incidents: "/incidents",
   settings: "/settings",
 } as const;
 
