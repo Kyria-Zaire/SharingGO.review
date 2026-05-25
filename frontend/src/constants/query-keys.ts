@@ -46,6 +46,10 @@ export const queryKeys = {
   dispatch: {
     feed: (filters: Record<string, unknown>) => ["dispatch", "feed", filters] as const,
   },
+  settings: {
+    teamAll: ["settings", "team"] as const,
+    team: (filters: Record<string, unknown>) => ["settings", "team", filters] as const,
+  },
   search: {
     operations: (query: string) => ["search", "operations", query] as const,
   },
