@@ -9,6 +9,7 @@ export const ROUTES = {
   monitoring: "/monitoring",
   departures: "/departures",
   incidents: "/incidents",
+  activity: "/activity",
   settings: "/settings",
 } as const;
 

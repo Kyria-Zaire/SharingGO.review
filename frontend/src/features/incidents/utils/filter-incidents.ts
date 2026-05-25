@@ -1,13 +1,14 @@
-import type { IncidentFiltersState, OperationalIncident } from "@/types/incidents.types";
+import { isOpenIncidentStatus } from "@/features/incidents/constants/incident-labels";
+import type { AdminIncident, IncidentFiltersState } from "@/types/incidents.types";
 
 export function filterIncidents(
-  incidents: OperationalIncident[],
+  incidents: AdminIncident[],
   filters: IncidentFiltersState
-): OperationalIncident[] {
+): AdminIncident[] {
   return incidents.filter((incident) => {
-    if (filters.openOnly && incident.status !== "open") return false;
+    if (filters.openOnly && !isOpenIncidentStatus(incident.status)) return false;
     if (filters.severity !== "all" && incident.severity !== filters.severity) return false;
-    if (filters.category !== "all" && incident.category !== filters.category) return false;
+    if (filters.type !== "all" && incident.type !== filters.type) return false;
     return true;
   });
 }

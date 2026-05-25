@@ -1,33 +1,24 @@
 import { cn } from "@/lib/cn";
+import { INCIDENT_STATUS_LABELS } from "@/features/incidents/constants/incident-labels";
+import { isOpenIncidentStatus } from "@/features/incidents/constants/incident-labels";
 import type { IncidentStatus } from "@/types/incidents.types";
 
-const statusConfig: Record<IncidentStatus, { label: string; className: string }> = {
-  open: {
-    label: "Open",
-    className: "border-warning/30 bg-warning/10 text-warning",
-  },
-  resolved: {
-    label: "Resolved",
-    className: "border-primary/30 bg-primary/10 text-primary",
-  },
+const statusClass: Record<IncidentStatus, string> = {
+  OPEN: "border-warning/30 bg-warning/10 text-warning",
+  IN_PROGRESS: "border-warning/30 bg-warning/10 text-warning",
+  RESOLVED: "border-primary/30 bg-primary/10 text-primary",
+  CLOSED: "border-border bg-muted text-muted-foreground",
 };
 
-export interface IncidentStatusBadgeProps {
-  status: IncidentStatus;
-  className?: string;
-}
-
-export function IncidentStatusBadge({ status, className }: IncidentStatusBadgeProps) {
-  const config = statusConfig[status];
+export function IncidentStatusBadge({ status }: { status: IncidentStatus }) {
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
-        config.className,
-        className
+        statusClass[status]
       )}
     >
-      {config.label}
+      {isOpenIncidentStatus(status) ? INCIDENT_STATUS_LABELS[status] : INCIDENT_STATUS_LABELS[status]}
     </span>
   );
 }

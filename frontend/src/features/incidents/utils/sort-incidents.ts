@@ -1,25 +1,27 @@
-import type { OperationalIncident, IncidentSeverity } from "@/types/incidents.types";
+import {
+  isCriticalOpen,
+  isOpenIncidentStatus,
+} from "@/features/incidents/constants/incident-labels";
+import type { AdminIncident, IncidentSeverity } from "@/types/incidents.types";
 
 const SEVERITY_RANK: Record<IncidentSeverity, number> = {
-  critical: 0,
-  warning: 1,
-  info: 2,
+  CRITICAL: 0,
+  HIGH: 1,
+  MEDIUM: 2,
+  LOW: 3,
 };
 
-function openSeverityRank(incident: OperationalIncident): number {
-  if (incident.status !== "open") return 99;
+function openSeverityRank(incident: AdminIncident): number {
+  if (!isOpenIncidentStatus(incident.status)) return 99;
   return SEVERITY_RANK[incident.severity];
 }
 
-/**
- * Sort order: critical open → warning open → info open → resolved (newest first within bucket).
- */
-export function compareIncidents(a: OperationalIncident, b: OperationalIncident): number {
+export function compareIncidents(a: AdminIncident, b: AdminIncident): number {
   const rankA = openSeverityRank(a);
   const rankB = openSeverityRank(b);
   if (rankA !== rankB) return rankA - rankB;
 
-  if (a.status === "resolved" && b.status === "resolved") {
+  if (a.status === "RESOLVED" || a.status === "CLOSED") {
     const resolvedA = a.resolvedAt ? new Date(a.resolvedAt).getTime() : 0;
     const resolvedB = b.resolvedAt ? new Date(b.resolvedAt).getTime() : 0;
     return resolvedB - resolvedA;
@@ -28,19 +30,16 @@ export function compareIncidents(a: OperationalIncident, b: OperationalIncident)
   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 }
 
-export function sortIncidents(incidents: OperationalIncident[]): OperationalIncident[] {
+export function sortIncidents(incidents: AdminIncident[]): AdminIncident[] {
   return [...incidents].sort(compareIncidents);
 }
 
-export function isCriticalOpen(incident: OperationalIncident): boolean {
-  return incident.status === "open" && incident.severity === "critical";
-}
-
-export function partitionCriticalOpen(
-  incidents: OperationalIncident[]
-): { criticalOpen: OperationalIncident[]; others: OperationalIncident[] } {
-  const criticalOpen: OperationalIncident[] = [];
-  const others: OperationalIncident[] = [];
+export function partitionCriticalOpen(incidents: AdminIncident[]): {
+  criticalOpen: AdminIncident[];
+  others: AdminIncident[];
+} {
+  const criticalOpen: AdminIncident[] = [];
+  const others: AdminIncident[] = [];
 
   for (const incident of incidents) {
     if (isCriticalOpen(incident)) {

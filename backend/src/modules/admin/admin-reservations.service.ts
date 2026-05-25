@@ -1,5 +1,6 @@
 import { ReservationStatus, type Prisma } from "@prisma/client";
 import { AppError } from "../../lib/errors.js";
+import { writeAuditLog } from "../../lib/audit-log.js";
 import { prisma } from "../../lib/prisma.js";
 import { serializeAdminReservation } from "./admin.serializers.js";
 import type { ListAdminReservationsQuery } from "./admin.schemas.js";
@@ -66,4 +67,43 @@ export async function getAdminReservation(reservationId: string) {
   }
 
   return serializeAdminReservation(reservation);
+}
+
+export async function cancelAdminReservation(
+  reservationId: string,
+  actorUserId: string,
+  reason?: string
+) {
+  const reservation = await prisma.reservation.findUnique({
+    where: { id: reservationId },
+    include: reservationInclude,
+  });
+
+  if (!reservation) {
+    throw new AppError("Reservation not found", 404, "RESERVATION_NOT_FOUND");
+  }
+
+  if (reservation.status === ReservationStatus.CANCELED) {
+    throw new AppError("Reservation is already canceled", 409, "RESERVATION_ALREADY_CANCELED");
+  }
+
+  if (reservation.status === ReservationStatus.USED) {
+    throw new AppError("Cannot cancel a used reservation", 409, "RESERVATION_ALREADY_USED");
+  }
+
+  const updated = await prisma.reservation.update({
+    where: { id: reservationId },
+    data: { status: ReservationStatus.CANCELED },
+    include: reservationInclude,
+  });
+
+  await writeAuditLog({
+    actorUserId,
+    action: "RESERVATION_CANCELLED",
+    targetType: "Reservation",
+    targetId: reservationId,
+    metadata: reason ? { reason } : undefined,
+  });
+
+  return serializeAdminReservation(updated);
 }

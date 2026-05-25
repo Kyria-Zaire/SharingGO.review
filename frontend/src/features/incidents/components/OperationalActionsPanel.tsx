@@ -2,32 +2,34 @@ import { Link, useNavigate } from "react-router-dom";
 import { AlertTriangle, Filter, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ROUTES } from "@/constants/routes";
-
-export interface OperationalActionsPanelProps {
-  openCount: number;
-  resolvedCount: number;
-  onCreateClick: () => void;
-  onFilterCritical: () => void;
-  onClearResolved: () => void;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
-}
+import { isOpenIncidentStatus } from "@/features/incidents/constants/incident-labels";
+import type { AdminIncident } from "@/types/incidents.types";
 
 export function OperationalActionsPanel({
-  openCount,
-  resolvedCount,
+  incidents,
   onCreateClick,
   onFilterCritical,
   onClearResolved,
   onRefresh,
   isRefreshing = false,
-}: OperationalActionsPanelProps) {
+}: {
+  incidents: AdminIncident[];
+  onCreateClick: () => void;
+  onFilterCritical: () => void;
+  onClearResolved: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+}) {
   const navigate = useNavigate();
+  const openCount = incidents.filter((incident) => isOpenIncidentStatus(incident.status)).length;
+  const resolvedIds = incidents
+    .filter((incident) => incident.status === "RESOLVED")
+    .map((incident) => incident.id);
 
   function handleClearResolved() {
-    if (resolvedCount === 0) return;
+    if (resolvedIds.length === 0) return;
     const confirmed = window.confirm(
-      `Supprimer ${resolvedCount} incident(s) résolu(s) localement ? Cette action est irréversible.`
+      `Fermer ${resolvedIds.length} incident(s) résolu(s) (status CLOSED) ?`
     );
     if (confirmed) onClearResolved();
   }
@@ -51,6 +53,12 @@ export function OperationalActionsPanel({
           <Filter className="h-4 w-4" />
           Filtrer critiques
         </Button>
+        <Link
+          to={ROUTES.activity}
+          className="inline-flex h-8 items-center gap-2 rounded-md border border-border bg-muted px-3 text-xs font-medium text-foreground hover:bg-muted/80"
+        >
+          Activité
+        </Link>
         <Link
           to={ROUTES.departures}
           className="inline-flex h-8 items-center gap-2 rounded-md border border-border bg-muted px-3 text-xs font-medium text-foreground hover:bg-muted/80"
@@ -78,7 +86,7 @@ export function OperationalActionsPanel({
           variant="destructive"
           size="sm"
           onClick={handleClearResolved}
-          disabled={resolvedCount === 0}
+          disabled={resolvedIds.length === 0}
         >
           <Trash2 className="h-4 w-4" />
           Clear resolved

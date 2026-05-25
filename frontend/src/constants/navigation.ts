@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   Bus,
   CreditCard,
+  History,
   LayoutDashboard,
   PlaneTakeoff,
   QrCode,
@@ -31,6 +32,7 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: "Boarding", href: ROUTES.boarding, icon: QrCode },
   { label: "Departures", href: ROUTES.departures, icon: PlaneTakeoff },
   { label: "Incidents", href: ROUTES.incidents, icon: AlertTriangle, showOpenIncidentBadge: true },
+  { label: "Activité", href: ROUTES.activity, icon: History },
   { label: "Monitoring", href: ROUTES.monitoring, icon: Activity },
   { label: "Settings", href: ROUTES.settings, icon: Settings },
 ];

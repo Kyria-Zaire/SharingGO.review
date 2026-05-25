@@ -52,6 +52,27 @@ enum SubscriptionStatus {
   INCOMPLETE
 }
 
+enum IncidentType {
+  DELAY
+  TECHNICAL
+  BEHAVIOR
+  OTHER
+}
+
+enum IncidentStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -74,6 +95,7 @@ model User {
   auditLogs           AuditLog[]
   sessions            Session[]
   consumedReservations Reservation[] @relation("ConsumedReservations")
+  incidentsCreated    Incident[]    @relation("IncidentCreator")
 
   @@index([email])
 }
@@ -271,4 +293,27 @@ model AuditLog {
 
   @@index([actorUserId])
   @@index([action])
+}
+
+model Incident {
+  id                   String           @id @default(cuid())
+  code                 String           @unique
+  title                String
+  description          String?
+  type                 IncidentType
+  status               IncidentStatus   @default(OPEN)
+  severity             IncidentSeverity
+  relatedReservationId String?          @map("related_reservation_id")
+  relatedTripId        String?          @map("related_trip_id")
+  createdBy            String           @map("created_by")
+  creator              User             @relation("IncidentCreator", fields: [createdBy], references: [id])
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  resolvedAt           DateTime?
+  resolution           String?
+
+  @@index([status])
+  @@index([relatedReservationId])
+  @@index([relatedTripId])
+  @@index([createdAt])
 }

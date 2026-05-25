@@ -25,3 +25,13 @@ export async function listAdminReservations(
 export async function getAdminReservation(reservationId: string): Promise<AdminReservation> {
   return http<AdminReservation>(`/api/admin/reservations/${reservationId}`);
 }
+
+export async function cancelAdminReservation(
+  reservationId: string,
+  reason?: string
+): Promise<AdminReservation> {
+  return http<AdminReservation>(`/api/admin/reservations/${reservationId}/cancel`, {
+    method: "POST",
+    body: reason ? { reason } : {},
+  });
+}

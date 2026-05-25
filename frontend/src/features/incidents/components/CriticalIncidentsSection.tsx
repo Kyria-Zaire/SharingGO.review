@@ -1,19 +1,19 @@
 import { IncidentCard } from "./IncidentCard";
-import type { OperationalIncident } from "@/types/incidents.types";
+import type { AdminIncident } from "@/types/incidents.types";
 
-export interface CriticalIncidentsSectionProps {
-  incidents: OperationalIncident[];
+export function CriticalIncidentsSection({
+  incidents,
+  onResolve,
+}: {
+  incidents: AdminIncident[];
   onResolve: (incidentId: string) => void;
-}
-
-export function CriticalIncidentsSection({ incidents, onResolve }: CriticalIncidentsSectionProps) {
+}) {
   if (incidents.length === 0) return null;
 
   return (
     <section
       className="mb-6 rounded-lg border border-destructive/40 bg-destructive/5 p-4"
       aria-label="Critical open incidents"
-      data-incident-section="critical-open"
     >
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-destructive">
         Critical open incidents ({incidents.length})

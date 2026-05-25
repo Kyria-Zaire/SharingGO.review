@@ -77,6 +77,12 @@ export const listAdminPendingQuerySchema = z
 
 export type ListAdminPendingQuery = z.infer<typeof listAdminPendingQuerySchema>;
 
+export const cancelReservationBodySchema = z.object({
+  reason: z.string().trim().max(500).optional(),
+});
+
+export type CancelReservationBody = z.infer<typeof cancelReservationBodySchema>;
+
 export const adminTripIdParamSchema = z.object({
   id: z.string().trim().min(1, "trip id is required"),
 });
