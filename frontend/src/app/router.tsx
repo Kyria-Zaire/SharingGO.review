@@ -4,6 +4,7 @@ import { AdminRoute } from "@/guards/AdminRoute";
 import { BoardingPage } from "@/pages/BoardingPage";
 import { DeparturesPage } from "@/pages/DeparturesPage";
 import { ActivityPage } from "@/pages/ActivityPage";
+import { DispatchPage } from "@/pages/DispatchPage";
 import { IncidentsPage } from "@/pages/IncidentsPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { LoginPage } from "@/pages/LoginPage";
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "departures", element: <DeparturesPage /> },
       { path: "incidents", element: <IncidentsPage /> },
       { path: "activity", element: <ActivityPage /> },
+      { path: "dispatch", element: <DispatchPage /> },
       { path: "monitoring", element: <MonitoringPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],
