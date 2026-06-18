@@ -7,6 +7,8 @@ export const ROUTES = {
   boardingPass: "/boarding-pass",
   profile: "/profile",
   tripDetail: (tripId: string) => `/trips/${encodeURIComponent(tripId)}`,
+  pendingBooking: (pendingReservationId: string) =>
+    `/bookings/pending/${encodeURIComponent(pendingReservationId)}`,
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

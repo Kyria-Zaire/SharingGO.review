@@ -4,4 +4,10 @@ export const queryKeys = {
     list: (filters: Record<string, unknown>) => [...queryKeys.trips.all, "list", filters] as const,
     detail: (tripId: string) => [...queryKeys.trips.all, "detail", tripId] as const,
   },
+  reservations: {
+    all: ["reservations"] as const,
+    pending: (pendingReservationId: string) =>
+      [...queryKeys.reservations.all, "pending", pendingReservationId] as const,
+    createPending: ["reservations", "createPending"] as const,
+  },
 } as const;

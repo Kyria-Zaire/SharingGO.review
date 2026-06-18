@@ -4,15 +4,19 @@ import type { TripDetailReservationCta } from "@/lib/trip-availability";
 
 export interface ReservationEntryFooterProps {
   cta: TripDetailReservationCta;
-  comingSoonMessage?: string | null;
+  errorMessage?: string | null;
+  isLoading?: boolean;
   onReserveClick: () => void;
 }
 
 export function ReservationEntryFooter({
   cta,
-  comingSoonMessage,
+  errorMessage,
+  isLoading = false,
   onReserveClick,
 }: ReservationEntryFooterProps) {
+  const isDisabled = cta.disabled || isLoading;
+
   return (
     <div
       className="fixed inset-x-0 z-20 border-t border-border bg-background/95 backdrop-blur-sm"
@@ -26,21 +30,22 @@ export function ReservationEntryFooter({
           <p className="text-lg font-semibold text-primary">{TICKET_PRICE_LABEL}</p>
         </div>
         <Button
-          variant={cta.disabled ? "secondary" : "primary"}
+          variant={isDisabled ? "secondary" : "primary"}
           size="lg"
           className="min-w-[10rem] shrink-0"
-          disabled={cta.disabled}
+          disabled={isDisabled}
+          isLoading={isLoading}
           onClick={onReserveClick}
         >
           {cta.label}
         </Button>
       </div>
-      {comingSoonMessage ? (
+      {errorMessage ? (
         <p
-          className="mx-auto max-w-lg px-4 pb-3 text-center text-xs text-muted-foreground"
-          role="status"
+          className="mx-auto max-w-lg px-4 pb-3 text-center text-xs text-destructive"
+          role="alert"
         >
-          {comingSoonMessage}
+          {errorMessage}
         </p>
       ) : null}
     </div>

@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { ChevronLeft } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "@/api/http";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useAuth } from "@/hooks/useAuth";
+import { useCreatePendingReservation } from "@/hooks/useCreatePendingReservation";
 import { ReservationEntryFooter } from "@/features/trips/components/ReservationEntryFooter";
 import { TripDetailHero } from "@/features/trips/components/TripDetailHero";
 import { TripDetailSkeleton } from "@/features/trips/components/TripDetailSkeleton";
@@ -15,8 +14,7 @@ import { usePublicTrip } from "@/hooks/usePublicTrip";
 import { useTripIdParam } from "@/hooks/useTripIdParam";
 import { deriveTripDetailReservationCta } from "@/lib/trip-availability";
 import { ROUTES } from "@/types/routes";
-
-const RESERVATION_COMING_SOON = "Réservation bientôt disponible";
+import { ChevronLeft } from "lucide-react";
 
 export function TripDetailPage() {
   const tripId = useTripIdParam();
@@ -24,12 +22,12 @@ export function TripDetailPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [comingSoonMessage, setComingSoonMessage] = useState<string | null>(null);
+  const { createPending, isPending, errorMessage, reset } = useCreatePendingReservation();
 
   const isNotFound =
     tripQuery.error instanceof ApiError && tripQuery.error.code === "TRIP_NOT_FOUND";
 
-  const errorMessage = isNotFound
+  const errorMessageTrip = isNotFound
     ? "Trajet introuvable"
     : tripQuery.error instanceof ApiError
       ? tripQuery.error.message
@@ -40,7 +38,7 @@ export function TripDetailPage() {
   const showSkeleton = tripQuery.isPending && !tripQuery.data;
 
   const handleReserveClick = () => {
-    if (!tripQuery.data || authLoading) return;
+    if (!tripQuery.data || !tripId || authLoading || isPending) return;
 
     const cta = deriveTripDetailReservationCta(tripQuery.data);
     if (cta.disabled) return;
@@ -50,9 +48,8 @@ export function TripDetailPage() {
       return;
     }
 
-    if (cta.showComingSoon) {
-      setComingSoonMessage(RESERVATION_COMING_SOON);
-    }
+    reset();
+    createPending(tripId);
   };
 
   return (
@@ -74,14 +71,12 @@ export function TripDetailPage() {
 
       {showSkeleton ? <TripDetailSkeleton /> : null}
 
-      {!tripId ? (
-        <ErrorState message="Identifiant de trajet manquant" />
-      ) : null}
+      {!tripId ? <ErrorState message="Identifiant de trajet manquant" /> : null}
 
       {tripId && tripQuery.isError ? (
         <div className="space-y-4">
           <ErrorState
-            message={errorMessage}
+            message={errorMessageTrip}
             onRetry={isNotFound ? undefined : () => void tripQuery.refetch()}
           />
           <Link
@@ -103,7 +98,8 @@ export function TripDetailPage() {
 
           <ReservationEntryFooter
             cta={deriveTripDetailReservationCta(tripQuery.data)}
-            comingSoonMessage={comingSoonMessage}
+            errorMessage={errorMessage}
+            isLoading={isPending}
             onReserveClick={handleReserveClick}
           />
         </>

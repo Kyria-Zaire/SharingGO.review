@@ -72,7 +72,6 @@ export function canNavigateToTripDetail(status: TripAvailabilityView["status"]):
 export interface TripDetailReservationCta {
   label: string;
   disabled: boolean;
-  showComingSoon: boolean;
 }
 
 export function deriveTripDetailReservationCta(trip: PublicTrip, now = new Date()): TripDetailReservationCta {
@@ -82,14 +81,12 @@ export function deriveTripDetailReservationCta(trip: PublicTrip, now = new Date(
     return {
       label: DETAIL_RESERVATION_LABELS[availability.status],
       disabled: false,
-      showComingSoon: true,
     };
   }
 
   return {
     label: DETAIL_RESERVATION_LABELS[availability.status],
     disabled: true,
-    showComingSoon: false,
   };
 }
 
