@@ -4,6 +4,8 @@ export const ROUTES = {
   register: "/register",
   trips: "/trips",
   bookings: "/bookings",
+  bookingDetail: (reservationId: string) =>
+    `/bookings/${encodeURIComponent(reservationId)}`,
   boardingPass: "/boarding-pass",
   profile: "/profile",
   tripDetail: (tripId: string) => `/trips/${encodeURIComponent(tripId)}`,

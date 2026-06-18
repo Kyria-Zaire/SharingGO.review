@@ -47,18 +47,26 @@ export interface UserReservationListItem {
   createdAt: string;
 }
 
-export interface ListUserReservationsQuery {
-  status?: string;
-  upcoming?: boolean;
-  past?: boolean;
-  limit?: number;
-  offset?: number;
-}
-
 export interface ListUserReservationsResponse {
   reservations: UserReservationListItem[];
   limit: number;
   offset: number;
+}
+
+/** Statuts backend `ReservationStatus` (Prisma). */
+export type ReservationStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "CANCELED"
+  | "USED"
+  | "EXPIRED";
+
+export interface ListUserReservationsQuery {
+  status?: ReservationStatus;
+  upcoming?: boolean;
+  past?: boolean;
+  limit?: number;
+  offset?: number;
 }
 
 /** Codes d'erreur API liés aux réservations pending (OpenAPI `ApiErrorCode`). */
