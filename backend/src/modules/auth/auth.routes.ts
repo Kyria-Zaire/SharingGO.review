@@ -3,6 +3,7 @@ import { Router } from "express";
 import { asyncHandler } from "../../lib/async-handler.js";
 import { authLimiter } from "../../middleware/rate-limit.middleware.js";
 import {
+  googleAuthHandler,
   loginHandler,
   logoutHandler,
   meHandler,
@@ -15,6 +16,7 @@ export const authRouter = Router();
 
 authRouter.post("/register", authLimiter, asyncHandler(registerHandler));
 authRouter.post("/login", authLimiter, asyncHandler(loginHandler));
+authRouter.post("/google", authLimiter, asyncHandler(googleAuthHandler));
 authRouter.get("/me", asyncHandler(requireAuth), asyncHandler(meHandler));
 authRouter.post("/logout", asyncHandler(logoutHandler));
 

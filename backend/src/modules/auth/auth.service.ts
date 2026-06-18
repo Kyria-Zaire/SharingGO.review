@@ -27,6 +27,10 @@ function toSafeUser(user: User): SafeUser {
   };
 }
 
+export function mapUserToSafeUser(user: User): SafeUser {
+  return toSafeUser(user);
+}
+
 function logAuthEvent(
   action: AuthAuditAction,
   requestId: string,
@@ -40,7 +44,7 @@ function logAuthEvent(
   });
 }
 
-async function createSessionForUser(userId: string, res: Response): Promise<void> {
+export async function createSessionForUser(userId: string, res: Response): Promise<void> {
   const rawToken = generateOpaqueToken();
   const hashedToken = hashOpaqueToken(rawToken);
   const expiresAt = getSessionExpiresAt();

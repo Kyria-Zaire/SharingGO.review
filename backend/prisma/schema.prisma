@@ -98,6 +98,7 @@ model User {
   pendingReservations PendingReservation[]
   auditLogs           AuditLog[]
   sessions            Session[]
+  oauthAccounts       OAuthAccount[]
   consumedReservations Reservation[] @relation("ConsumedReservations")
   incidentsCreated    Incident[]    @relation("IncidentCreator")
 
@@ -116,6 +117,19 @@ model Session {
 
   @@index([hashedToken])
   @@index([expiresAt])
+}
+
+model OAuthAccount {
+  id             String   @id @default(cuid())
+  provider       String
+  providerUserId String
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
 }
 
 model PromoCode {

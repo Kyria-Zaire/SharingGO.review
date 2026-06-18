@@ -25,6 +25,7 @@ export interface Env {
   stripeSubscriptionSuccessUrl: string;
   stripeSubscriptionCancelUrl: string;
   boardingJwtSecret: string;
+  googleClientId: string;
 }
 
 function requireEnv(name: string): string {
@@ -143,6 +144,13 @@ function parseEnv(): Env {
     );
   }
 
+  const googleClientId = requireEnv("GOOGLE_CLIENT_ID");
+  if (!googleClientId.includes(".apps.googleusercontent.com")) {
+    throw new Error(
+      `Invalid GOOGLE_CLIENT_ID: expected a Google OAuth client id ending with .apps.googleusercontent.com`
+    );
+  }
+
   return {
     nodeEnv: nodeEnvRaw,
     port,
@@ -166,6 +174,7 @@ function parseEnv(): Env {
     stripeSubscriptionSuccessUrl,
     stripeSubscriptionCancelUrl,
     boardingJwtSecret,
+    googleClientId,
   };
 }
 

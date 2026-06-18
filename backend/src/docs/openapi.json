@@ -25,7 +25,7 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "sharinggo_session",
-        "description": "Cookie HttpOnly émis après `POST /api/auth/login` ou `register`. Nom configurable via `SESSION_COOKIE_NAME` (défaut `sharinggo_session`). Routes `/api/admin/*` : `ADMIN` ou `SUPER_ADMIN`. Boarding validate/consume : `ADMIN`, `SUPER_ADMIN` ou `DRIVER` (S2-T7)."
+        "description": "Cookie HttpOnly émis après `POST /api/auth/login`, `register` ou `google`. Nom configurable via `SESSION_COOKIE_NAME` (défaut `sharinggo_session`). Routes `/api/admin/*` : `ADMIN` ou `SUPER_ADMIN`. Boarding validate/consume : `ADMIN`, `SUPER_ADMIN` ou `DRIVER` (S2-T7)."
       }
     },
     "schemas": {
@@ -78,6 +78,10 @@
           "WEBHOOK_METADATA_INVALID",
           "EMAIL_ALREADY_EXISTS",
           "INVALID_CREDENTIALS",
+          "INVALID_GOOGLE_TOKEN",
+          "GOOGLE_EMAIL_MISSING",
+          "GOOGLE_EMAIL_NOT_VERIFIED",
+          "ACCOUNT_DISABLED",
           "LINE_NOT_FOUND",
           "DRIVER_NOT_FOUND",
           "INVALID_TOTAL_SEATS",
@@ -694,6 +698,16 @@
           "password": { "type": "string" }
         }
       },
+      "GoogleAuthRequest": {
+        "type": "object",
+        "required": ["idToken"],
+        "properties": {
+          "idToken": {
+            "type": "string",
+            "description": "Google ID Token (JWT) obtenu côté client via Google Identity Services"
+          }
+        }
+      },
       "DependencyCheck": {
         "type": "object",
         "properties": {
@@ -865,6 +879,37 @@
         "tags": ["Auth"],
         "summary": "Déconnexion",
         "responses": { "204": { "description": "Session révoquée, cookie effacé" } }
+      }
+    },
+    "/api/auth/google": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Connexion Google (ID Token)",
+        "description": "Vérifie un Google ID Token (`audience` = `GOOGLE_CLIENT_ID`), crée ou lie un compte CONVOYEUR, pose le cookie de session HttpOnly. Rate limit : 10 req / 15 min / IP (`RATE_LIMITED_AUTH`).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GoogleAuthRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion Google OK (utilisateur existant), cookie de session",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserSafe" } } }
+          },
+          "201": {
+            "description": "Compte CONVOYEUR créé + cookie de session",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserSafe" } } }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": {
+            "description": "Token Google invalide ou email non vérifié (`INVALID_GOOGLE_TOKEN`, `GOOGLE_EMAIL_MISSING`, `GOOGLE_EMAIL_NOT_VERIFIED`)"
+          },
+          "403": { "description": "Compte désactivé (`ACCOUNT_DISABLED`)" },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
       }
     },
     "/api/trips": {
