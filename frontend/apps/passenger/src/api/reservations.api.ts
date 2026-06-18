@@ -5,6 +5,7 @@ import type {
   ListUserReservationsQuery,
   ListUserReservationsResponse,
   PendingReservation,
+  UserReservationDetail,
 } from "@/types/reservations";
 
 export async function createPendingReservation(
@@ -41,4 +42,10 @@ export async function listUserReservations(
     offset: query.offset ?? 0,
   });
   return http<ListUserReservationsResponse>(`/api/reservations${qs}`);
+}
+
+export async function getUserReservation(reservationId: string): Promise<UserReservationDetail> {
+  return http<UserReservationDetail>(
+    `/api/reservations/${encodeURIComponent(reservationId)}`
+  );
 }

@@ -11,6 +11,8 @@ export const queryKeys = {
     createPending: ["reservations", "createPending"] as const,
     list: (filters: Record<string, unknown>) =>
       [...queryKeys.reservations.all, "list", filters] as const,
+    detail: (reservationId: string) =>
+      [...queryKeys.reservations.all, "detail", reservationId] as const,
   },
   payments: {
     all: ["payments"] as const,

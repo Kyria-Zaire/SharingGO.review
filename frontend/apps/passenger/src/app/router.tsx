@@ -3,7 +3,7 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { PassengerLayout } from "@/components/layout/PassengerLayout";
 import { BoardingPassPage } from "@/pages/BoardingPassPage";
-import { BookingDetailPlaceholderPage } from "@/pages/BookingDetailPlaceholderPage";
+import { BookingDetailPage } from "@/pages/BookingDetailPage";
 import { BookingsPage } from "@/pages/BookingsPage";
 import { HomePage } from "@/pages/HomePage";
 import { LoginPage } from "@/pages/LoginPage";
@@ -51,7 +51,7 @@ export const router = createBrowserRouter([
         path: "bookings/:reservationId",
         element: (
           <RequireAuth>
-            <BookingDetailPlaceholderPage />
+            <BookingDetailPage />
           </RequireAuth>
         ),
       },

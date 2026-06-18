@@ -47,6 +47,11 @@ export interface UserReservationListItem {
   createdAt: string;
 }
 
+/** GET /api/reservations/:id — liste + updatedAt. */
+export interface UserReservationDetail extends UserReservationListItem {
+  updatedAt: string;
+}
+
 export interface ListUserReservationsResponse {
   reservations: UserReservationListItem[];
   limit: number;
