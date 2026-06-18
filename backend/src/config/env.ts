@@ -5,7 +5,10 @@ export interface Env {
   port: number;
   enableApiDocs: boolean;
   databaseUrl: string;
+  /** Raw env value (comma-separated allowed origins). */
   corsOrigin: string;
+  /** Parsed whitelist for CORS middleware. */
+  corsOrigins: string[];
   sessionTtlDays: number;
   sessionCookieName: string;
   argon2MemoryCost: number;
@@ -40,6 +43,19 @@ function parseEnableApiDocs(nodeEnv: NodeEnv): boolean {
   return nodeEnv === "development";
 }
 
+function parseCorsOrigins(raw: string): string[] {
+  const origins = raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
+
+  if (origins.length === 0) {
+    throw new Error('Invalid CORS_ORIGIN: expected at least one origin URL.');
+  }
+
+  return origins;
+}
+
 function parsePositiveInt(name: string, raw: string): number {
   const value = Number(raw);
   if (!Number.isInteger(value) || value < 1) {
@@ -68,6 +84,7 @@ function parseEnv(): Env {
 
   const databaseUrl = requireEnv("DATABASE_URL");
   const corsOrigin = requireEnv("CORS_ORIGIN");
+  const corsOrigins = parseCorsOrigins(corsOrigin);
   const sessionTtlDays = parsePositiveInt("SESSION_TTL_DAYS", requireEnv("SESSION_TTL_DAYS"));
   const sessionCookieName = requireEnv("SESSION_COOKIE_NAME");
 
@@ -132,6 +149,7 @@ function parseEnv(): Env {
     enableApiDocs: parseEnableApiDocs(nodeEnvRaw),
     databaseUrl,
     corsOrigin,
+    corsOrigins,
     sessionTtlDays,
     sessionCookieName,
     argon2MemoryCost,

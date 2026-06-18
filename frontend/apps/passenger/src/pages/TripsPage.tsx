@@ -1,15 +1,81 @@
-import { Card } from "@/components/ui/Card";
+import { useState } from "react";
+import { ApiError } from "@/api/http";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  SUBSCRIPTION_COMING_SOON,
+  TICKET_PRICE_NOTE,
+} from "@/constants/pricing";
+import { TripsDateFilter } from "@/features/trips/components/TripsDateFilter";
+import { TripsList, TripsListSkeleton } from "@/features/trips/components/TripsList";
+import { TripsRouteSummary } from "@/features/trips/components/TripsRouteSummary";
+import { TripsTrustBlock } from "@/features/trips/components/TripsTrustBlock";
+import { usePublicTrips } from "@/hooks/usePublicTrips";
+import { todayParisDateKey } from "@/lib/format-date";
+import type { TripsDateFilterValue } from "@/types/trips.types";
 
 export function TripsPage() {
+  const [dateFilter, setDateFilter] = useState<TripsDateFilterValue>(() => ({
+    preset: "today",
+    dateKey: todayParisDateKey(),
+  }));
+
+  const tripsQuery = usePublicTrips(dateFilter);
+  const trips = tripsQuery.data?.trips ?? [];
+  const primaryLine = trips[0]?.line;
+
+  const errorMessage =
+    tripsQuery.error instanceof ApiError
+      ? tripsQuery.error.message
+      : tripsQuery.error instanceof Error
+        ? tripsQuery.error.message
+        : "Impossible de charger les trajets";
+
   return (
     <>
-      <PageHeader title="Trajets" description="Horaires et places disponibles" />
-      <Card>
-        <p className="text-center text-base text-muted-foreground">
-          Les trajets seront disponibles prochainement
-        </p>
-      </Card>
+      <PageHeader
+        title="Trajets"
+        description="Horaires et places disponibles — Châlons-en-Champagne ↔ Paris-Vatry"
+      />
+
+      <TripsRouteSummary line={primaryLine} />
+
+      <TripsDateFilter value={dateFilter} onChange={setDateFilter} />
+
+      <div className="mb-5 rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm">
+        <p className="font-medium text-foreground">{TICKET_PRICE_NOTE}</p>
+        <p className="mt-1 text-muted-foreground">{SUBSCRIPTION_COMING_SOON}</p>
+      </div>
+
+      <TripsTrustBlock />
+
+      {tripsQuery.isLoading ? <TripsListSkeleton /> : null}
+
+      {tripsQuery.isError ? (
+        <ErrorState message={errorMessage} onRetry={() => void tripsQuery.refetch()} />
+      ) : null}
+
+      {!tripsQuery.isLoading && !tripsQuery.isError && trips.length === 0 ? (
+        <EmptyState
+          badge="Aucun trajet"
+          title="Aucun trajet pour cette date"
+          description="Essayez une autre date ou revenez plus tard."
+          action={
+            <button
+              type="button"
+              className="text-sm font-medium text-primary"
+              onClick={() => void tripsQuery.refetch()}
+            >
+              Actualiser
+            </button>
+          }
+        />
+      ) : null}
+
+      {!tripsQuery.isLoading && !tripsQuery.isError && trips.length > 0 ? (
+        <TripsList trips={trips} />
+      ) : null}
     </>
   );
 }

@@ -27,7 +27,7 @@ export function createApp(): Express {
   app.use(requestIdMiddleware);
   app.use(
     cors({
-      origin: env.corsOrigin,
+      origin: env.corsOrigins.length === 1 ? env.corsOrigins[0] : env.corsOrigins,
       credentials: true,
     })
   );
