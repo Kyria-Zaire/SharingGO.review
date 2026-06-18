@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ChevronLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "@/api/http";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { useAuth } from "@/hooks/useAuth";
 import { ReservationEntryFooter } from "@/features/trips/components/ReservationEntryFooter";
 import { TripDetailHero } from "@/features/trips/components/TripDetailHero";
 import { TripDetailSkeleton } from "@/features/trips/components/TripDetailSkeleton";
@@ -20,6 +21,9 @@ const RESERVATION_COMING_SOON = "Réservation bientôt disponible";
 export function TripDetailPage() {
   const tripId = useTripIdParam();
   const tripQuery = usePublicTrip(tripId);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [comingSoonMessage, setComingSoonMessage] = useState<string | null>(null);
 
   const isNotFound =
@@ -36,9 +40,16 @@ export function TripDetailPage() {
   const showSkeleton = tripQuery.isPending && !tripQuery.data;
 
   const handleReserveClick = () => {
-    if (!tripQuery.data) return;
+    if (!tripQuery.data || authLoading) return;
 
     const cta = deriveTripDetailReservationCta(tripQuery.data);
+    if (cta.disabled) return;
+
+    if (!isAuthenticated) {
+      navigate(ROUTES.login, { state: { from: location.pathname } });
+      return;
+    }
+
     if (cta.showComingSoon) {
       setComingSoonMessage(RESERVATION_COMING_SOON);
     }

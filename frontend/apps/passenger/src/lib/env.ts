@@ -8,7 +8,15 @@ function readApiUrl(): string {
   return value.trim();
 }
 
-/** Préparé pour les tickets API futurs (F4A-T2+). Non utilisé en F4A-T1. */
+function readGoogleClientId(): string | null {
+  const value = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  if (!value || value.trim() === "") {
+    return null;
+  }
+  return value.trim();
+}
+
 export const env = {
   apiUrl: readApiUrl(),
+  googleClientId: readGoogleClientId(),
 } as const;

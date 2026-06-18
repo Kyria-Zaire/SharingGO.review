@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
+import { RequireAuth } from "@/components/auth/RequireAuth";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { PassengerLayout } from "@/components/layout/PassengerLayout";
 import { BoardingPassPage } from "@/pages/BoardingPassPage";
@@ -17,7 +18,7 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "trips/:tripId", element: <TripDetailPage /> },
       { path: "trips", element: <TripsPage /> },
-      { path: "bookings", element: <BookingsPage /> },
+      { path: "bookings", element: <RequireAuth><BookingsPage /></RequireAuth> },
       { path: "boarding-pass", element: <BoardingPassPage /> },
       { path: "profile", element: <ProfilePage /> },
     ],
