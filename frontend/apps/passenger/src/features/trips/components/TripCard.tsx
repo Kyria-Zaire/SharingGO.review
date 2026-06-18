@@ -1,9 +1,12 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TripAvailabilityBadge } from "@/features/trips/components/TripAvailabilityBadge";
 import { TICKET_PRICE_LABEL } from "@/constants/pricing";
-import { deriveTripAvailability } from "@/lib/trip-availability";
+import { canNavigateToTripDetail, deriveTripAvailability } from "@/lib/trip-availability";
 import { formatDayLabel, formatTime } from "@/lib/format-date";
+import { cn } from "@/lib/cn";
+import { ROUTES } from "@/types/routes";
 import type { PublicTrip } from "@/types/trips.types";
 
 export interface TripCardProps {
@@ -13,6 +16,11 @@ export interface TripCardProps {
 export function TripCard({ trip }: TripCardProps) {
   const availability = deriveTripAvailability(trip);
   const routeLabel = `${trip.line.startCity} → ${trip.line.endCity}`;
+  const canNavigate = canNavigateToTripDetail(availability.status);
+  const ctaVariant =
+    availability.status === "available" || availability.status === "almost_full"
+      ? "primary"
+      : "secondary";
 
   return (
     <Card
@@ -53,14 +61,25 @@ export function TripCard({ trip }: TripCardProps) {
         </div>
       </dl>
 
-      <Button
-        variant={availability.status === "available" || availability.status === "almost_full" ? "primary" : "secondary"}
-        className="w-full"
-        disabled={availability.ctaDisabled}
-        aria-disabled={availability.ctaDisabled}
-      >
-        {availability.ctaLabel}
-      </Button>
+      {canNavigate ? (
+        <Link
+          to={ROUTES.tripDetail(trip.id)}
+          className={cn(
+            "inline-flex w-full items-center justify-center gap-2 rounded-md font-medium transition-colors",
+            "min-h-touch px-4 text-sm",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            ctaVariant === "primary"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80"
+              : "border border-border bg-muted text-foreground hover:bg-muted/80 active:bg-muted/60"
+          )}
+        >
+          {availability.ctaLabel}
+        </Link>
+      ) : (
+        <Button variant={ctaVariant} className="w-full" disabled aria-disabled>
+          {availability.ctaLabel}
+        </Button>
+      )}
     </Card>
   );
 }

@@ -8,12 +8,14 @@ import { LoginPage } from "@/pages/LoginPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { TripDetailPage } from "@/pages/TripDetailPage";
 import { TripsPage } from "@/pages/TripsPage";
 export const router = createBrowserRouter([
   {
     element: <PassengerLayout />,
     children: [
       { index: true, element: <HomePage /> },
+      { path: "trips/:tripId", element: <TripDetailPage /> },
       { path: "trips", element: <TripsPage /> },
       { path: "bookings", element: <BookingsPage /> },
       { path: "boarding-pass", element: <BoardingPassPage /> },

@@ -43,3 +43,31 @@ export function todayParisDateKey(): string {
 export function tomorrowParisDateKey(): string {
   return addParisDays(todayParisDateKey(), 1);
 }
+
+/** Durée trajet lisible (ex. "40 min", "1 h 10 min"). */
+export function formatTripDuration(
+  departureTime: string,
+  arrivalTime: string | null
+): string | null {
+  if (!arrivalTime) return null;
+
+  const departure = new Date(departureTime);
+  const arrival = new Date(arrivalTime);
+  if (Number.isNaN(departure.getTime()) || Number.isNaN(arrival.getTime())) {
+    return null;
+  }
+
+  const totalMinutes = Math.round((arrival.getTime() - departure.getTime()) / 60_000);
+  if (totalMinutes <= 0) return null;
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours} h ${minutes} min`;
+  }
+  if (hours > 0) {
+    return `${hours} h`;
+  }
+  return `${minutes} min`;
+}

@@ -6,6 +6,7 @@ export const ROUTES = {
   bookings: "/bookings",
   boardingPass: "/boarding-pass",
   profile: "/profile",
+  tripDetail: (tripId: string) => `/trips/${encodeURIComponent(tripId)}`,
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

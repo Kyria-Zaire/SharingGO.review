@@ -8,12 +8,14 @@ const STATUS_LABELS = {
   past: "Passé",
 } as const;
 
-const CTA_LABELS = {
-  available: "Réserver bientôt",
-  almost_full: "Réserver bientôt",
+const LIST_CARD_CTA_LABEL = "Voir le trajet";
+
+const DETAIL_RESERVATION_LABELS = {
+  available: "Réserver ma place",
+  almost_full: "Réserver ma place",
   full: "Complet",
   unavailable: "Indisponible",
-  past: "Passé",
+  past: "Trajet passé",
 } as const;
 
 export function deriveTripAvailability(trip: PublicTrip, now = new Date()): TripAvailabilityView {
@@ -23,7 +25,7 @@ export function deriveTripAvailability(trip: PublicTrip, now = new Date()): Trip
     return {
       status: "unavailable",
       label: STATUS_LABELS.unavailable,
-      ctaLabel: CTA_LABELS.unavailable,
+      ctaLabel: STATUS_LABELS.unavailable,
       ctaDisabled: true,
     };
   }
@@ -32,7 +34,7 @@ export function deriveTripAvailability(trip: PublicTrip, now = new Date()): Trip
     return {
       status: "past",
       label: STATUS_LABELS.past,
-      ctaLabel: CTA_LABELS.past,
+      ctaLabel: STATUS_LABELS.past,
       ctaDisabled: true,
     };
   }
@@ -41,7 +43,7 @@ export function deriveTripAvailability(trip: PublicTrip, now = new Date()): Trip
     return {
       status: "full",
       label: STATUS_LABELS.full,
-      ctaLabel: CTA_LABELS.full,
+      ctaLabel: STATUS_LABELS.full,
       ctaDisabled: true,
     };
   }
@@ -50,16 +52,44 @@ export function deriveTripAvailability(trip: PublicTrip, now = new Date()): Trip
     return {
       status: "almost_full",
       label: STATUS_LABELS.almost_full,
-      ctaLabel: CTA_LABELS.almost_full,
-      ctaDisabled: true,
+      ctaLabel: LIST_CARD_CTA_LABEL,
+      ctaDisabled: false,
     };
   }
 
   return {
     status: "available",
     label: STATUS_LABELS.available,
-    ctaLabel: CTA_LABELS.available,
-    ctaDisabled: true,
+    ctaLabel: LIST_CARD_CTA_LABEL,
+    ctaDisabled: false,
+  };
+}
+
+export function canNavigateToTripDetail(status: TripAvailabilityView["status"]): boolean {
+  return status === "available" || status === "almost_full";
+}
+
+export interface TripDetailReservationCta {
+  label: string;
+  disabled: boolean;
+  showComingSoon: boolean;
+}
+
+export function deriveTripDetailReservationCta(trip: PublicTrip, now = new Date()): TripDetailReservationCta {
+  const availability = deriveTripAvailability(trip, now);
+
+  if (availability.status === "available" || availability.status === "almost_full") {
+    return {
+      label: DETAIL_RESERVATION_LABELS[availability.status],
+      disabled: false,
+      showComingSoon: true,
+    };
+  }
+
+  return {
+    label: DETAIL_RESERVATION_LABELS[availability.status],
+    disabled: true,
+    showComingSoon: false,
   };
 }
 
