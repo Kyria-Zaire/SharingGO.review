@@ -7,6 +7,8 @@ import { BookingsPage } from "@/pages/BookingsPage";
 import { HomePage } from "@/pages/HomePage";
 import { LoginPage } from "@/pages/LoginPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
+import { PaymentCancelPage } from "@/pages/PaymentCancelPage";
+import { PaymentSuccessPage } from "@/pages/PaymentSuccessPage";
 import { PendingReservationPage } from "@/pages/PendingReservationPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
@@ -20,6 +22,22 @@ export const router = createBrowserRouter([
       { path: "trips/:tripId", element: <TripDetailPage /> },
       { path: "trips", element: <TripsPage /> },
       { path: "bookings", element: <RequireAuth><BookingsPage /></RequireAuth> },
+      {
+        path: "bookings/payment/success",
+        element: (
+          <RequireAuth>
+            <PaymentSuccessPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "bookings/payment/cancel",
+        element: (
+          <RequireAuth>
+            <PaymentCancelPage />
+          </RequireAuth>
+        ),
+      },
       {
         path: "bookings/pending/:pendingReservationId",
         element: (

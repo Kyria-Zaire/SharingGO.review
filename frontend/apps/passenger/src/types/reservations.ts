@@ -16,6 +16,51 @@ export interface CreatePendingReservationResponse {
   remainingSeats: number;
 }
 
+export interface UserReservationTripLine {
+  id: string;
+  name: string;
+  startCity: string;
+  endCity: string;
+}
+
+export interface UserReservationTrip {
+  id: string;
+  departureTime: string;
+  arrivalTime: string | null;
+  line: UserReservationTripLine;
+}
+
+export interface UserReservationPayment {
+  id: string;
+  status: string;
+  type: string;
+  amount: string;
+  currency: string;
+  createdAt: string;
+}
+
+export interface UserReservationListItem {
+  id: string;
+  status: string;
+  trip: UserReservationTrip;
+  payment: UserReservationPayment | null;
+  createdAt: string;
+}
+
+export interface ListUserReservationsQuery {
+  status?: string;
+  upcoming?: boolean;
+  past?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface ListUserReservationsResponse {
+  reservations: UserReservationListItem[];
+  limit: number;
+  offset: number;
+}
+
 /** Codes d'erreur API liés aux réservations pending (OpenAPI `ApiErrorCode`). */
 export type ReservationApiErrorCode =
   | "PENDING_ALREADY_EXISTS"

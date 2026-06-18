@@ -9,5 +9,13 @@ export const queryKeys = {
     pending: (pendingReservationId: string) =>
       [...queryKeys.reservations.all, "pending", pendingReservationId] as const,
     createPending: ["reservations", "createPending"] as const,
+    list: (filters: Record<string, unknown>) =>
+      [...queryKeys.reservations.all, "list", filters] as const,
+  },
+  payments: {
+    all: ["payments"] as const,
+    list: (filters: Record<string, unknown>) =>
+      [...queryKeys.payments.all, "list", filters] as const,
+    createCheckout: ["payments", "createCheckout"] as const,
   },
 } as const;

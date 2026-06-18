@@ -9,6 +9,8 @@ export const ROUTES = {
   tripDetail: (tripId: string) => `/trips/${encodeURIComponent(tripId)}`,
   pendingBooking: (pendingReservationId: string) =>
     `/bookings/pending/${encodeURIComponent(pendingReservationId)}`,
+  paymentSuccess: "/bookings/payment/success",
+  paymentCancel: "/bookings/payment/cancel",
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

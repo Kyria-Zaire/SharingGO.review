@@ -1,6 +1,9 @@
 import { http } from "@/api/http";
+import { buildQuery } from "@/lib/build-query";
 import type {
   CreatePendingReservationResponse,
+  ListUserReservationsQuery,
+  ListUserReservationsResponse,
   PendingReservation,
 } from "@/types/reservations";
 
@@ -25,4 +28,17 @@ export async function cancelPendingReservation(pendingReservationId: string): Pr
   await http<void>(`/api/reservations/pending/${encodeURIComponent(pendingReservationId)}`, {
     method: "DELETE",
   });
+}
+
+export async function listUserReservations(
+  query: ListUserReservationsQuery = {}
+): Promise<ListUserReservationsResponse> {
+  const qs = buildQuery({
+    status: query.status,
+    upcoming: query.upcoming,
+    past: query.past,
+    limit: query.limit ?? 20,
+    offset: query.offset ?? 0,
+  });
+  return http<ListUserReservationsResponse>(`/api/reservations${qs}`);
 }

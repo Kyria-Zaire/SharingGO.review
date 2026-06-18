@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TICKET_PRICE_LABEL } from "@/constants/pricing";
 import { queryKeys } from "@/constants/query-keys";
+import { useCreateCheckoutSession } from "@/hooks/useCreateCheckoutSession";
 import { usePendingCountdown } from "@/hooks/usePendingCountdown";
 import { usePendingReservation } from "@/hooks/usePendingReservation";
 import { usePublicTrip } from "@/hooks/usePublicTrip";
@@ -44,6 +45,13 @@ export function PendingReservationPage() {
 
   const isExpired = Boolean(pending?.isExpired) || countdown.isExpired || apiExpired;
 
+  const {
+    startCheckout,
+    isCheckoutPending,
+    checkoutErrorMessage,
+    resetCheckout,
+  } = useCreateCheckoutSession();
+
   const cancelMutation = useMutation({
     mutationFn: () => cancelPendingReservation(pendingReservationId!),
     onSuccess: () => {
@@ -75,6 +83,19 @@ export function PendingReservationPage() {
     if (!pendingReservationId || isExpired || cancelMutation.isPending) return;
     cancelMutation.mutate();
   };
+
+  const handlePay = () => {
+    if (!pendingReservationId || !pending || isExpired || isCheckoutPending || cancelMutation.isPending) {
+      return;
+    }
+    resetCheckout();
+    startCheckout({
+      pendingReservationId,
+      tripId: pending.trip.id,
+    });
+  };
+
+  const payButtonLabel = isCheckoutPending ? "Redirection vers Stripe…" : "Payer maintenant";
 
   return (
     <div
@@ -206,12 +227,22 @@ export function PendingReservationPage() {
           </Card>
 
           <div className="space-y-3 pt-2">
-            <Button variant="primary" size="lg" className="w-full" disabled>
-              Payer maintenant
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              disabled={isExpired || isCheckoutPending || cancelMutation.isPending}
+              isLoading={isCheckoutPending}
+              onClick={handlePay}
+            >
+              {payButtonLabel}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Paiement bientôt disponible
-            </p>
+
+            {checkoutErrorMessage ? (
+              <p className="text-center text-sm text-destructive" role="alert">
+                {checkoutErrorMessage}
+              </p>
+            ) : null}
 
             {!isExpired ? (
               <Button
