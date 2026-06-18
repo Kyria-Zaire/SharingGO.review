@@ -18,6 +18,12 @@ import {
   getAdminReservationHandler,
   listAdminReservationsHandler,
 } from "./admin-reservations.controller.js";
+import {
+  createAdminUserHandler,
+  disableAdminUserHandler,
+  listAdminUsersHandler,
+  patchAdminUserRoleHandler,
+} from "./admin-users.controller.js";
 
 export const adminOperationsRouter = Router();
 
@@ -97,4 +103,28 @@ adminOperationsRouter.get(
   "/activity-feed",
   ...adminMiddleware,
   asyncHandler(listAdminActivityFeedHandler)
+);
+
+adminOperationsRouter.get(
+  "/users",
+  ...adminMiddleware,
+  asyncHandler(listAdminUsersHandler)
+);
+
+adminOperationsRouter.post(
+  "/users",
+  ...adminMiddleware,
+  asyncHandler(createAdminUserHandler)
+);
+
+adminOperationsRouter.patch(
+  "/users/:id/role",
+  ...adminMiddleware,
+  asyncHandler(patchAdminUserRoleHandler)
+);
+
+adminOperationsRouter.delete(
+  "/users/:id",
+  ...adminMiddleware,
+  asyncHandler(disableAdminUserHandler)
 );

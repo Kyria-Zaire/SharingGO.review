@@ -30,6 +30,11 @@ export async function requireAuth(
       throw new AppError("Session expired", 401, "UNAUTHORIZED");
     }
 
+    if (session.user.deletedAt != null) {
+      await prisma.session.delete({ where: { id: session.id } });
+      throw new AppError("Account disabled", 403, "FORBIDDEN");
+    }
+
     req.user = session.user;
     req.sessionId = session.id;
     next();

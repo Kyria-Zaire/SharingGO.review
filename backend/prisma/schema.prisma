@@ -90,6 +90,10 @@ model User {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   deletedAt           DateTime?
+  lastLoginAt         DateTime?
+  createdByUserId     String?
+  createdBy           User?                @relation("UserCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  usersCreated        User[]               @relation("UserCreatedBy")
   promoCodes          PromoCode[]
   pendingReservations PendingReservation[]
   auditLogs           AuditLog[]
@@ -98,6 +102,7 @@ model User {
   incidentsCreated    Incident[]    @relation("IncidentCreator")
 
   @@index([email])
+  @@index([createdByUserId])
 }
 
 model Session {

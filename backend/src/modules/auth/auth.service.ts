@@ -1,9 +1,9 @@
-import argon2 from "argon2";
 import type { User } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import type { Response } from "express";
-import { env } from "../../config/env.js";
 import { AppError } from "../../lib/errors.js";
+import { hashPassword, verifyPassword } from "../../lib/password.js";
+import { recordUserLastLogin } from "../../lib/user-login.js";
 import { logger } from "../../lib/logger.js";
 import { prisma } from "../../lib/prisma.js";
 import type { LoginInput, RegisterInput } from "./auth.schemas.js";
@@ -40,23 +40,6 @@ function logAuthEvent(
   });
 }
 
-async function hashPassword(password: string): Promise<string> {
-  return argon2.hash(password, {
-    type: argon2.argon2id,
-    memoryCost: env.argon2MemoryCost,
-    timeCost: env.argon2TimeCost,
-    parallelism: env.argon2Parallelism,
-  });
-}
-
-async function verifyPassword(password: string, passwordHash: string): Promise<boolean> {
-  try {
-    return await argon2.verify(passwordHash, password);
-  } catch {
-    return false;
-  }
-}
-
 async function createSessionForUser(userId: string, res: Response): Promise<void> {
   const rawToken = generateOpaqueToken();
   const hashedToken = hashOpaqueToken(rawToken);
@@ -91,6 +74,7 @@ export async function registerUser(
       },
     });
 
+    await recordUserLastLogin(user.id);
     await createSessionForUser(user.id, res);
     logAuthEvent("REGISTER_SUCCESS", requestId, user.id);
 
@@ -111,7 +95,7 @@ export async function loginUser(
   const email = normalizeEmail(input.email);
   const user = await prisma.user.findUnique({ where: { email } });
 
-  if (!user?.passwordHash) {
+  if (!user?.passwordHash || user.deletedAt != null) {
     logAuthEvent("LOGIN_FAILED", requestId);
     throw new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS");
   }
@@ -122,6 +106,7 @@ export async function loginUser(
     throw new AppError("Invalid credentials", 401, "INVALID_CREDENTIALS");
   }
 
+  await recordUserLastLogin(user.id);
   await createSessionForUser(user.id, res);
   logAuthEvent("LOGIN_SUCCESS", requestId, user.id);
 
