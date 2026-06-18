@@ -20,4 +20,9 @@ export const queryKeys = {
       [...queryKeys.payments.all, "list", filters] as const,
     createCheckout: ["payments", "createCheckout"] as const,
   },
+  boarding: {
+    all: ["boarding"] as const,
+    qr: (reservationId: string) =>
+      [...queryKeys.boarding.all, "qr", reservationId] as const,
+  },
 } as const;

@@ -6,7 +6,8 @@ export const ROUTES = {
   bookings: "/bookings",
   bookingDetail: (reservationId: string) =>
     `/bookings/${encodeURIComponent(reservationId)}`,
-  boardingPass: "/boarding-pass",
+  boardingPass: (reservationId: string) =>
+    `/bookings/${encodeURIComponent(reservationId)}/boarding-pass`,
   profile: "/profile",
   tripDetail: (tripId: string) => `/trips/${encodeURIComponent(tripId)}`,
   pendingBooking: (pendingReservationId: string) =>

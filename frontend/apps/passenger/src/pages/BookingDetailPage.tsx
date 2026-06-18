@@ -1,5 +1,5 @@
 import { ChevronLeft } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "@/api/http";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -80,6 +80,7 @@ function StatusMessage({ status }: { status: string }) {
 
 export function BookingDetailPage() {
   const { reservationId } = useParams<{ reservationId: string }>();
+  const navigate = useNavigate();
   const reservationQuery = useUserReservation(reservationId);
 
   const isNotFound =
@@ -248,14 +249,14 @@ export function BookingDetailPage() {
 
           <div className="space-y-3 pt-2">
             {reservation.status === "CONFIRMED" ? (
-              <>
-                <Button variant="primary" size="lg" className="w-full" disabled>
-                  Voir mon billet
-                </Button>
-                <p className="text-center text-xs text-muted-foreground">
-                  QR d&apos;embarquement bientôt disponible (F4A-T8C)
-                </p>
-              </>
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full"
+                onClick={() => navigate(ROUTES.boardingPass(reservation.id))}
+              >
+                Voir mon billet
+              </Button>
             ) : null}
 
             <Link

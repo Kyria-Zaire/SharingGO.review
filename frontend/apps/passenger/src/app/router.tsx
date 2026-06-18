@@ -48,6 +48,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "bookings/:reservationId/boarding-pass",
+        element: (
+          <RequireAuth>
+            <BoardingPassPage />
+          </RequireAuth>
+        ),
+      },
+      {
         path: "bookings/:reservationId",
         element: (
           <RequireAuth>
@@ -55,7 +63,6 @@ export const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
-      { path: "boarding-pass", element: <BoardingPassPage /> },
       { path: "profile", element: <ProfilePage /> },
     ],
   },
