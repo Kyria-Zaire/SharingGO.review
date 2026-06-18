@@ -1,0 +1,34 @@
+import { createBrowserRouter } from "react-router-dom";
+import { AuthLayout } from "@/components/layout/AuthLayout";
+import { PassengerLayout } from "@/components/layout/PassengerLayout";
+import { BoardingPassPage } from "@/pages/BoardingPassPage";
+import { BookingsPage } from "@/pages/BookingsPage";
+import { HomePage } from "@/pages/HomePage";
+import { LoginPage } from "@/pages/LoginPage";
+import { NotFoundPage } from "@/pages/NotFoundPage";
+import { ProfilePage } from "@/pages/ProfilePage";
+import { RegisterPage } from "@/pages/RegisterPage";
+import { TripsPage } from "@/pages/TripsPage";
+export const router = createBrowserRouter([
+  {
+    element: <PassengerLayout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: "trips", element: <TripsPage /> },
+      { path: "bookings", element: <BookingsPage /> },
+      { path: "boarding-pass", element: <BoardingPassPage /> },
+      { path: "profile", element: <ProfilePage /> },
+    ],
+  },
+  {
+    element: <AuthLayout />,
+    children: [
+      { path: "login", element: <LoginPage /> },
+      { path: "register", element: <RegisterPage /> },
+    ],
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
+]);
