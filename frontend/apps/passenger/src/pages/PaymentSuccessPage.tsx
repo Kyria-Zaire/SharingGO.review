@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock, Loader2 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -32,18 +32,21 @@ export function PaymentSuccessPage() {
   const isConfirmed = state === "confirmed";
   const isTimeout = state === "timeout";
 
+  const pageTitle = isConfirmed
+    ? "Réservation confirmée"
+    : isTimeout
+      ? "Paiement reçu"
+      : "Paiement reçu";
+
+  const pageDescription = isConfirmed
+    ? "Votre place est confirmée sur la navette."
+    : isTimeout
+      ? "Votre paiement a bien été enregistré."
+      : "Nous confirmons actuellement votre réservation.";
+
   return (
     <>
-      <PageHeader
-        title={isConfirmed ? "Réservation confirmée" : "Paiement reçu"}
-        description={
-          isConfirmed
-            ? "Votre place est confirmée sur la navette."
-            : isTimeout
-              ? "Votre paiement est en cours de confirmation."
-              : "Confirmation en cours…"
-        }
-      />
+      <PageHeader title={pageTitle} description={pageDescription} />
 
       <Card className="space-y-4 text-center">
         {isConfirming ? (
@@ -51,26 +54,53 @@ export function PaymentSuccessPage() {
             className="mx-auto h-10 w-10 animate-spin text-primary"
             aria-hidden
           />
+        ) : isTimeout ? (
+          <Clock className="mx-auto h-10 w-10 text-warning" aria-hidden />
         ) : (
-          <CheckCircle2
-            className={`mx-auto h-10 w-10 ${isConfirmed ? "text-primary" : "text-muted-foreground"}`}
-            aria-hidden
-          />
+          <CheckCircle2 className="mx-auto h-10 w-10 text-primary" aria-hidden />
         )}
 
-        <p className="text-sm text-foreground" role="status" aria-live="polite">
-          {isConfirming
-            ? "Paiement reçu, confirmation en cours…"
-            : isConfirmed
-              ? "Votre réservation est confirmée. Vous la retrouverez dans « Mes réservations »."
-              : "Le paiement a bien été enregistré. La confirmation peut prendre quelques instants supplémentaires."}
-        </p>
-
-        {isConfirming ? (
-          <p className="text-xs text-muted-foreground">
-            Ne fermez pas cette page — vérification automatique en cours (jusqu&apos;à 1 minute).
-          </p>
-        ) : null}
+        <div className="space-y-2" role="status" aria-live="polite">
+          {isConfirming ? (
+            <>
+              <p className="text-sm font-medium text-foreground">
+                Paiement reçu
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Nous confirmons actuellement votre réservation. Cela peut prendre
+                jusqu&apos;à 30 secondes.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Ne fermez pas cette page — vérification automatique en cours.
+              </p>
+            </>
+          ) : isConfirmed ? (
+            <>
+              <p className="text-sm font-medium text-foreground">
+                Votre réservation est confirmée
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Retrouvez votre billet dans « Mes réservations ». Votre QR
+                d&apos;embarquement y sera disponible.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-medium text-foreground">
+                Confirmation en cours côté serveur
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Le paiement a bien été enregistré. La confirmation peut prendre
+                encore quelques instants — consultez « Mes réservations » dans
+                une minute.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Si votre billet n&apos;apparaît pas après 2 minutes, contactez le
+                support avec votre reçu Stripe.
+              </p>
+            </>
+          )}
+        </div>
 
         {isConfirmed && reservationId ? (
           <p className="text-xs text-muted-foreground">
@@ -81,8 +111,19 @@ export function PaymentSuccessPage() {
       </Card>
 
       <div className="mt-6 space-y-3">
+        {isConfirmed && reservationId ? (
+          <Button
+            variant="primary"
+            size="lg"
+            className="w-full"
+            onClick={() => navigate(ROUTES.bookingDetail(reservationId))}
+          >
+            Voir mon billet
+          </Button>
+        ) : null}
+
         <Button
-          variant="primary"
+          variant={isConfirmed ? "secondary" : "primary"}
           size="lg"
           className="w-full"
           onClick={() => navigate(ROUTES.bookings)}
