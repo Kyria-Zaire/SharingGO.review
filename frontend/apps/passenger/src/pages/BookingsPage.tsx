@@ -12,7 +12,7 @@ import { ROUTES } from "@/types/routes";
 
 function BookingsListSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true" aria-label="Chargement des réservations">
+    <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2" aria-busy="true" aria-label="Chargement des réservations">
       <div className="h-36 animate-pulse rounded-xl bg-muted" />
       <div className="h-36 animate-pulse rounded-xl bg-muted" />
     </div>
@@ -84,7 +84,10 @@ export function BookingsPage() {
       ) : null}
 
       {!reservationsQuery.isPending && !reservationsQuery.isError && reservations.length > 0 ? (
-        <ul className="space-y-4" aria-label="Liste des réservations">
+        <ul
+          className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2"
+          aria-label="Liste des réservations"
+        >
           {reservations.map((reservation) => (
             <li key={reservation.id}>
               <BookingCard reservation={reservation} />

@@ -16,6 +16,7 @@ import {
   formatPaymentAmount,
   getReservationStatusView,
 } from "@/lib/reservation-status";
+import { passengerTwoColumnClass } from "@/lib/passenger-layout";
 import type { ReservationStatus } from "@/types/reservations";
 import { ROUTES } from "@/types/routes";
 
@@ -144,127 +145,131 @@ export function BookingDetailPage() {
       ) : null}
 
       {reservation && trip && statusView ? (
-        <div className="space-y-4">
-          <Card className="p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Statut</p>
-                <div className="mt-1">
-                  <Badge variant={statusView.badgeVariant}>{statusView.label}</Badge>
+        <div className={passengerTwoColumnClass}>
+          <div className="space-y-4">
+            <Card className="p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">Statut</p>
+                  <div className="mt-1">
+                    <Badge variant={statusView.badgeVariant}>{statusView.label}</Badge>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Référence</p>
+                  <p className="mt-1 font-mono text-sm text-foreground">
+                    {reservation.id.slice(0, 8).toUpperCase()}
+                  </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground">Référence</p>
-                <p className="mt-1 font-mono text-sm text-foreground">
-                  {reservation.id.slice(0, 8).toUpperCase()}
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <StatusMessage status={reservation.status} />
+            <StatusMessage status={reservation.status} />
 
-          <Card className="p-4">
-            <h2 className="text-sm font-medium text-foreground">Trajet</h2>
-            <dl className="mt-3 space-y-3 text-sm">
-              <div>
-                <dt className="text-muted-foreground">Ligne</dt>
-                <dd className="font-medium text-foreground">{routeLabel}</dd>
-                <dd className="text-xs text-muted-foreground">{trip.line.name}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Date de départ</dt>
-                <dd className="font-medium text-foreground">
-                  {formatDayLabel(trip.departureTime)}
-                </dd>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
+            <Card className="p-4">
+              <h2 className="text-sm font-medium text-foreground">Trajet</h2>
+              <dl className="mt-3 space-y-3 text-sm">
                 <div>
-                  <dt className="text-muted-foreground">Heure de départ</dt>
-                  <dd className="text-lg font-semibold text-foreground">
-                    {formatTime(trip.departureTime)}
-                  </dd>
+                  <dt className="text-muted-foreground">Ligne</dt>
+                  <dd className="font-medium text-foreground">{routeLabel}</dd>
+                  <dd className="text-xs text-muted-foreground">{trip.line.name}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Heure d&apos;arrivée</dt>
-                  <dd className="text-lg font-semibold text-foreground">
-                    {trip.arrivalTime ? formatTime(trip.arrivalTime) : "—"}
-                  </dd>
-                </div>
-              </div>
-              {duration ? (
-                <div>
-                  <dt className="text-muted-foreground">Durée estimée</dt>
-                  <dd className="font-medium text-foreground">{duration}</dd>
-                </div>
-              ) : null}
-            </dl>
-          </Card>
-
-          <Card className="p-4">
-            <h2 className="text-sm font-medium text-foreground">Paiement</h2>
-            {payment ? (
-              <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <dt className="text-muted-foreground">Montant</dt>
-                  <dd className="text-lg font-semibold text-primary">
-                    {formatPaymentAmount(payment.amount, payment.currency)}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Statut</dt>
+                  <dt className="text-muted-foreground">Date de départ</dt>
                   <dd className="font-medium text-foreground">
-                    {formatPaymentStatusLabel(payment.status)}
+                    {formatDayLabel(trip.departureTime)}
                   </dd>
                 </div>
-                <div className="col-span-2">
-                  <dt className="text-muted-foreground">Date du paiement</dt>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <dt className="text-muted-foreground">Heure de départ</dt>
+                    <dd className="text-lg font-semibold text-foreground">
+                      {formatTime(trip.departureTime)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Heure d&apos;arrivée</dt>
+                    <dd className="text-lg font-semibold text-foreground">
+                      {trip.arrivalTime ? formatTime(trip.arrivalTime) : "—"}
+                    </dd>
+                  </div>
+                </div>
+                {duration ? (
+                  <div>
+                    <dt className="text-muted-foreground">Durée estimée</dt>
+                    <dd className="font-medium text-foreground">{duration}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            </Card>
+          </div>
+
+          <div className="space-y-4">
+            <Card className="p-4">
+              <h2 className="text-sm font-medium text-foreground">Paiement</h2>
+              {payment ? (
+                <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <dt className="text-muted-foreground">Montant</dt>
+                    <dd className="text-lg font-semibold text-primary">
+                      {formatPaymentAmount(payment.amount, payment.currency)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Statut</dt>
+                    <dd className="font-medium text-foreground">
+                      {formatPaymentStatusLabel(payment.status)}
+                    </dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="text-muted-foreground">Date du paiement</dt>
+                    <dd className="font-medium text-foreground">
+                      {formatDate(payment.createdAt)}
+                    </dd>
+                  </div>
+                </dl>
+              ) : (
+                <p className="mt-3 text-sm text-muted-foreground">Aucun paiement associé.</p>
+              )}
+            </Card>
+
+            <Card className="p-4">
+              <h2 className="text-sm font-medium text-foreground">Réservation</h2>
+              <dl className="mt-3 space-y-2 text-sm">
+                <div>
+                  <dt className="text-muted-foreground">Créée le</dt>
                   <dd className="font-medium text-foreground">
-                    {formatDate(payment.createdAt)}
+                    {formatDate(reservation.createdAt)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Dernière mise à jour</dt>
+                  <dd className="font-medium text-foreground">
+                    {formatDate(reservation.updatedAt)}
                   </dd>
                 </div>
               </dl>
-            ) : (
-              <p className="mt-3 text-sm text-muted-foreground">Aucun paiement associé.</p>
-            )}
-          </Card>
+            </Card>
 
-          <Card className="p-4">
-            <h2 className="text-sm font-medium text-foreground">Réservation</h2>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div>
-                <dt className="text-muted-foreground">Créée le</dt>
-                <dd className="font-medium text-foreground">
-                  {formatDate(reservation.createdAt)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Dernière mise à jour</dt>
-                <dd className="font-medium text-foreground">
-                  {formatDate(reservation.updatedAt)}
-                </dd>
-              </div>
-            </dl>
-          </Card>
+            <div className="space-y-3 pt-2">
+              {reservation.status === "CONFIRMED" ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  onClick={() => navigate(ROUTES.boardingPass(reservation.id))}
+                >
+                  Voir mon billet
+                </Button>
+              ) : null}
 
-          <div className="space-y-3 pt-2">
-            {reservation.status === "CONFIRMED" ? (
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-full"
-                onClick={() => navigate(ROUTES.boardingPass(reservation.id))}
+              <Link
+                to={ROUTES.trips}
+                className="flex min-h-touch items-center justify-center text-sm font-medium text-primary"
               >
-                Voir mon billet
-              </Button>
-            ) : null}
-
-            <Link
-              to={ROUTES.trips}
-              className="flex min-h-touch items-center justify-center text-sm font-medium text-primary"
-            >
-              Voir les trajets disponibles
-            </Link>
+                Voir les trajets disponibles
+              </Link>
+            </div>
           </div>
         </div>
       ) : null}

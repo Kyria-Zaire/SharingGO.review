@@ -9,6 +9,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { useBoardingCountdown } from "@/hooks/useBoardingCountdown";
 import { useBoardingQr } from "@/hooks/useBoardingQr";
 import { useUserReservation } from "@/hooks/useUserReservation";
+import { passengerTwoColumnClass } from "@/lib/passenger-layout";
 import { formatDayLabel, formatTime } from "@/lib/format-date";
 import type { BoardingApiErrorCode } from "@/types/boarding";
 import { ROUTES } from "@/types/routes";
@@ -191,7 +192,7 @@ export function BoardingPassPage() {
       ) : null}
 
       {boardingData && !resolvedErrorView ? (
-        <div className="space-y-4">
+        <div className={passengerTwoColumnClass}>
           {trip ? (
             <Card className="p-4">
               <h2 className="text-sm font-medium text-foreground">Trajet</h2>
@@ -217,61 +218,65 @@ export function BoardingPassPage() {
                 </div>
               </dl>
             </Card>
-          ) : null}
-
-          {showQr ? (
-            <Card className="overflow-hidden p-4">
-              <div className="flex flex-col items-center gap-4">
-                <div className="rounded-xl border border-border bg-white p-5 shadow-sm">
-                  <QRCode
-                    value={boardingData.qr.payload}
-                    size={256}
-                    level="M"
-                    aria-label="QR code d'embarquement"
-                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                    viewBox="0 0 256 256"
-                  />
-                </div>
-                <div className="flex items-center gap-2 text-center">
-                  <QrCode className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-                  <p className="text-sm font-medium text-foreground">
-                    Présente ce QR au chauffeur
-                  </p>
-                </div>
-                <p className="text-center text-xs text-muted-foreground">
-                  Valide encore{" "}
-                  <span className="font-mono font-semibold text-foreground">
-                    {countdown.display}
-                  </span>
-                </p>
-              </div>
-            </Card>
           ) : (
-            <BoardingErrorCard
-              title="Billet expiré"
-              message="La validité du QR est terminée. Actualisez pour vérifier auprès du serveur."
-              backLabel="← Retour au détail"
-              backTo={detailPath}
-            />
+            <div className="hidden lg:block" aria-hidden />
           )}
 
-          <div className="space-y-3 pt-1">
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full"
-              onClick={handleRefresh}
-              isLoading={boardingQuery.isFetching}
-            >
-              <RefreshCw className="h-4 w-4" aria-hidden />
-              Actualiser le QR
-            </Button>
-            <Link
-              to={detailPath}
-              className="flex min-h-touch items-center justify-center text-sm font-medium text-primary"
-            >
-              Retour au détail du billet
-            </Link>
+          <div className="space-y-4 lg:sticky lg:top-[calc(3.5rem+1.25rem)]">
+            {showQr ? (
+              <Card className="overflow-hidden p-4">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="rounded-xl border border-border bg-white p-5 shadow-sm">
+                    <QRCode
+                      value={boardingData.qr.payload}
+                      size={256}
+                      level="M"
+                      aria-label="QR code d'embarquement"
+                      style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                      viewBox="0 0 256 256"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 text-center">
+                    <QrCode className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                    <p className="text-sm font-medium text-foreground">
+                      Présente ce QR au chauffeur
+                    </p>
+                  </div>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Valide encore{" "}
+                    <span className="font-mono font-semibold text-foreground">
+                      {countdown.display}
+                    </span>
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              <BoardingErrorCard
+                title="Billet expiré"
+                message="La validité du QR est terminée. Actualisez pour vérifier auprès du serveur."
+                backLabel="← Retour au détail"
+                backTo={detailPath}
+              />
+            )}
+
+            <div className="space-y-3 pt-1">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full"
+                onClick={handleRefresh}
+                isLoading={boardingQuery.isFetching}
+              >
+                <RefreshCw className="h-4 w-4" aria-hidden />
+                Actualiser le QR
+              </Button>
+              <Link
+                to={detailPath}
+                className="flex min-h-touch items-center justify-center text-sm font-medium text-primary"
+              >
+                Retour au détail du billet
+              </Link>
+            </div>
           </div>
         </div>
       ) : null}

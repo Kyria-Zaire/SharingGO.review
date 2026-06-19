@@ -17,11 +17,11 @@ export function HowItWorksSection() {
         description="Trois étapes pour voyager sereinement."
       />
 
-      <ol className="space-y-4">
+      <ol className="grid gap-4 md:grid-cols-3">
         {HOW_IT_WORKS_STEPS.map((item) => (
           <li
             key={item.step}
-            className="flex gap-4 rounded-xl border border-border bg-muted/20 p-4"
+            className="flex gap-4 rounded-xl border border-border bg-muted/20 p-4 md:flex-col md:gap-3"
           >
             <span
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground"

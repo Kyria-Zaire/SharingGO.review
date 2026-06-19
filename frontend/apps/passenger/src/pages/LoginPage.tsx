@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "@/api/http";
 import { Card } from "@/components/ui/Card";
 import { useAuth } from "@/hooks/useAuth";
+import { passengerContentNarrowClass } from "@/lib/passenger-layout";
 import { ROUTES } from "@/types/routes";
 
 export function LoginPage() {
@@ -46,7 +47,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-sm">
+    <div className={passengerContentNarrowClass}>
       <div className="mb-8 text-center">
         <p className="text-[0.65rem] font-medium uppercase tracking-widest text-primary">
           SharingGO

@@ -1,8 +1,9 @@
 import { Home, Ticket, Bus, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { BOTTOM_NAV_ITEMS } from "@/types/routes";
 import { cn } from "@/lib/cn";
+import { passengerShellWidthClass } from "@/lib/passenger-layout";
+import { BOTTOM_NAV_ITEMS } from "@/types/routes";
 
 const NAV_ICONS: Record<string, LucideIcon> = {
   Accueil: Home,
@@ -18,7 +19,7 @@ export function BottomNavigation() {
       style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0px)" }}
       aria-label="Navigation principale"
     >
-      <ul className="mx-auto flex max-w-lg items-stretch justify-around">
+      <ul className={`${passengerShellWidthClass} flex items-stretch justify-around px-4 md:px-6 lg:px-8`}>
         {BOTTOM_NAV_ITEMS.map((item) => {
           const Icon = NAV_ICONS[item.label] ?? Home;
           return (

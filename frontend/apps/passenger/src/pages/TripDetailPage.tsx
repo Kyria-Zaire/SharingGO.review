@@ -91,10 +91,12 @@ export function TripDetailPage() {
       {tripQuery.data ? (
         <>
           <TripDetailHero trip={tripQuery.data} />
-          <TripScheduleCard trip={tripQuery.data} />
-          <TripSeatsCard trip={tripQuery.data} />
-          <TripPriceCard />
-          <TripKnowBeforeYouGo />
+          <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+            <TripScheduleCard trip={tripQuery.data} />
+            <TripSeatsCard trip={tripQuery.data} />
+            <TripPriceCard />
+            <TripKnowBeforeYouGo />
+          </div>
 
           <ReservationEntryFooter
             cta={deriveTripDetailReservationCta(tripQuery.data)}

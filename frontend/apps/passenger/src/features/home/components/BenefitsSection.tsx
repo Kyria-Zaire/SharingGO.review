@@ -11,7 +11,7 @@ export function BenefitsSection() {
         description="Conçu pour les convoyeurs qui ont besoin de fiabilité."
       />
 
-      <ul className="grid gap-3 sm:grid-cols-2">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {BENEFITS.map((benefit) => (
           <li
             key={benefit.id}

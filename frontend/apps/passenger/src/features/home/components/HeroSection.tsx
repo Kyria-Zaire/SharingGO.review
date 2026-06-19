@@ -13,7 +13,8 @@ const secondaryLinkClass =
 
 export function HeroSection() {
   return (
-    <section className="pb-8 pt-1" aria-labelledby="landing-hero-title">
+    <section className="pb-8 pt-1 lg:pb-12" aria-labelledby="landing-hero-title">
+      <div className="max-w-2xl lg:max-w-3xl">
       <Badge variant="success" className="mb-4">
         Navette professionnelle
       </Badge>
@@ -38,6 +39,7 @@ export function HeroSection() {
         <a href={`#${LANDING_SECTION_IDS.howItWorks}`} className={secondaryLinkClass}>
           Comment ça fonctionne
         </a>
+      </div>
       </div>
     </section>
   );

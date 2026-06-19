@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
+import { passengerContentNarrowClass } from "@/lib/passenger-layout";
 import { ROUTES } from "@/types/routes";
 
 function displayName(
@@ -27,7 +28,7 @@ export function ProfilePage() {
 
   if (!isAuthenticated || !user) {
     return (
-      <>
+      <div className={passengerContentNarrowClass}>
         <PageHeader
           title="Profil"
           description="Connectez-vous pour gérer votre compte convoyeur."
@@ -38,12 +39,12 @@ export function ProfilePage() {
             <Button className="w-full">Se connecter avec Google</Button>
           </Link>
         </Card>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className={passengerContentNarrowClass}>
       <PageHeader title="Profil" description="Compte convoyeur SharingGO" />
       <Card className="mb-4 p-5">
         <p className="text-lg font-semibold text-foreground">
@@ -58,6 +59,6 @@ export function ProfilePage() {
       >
         Se déconnecter
       </Button>
-    </>
+    </div>
   );
 }
