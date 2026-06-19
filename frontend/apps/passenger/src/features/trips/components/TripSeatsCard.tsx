@@ -1,5 +1,6 @@
 import { Users } from "lucide-react";
 import { Card } from "@/components/ui/Card";
+import { formatRemainingSeatsLabel, normalizeTripSeats } from "@/lib/trip-availability";
 import type { PublicTrip } from "@/types/trips.types";
 
 export interface TripSeatsCardProps {
@@ -7,6 +8,8 @@ export interface TripSeatsCardProps {
 }
 
 export function TripSeatsCard({ trip }: TripSeatsCardProps) {
+  const seats = normalizeTripSeats(trip);
+
   return (
     <Card className="mb-4 p-4">
       <div className="mb-3 flex items-center gap-2">
@@ -17,17 +20,18 @@ export function TripSeatsCard({ trip }: TripSeatsCardProps) {
         <div>
           <dt className="text-muted-foreground">Restantes</dt>
           <dd className="mt-0.5 text-lg font-semibold text-foreground">
-            {trip.remainingSeats}
+            {seats.remainingSeats}
           </dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Capacité</dt>
-          <dd className="mt-0.5 text-lg font-semibold text-foreground">{trip.totalSeats}</dd>
+          <dd className="mt-0.5 text-lg font-semibold text-foreground">{seats.totalSeats}</dd>
         </div>
         <div className="col-span-2 text-muted-foreground">
-          {trip.reservedSeats <= 1
-            ? `${trip.reservedSeats} place déjà réservée`
-            : `${trip.reservedSeats} places déjà réservées`}
+          {formatRemainingSeatsLabel(seats.remainingSeats, seats.totalSeats)}
+          {seats.reservedSeats > 0
+            ? ` · ${seats.reservedSeats <= 1 ? `${seats.reservedSeats} place déjà réservée` : `${seats.reservedSeats} places déjà réservées`}`
+            : null}
         </div>
       </dl>
     </Card>

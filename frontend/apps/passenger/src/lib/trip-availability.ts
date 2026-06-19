@@ -1,5 +1,8 @@
 import type { PublicTrip, TripAvailabilityView } from "@/types/trips.types";
 
+/** Places restantes ≤ seuil → badge « Bientôt complet » (CDC V1 : 8 places max). */
+export const ALMOST_FULL_REMAINING_THRESHOLD = 2;
+
 const STATUS_LABELS = {
   available: "Disponible",
   almost_full: "Bientôt complet",
@@ -18,7 +21,32 @@ const DETAIL_RESERVATION_LABELS = {
   past: "Trajet passé",
 } as const;
 
+export interface NormalizedTripSeats {
+  totalSeats: number;
+  reservedSeats: number;
+  remainingSeats: number;
+  isFull: boolean;
+}
+
+/**
+ * Normalise les compteurs places à partir de totalSeats / reservedSeats (source métier).
+ * Corrige les écarts éventuels entre champs API (remainingSeats, isFull).
+ */
+export function normalizeTripSeats(trip: PublicTrip): NormalizedTripSeats {
+  const totalSeats = Math.max(0, trip.totalSeats);
+  const reservedSeats = Math.min(Math.max(0, trip.reservedSeats), totalSeats);
+  const computedRemaining = Math.max(0, totalSeats - reservedSeats);
+  const apiRemaining = Math.max(0, trip.remainingSeats);
+
+  const remainingSeats =
+    apiRemaining !== computedRemaining ? computedRemaining : apiRemaining;
+  const isFull = remainingSeats <= 0;
+
+  return { totalSeats, reservedSeats, remainingSeats, isFull };
+}
+
 export function deriveTripAvailability(trip: PublicTrip, now = new Date()): TripAvailabilityView {
+  const { remainingSeats, isFull } = normalizeTripSeats(trip);
   const departure = new Date(trip.departureTime);
 
   if (trip.isDisabled) {
@@ -39,7 +67,7 @@ export function deriveTripAvailability(trip: PublicTrip, now = new Date()): Trip
     };
   }
 
-  if (trip.isFull || trip.remainingSeats <= 0) {
+  if (isFull || trip.isFull) {
     return {
       status: "full",
       label: STATUS_LABELS.full,
@@ -48,7 +76,7 @@ export function deriveTripAvailability(trip: PublicTrip, now = new Date()): Trip
     };
   }
 
-  if (trip.remainingSeats <= 2) {
+  if (remainingSeats <= ALMOST_FULL_REMAINING_THRESHOLD) {
     return {
       status: "almost_full",
       label: STATUS_LABELS.almost_full,
@@ -65,6 +93,11 @@ export function deriveTripAvailability(trip: PublicTrip, now = new Date()): Trip
   };
 }
 
+export function isTripBookable(availability: TripAvailabilityView): boolean {
+  return !availability.ctaDisabled;
+}
+
+/** @deprecated Prefer isTripBookable(deriveTripAvailability(trip)) */
 export function canNavigateToTripDetail(status: TripAvailabilityView["status"]): boolean {
   return status === "available" || status === "almost_full";
 }
@@ -77,7 +110,7 @@ export interface TripDetailReservationCta {
 export function deriveTripDetailReservationCta(trip: PublicTrip, now = new Date()): TripDetailReservationCta {
   const availability = deriveTripAvailability(trip, now);
 
-  if (availability.status === "available" || availability.status === "almost_full") {
+  if (isTripBookable(availability)) {
     return {
       label: DETAIL_RESERVATION_LABELS[availability.status],
       disabled: false,
@@ -88,6 +121,16 @@ export function deriveTripDetailReservationCta(trip: PublicTrip, now = new Date(
     label: DETAIL_RESERVATION_LABELS[availability.status],
     disabled: true,
   };
+}
+
+export function formatRemainingSeatsLabel(remainingSeats: number, totalSeats: number): string {
+  if (remainingSeats <= 0) {
+    return `0 sur ${totalSeats} — complet`;
+  }
+  if (remainingSeats === 1) {
+    return `1 place libre sur ${totalSeats}`;
+  }
+  return `${remainingSeats} places libres sur ${totalSeats}`;
 }
 
 export function sortTripsByDeparture(trips: PublicTrip[]): PublicTrip[] {

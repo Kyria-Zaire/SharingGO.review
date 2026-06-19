@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TripAvailabilityBadge } from "@/features/trips/components/TripAvailabilityBadge";
 import { TICKET_PRICE_LABEL } from "@/constants/pricing";
-import { canNavigateToTripDetail, deriveTripAvailability } from "@/lib/trip-availability";
+import { deriveTripAvailability, formatRemainingSeatsLabel, isTripBookable, normalizeTripSeats } from "@/lib/trip-availability";
 import { formatDayLabel, formatTime } from "@/lib/format-date";
 import { cn } from "@/lib/cn";
 import { ROUTES } from "@/types/routes";
@@ -15,8 +15,9 @@ export interface TripCardProps {
 
 export function TripCard({ trip }: TripCardProps) {
   const availability = deriveTripAvailability(trip);
+  const seats = normalizeTripSeats(trip);
   const routeLabel = `${trip.line.startCity} → ${trip.line.endCity}`;
-  const canNavigate = canNavigateToTripDetail(availability.status);
+  const canNavigate = isTripBookable(availability);
   const ctaVariant =
     availability.status === "available" || availability.status === "almost_full"
       ? "primary"
@@ -52,7 +53,7 @@ export function TripCard({ trip }: TripCardProps) {
         <div>
           <dt className="text-muted-foreground">Places restantes</dt>
           <dd className="font-medium text-foreground">
-            {trip.remainingSeats} / {trip.totalSeats}
+            {formatRemainingSeatsLabel(seats.remainingSeats, seats.totalSeats)}
           </dd>
         </div>
         <div className="col-span-2">
