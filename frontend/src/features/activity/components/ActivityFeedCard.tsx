@@ -1,5 +1,7 @@
 import { cn } from "@/lib/cn";
 import { formatIncidentTime } from "@/features/incidents/utils/format-incident-time";
+import { formatActivityEvent } from "@/features/activity/utils/format-activity-event";
+import { formatShortId } from "@/lib/format-id";
 import type { ActivityFeedEvent } from "@/types/incidents.types";
 
 const severityClass: Record<ActivityFeedEvent["severity"], string> = {
@@ -9,30 +11,49 @@ const severityClass: Record<ActivityFeedEvent["severity"], string> = {
 };
 
 export function ActivityFeedCard({ event }: { event: ActivityFeedEvent }) {
+  const presentation = formatActivityEvent(event);
+  const showTechnical =
+    presentation.technicalDetail &&
+    presentation.technicalDetail !== presentation.summary &&
+    (presentation.technicalDetail.startsWith("{") ||
+      presentation.technicalDetail.startsWith("[") ||
+      presentation.technicalDetail.length > presentation.summary.length);
+
   return (
-    <article className="rounded-lg border border-border bg-muted/20 px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p className="text-sm font-semibold text-foreground">{event.title}</p>
-          <p className="font-mono text-xs text-muted-foreground">{event.type}</p>
+    <article className="min-w-0 overflow-hidden rounded-lg border border-border bg-muted/20 px-3 py-3 sm:px-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">{presentation.summary}</p>
+          <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground" title={event.type}>
+            {event.type.replaceAll("_", " ")}
+          </p>
         </div>
         <span
           className={cn(
-            "rounded-full border px-2 py-0.5 text-xs font-medium uppercase",
+            "w-fit shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium uppercase",
             severityClass[event.severity]
           )}
         >
           {event.severity}
         </span>
       </div>
-      {event.description ? (
-        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{event.description}</p>
+
+      {showTechnical ? (
+        <details className="mt-2 rounded-md border border-border/60 bg-background/40 px-3 py-2">
+          <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+            Détail technique
+          </summary>
+          <pre className="mt-2 max-h-40 overflow-auto break-all whitespace-pre-wrap font-mono text-[11px] text-muted-foreground">
+            {presentation.technicalDetail}
+          </pre>
+        </details>
       ) : null}
-      <p className="mt-2 text-xs text-muted-foreground">
+
+      <p className="mt-2 break-words text-xs text-muted-foreground">
         {formatIncidentTime(event.timestamp)}
         {event.actorName ? ` · ${event.actorName}` : ""}
         {event.entityType && event.entityId
-          ? ` · ${event.entityType} ${event.entityId.slice(0, 8)}…`
+          ? ` · ${event.entityType} ${formatShortId(event.entityId)}`
           : ""}
       </p>
     </article>

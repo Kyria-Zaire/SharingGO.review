@@ -27,13 +27,13 @@ export function ActivityFilters({ availableTypes }: ActivityFiltersProps) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+    <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <label className="flex w-full flex-col gap-1 text-sm text-muted-foreground sm:w-auto sm:flex-row sm:items-center sm:gap-2">
         Sévérité
         <select
           value={severity}
           onChange={(event) => updateParam("severity", event.target.value)}
-          className="flex h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground"
+          className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground sm:h-9 sm:w-auto sm:min-w-[10rem]"
           aria-label="Filtrer par sévérité"
         >
           <option value="all">Toutes</option>
@@ -43,12 +43,12 @@ export function ActivityFilters({ availableTypes }: ActivityFiltersProps) {
         </select>
       </label>
 
-      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+      <label className="flex w-full flex-col gap-1 text-sm text-muted-foreground sm:w-auto sm:flex-row sm:items-center sm:gap-2">
         Type
         <select
           value={type}
           onChange={(event) => updateParam("type", event.target.value)}
-          className="flex h-9 min-w-[10rem] rounded-md border border-border bg-background px-3 text-sm text-foreground"
+          className="flex h-10 w-full min-w-0 rounded-md border border-border bg-background px-3 text-sm text-foreground sm:h-9 sm:min-w-[10rem] sm:w-auto"
           aria-label="Filtrer par type d'événement"
         >
           <option value="all">Tous</option>

@@ -5,7 +5,7 @@ import {
 import type { IncidentFiltersState, IncidentSeverity, IncidentType } from "@/types/incidents.types";
 
 const selectClassName =
-  "flex h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
+  "flex h-10 w-full min-w-0 rounded-md border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-auto sm:min-w-[10rem]";
 
 export function IncidentFilters({
   filters,
@@ -15,7 +15,7 @@ export function IncidentFilters({
   onChange: (filters: IncidentFiltersState) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-muted/20 p-3">
+    <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/20 p-3 sm:flex-row sm:flex-wrap sm:items-end">
       <label className="flex items-center gap-2 text-sm text-foreground">
         <input
           type="checkbox"

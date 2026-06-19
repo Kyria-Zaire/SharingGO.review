@@ -83,8 +83,8 @@ export function MonitoringPage() {
         description="Santé API, readiness et manifest boarding — cockpit fiabilité"
       />
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="min-w-0 space-y-1">
           <MonitoringLastUpdated at={lastUpdated} />
           {showDelayed && isFetching ? (
             <p className="text-sm font-medium text-warning">Monitoring response delayed</p>
@@ -93,10 +93,10 @@ export function MonitoringPage() {
             <p className="text-sm text-muted-foreground">Actualisation des sondes…</p>
           ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
           <Link
             to={`${ROUTES.incidents}?category=system&create=1`}
-            className="inline-flex h-8 items-center gap-2 rounded-md border border-border bg-muted px-3 text-xs font-medium text-foreground hover:bg-muted/80"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border bg-muted px-3 text-xs font-medium text-foreground hover:bg-muted/80 sm:h-8 sm:w-auto"
           >
             <AlertTriangle className="h-4 w-4" />
             Créer incident système
@@ -104,6 +104,7 @@ export function MonitoringPage() {
           <Button
             variant="secondary"
             size="sm"
+            className="w-full sm:w-auto"
             onClick={handleRefresh}
             disabled={refreshCooldown || monitoringQuery.isFetching}
             isLoading={monitoringQuery.isFetching}
@@ -124,7 +125,7 @@ export function MonitoringPage() {
       ) : null}
 
       {snapshot && !unavailable ? (
-        <div className="mb-6 grid gap-6 lg:grid-cols-3">
+        <div className="mb-6 grid min-w-0 max-w-full gap-4 sm:gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <ReadinessChecksCard probe={snapshot.readiness} offlineStatus={offlineStatus} />
           </div>

@@ -43,8 +43,8 @@ export function TeamSettingsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <label className="text-sm text-muted-foreground">
             Statut
             <select
@@ -52,7 +52,7 @@ export function TeamSettingsTab() {
               onChange={(event) =>
                 setStatusFilter(event.target.value as AdminUserStatus | "all")
               }
-              className="ml-2 flex h-9 rounded-md border border-border bg-background px-3 text-sm"
+              className="mt-1 flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm sm:ml-2 sm:mt-0 sm:w-auto"
             >
               <option value="all">Tous</option>
               <option value="ACTIVE">Actifs</option>

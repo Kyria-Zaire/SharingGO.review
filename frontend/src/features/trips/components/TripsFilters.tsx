@@ -93,8 +93,8 @@ export function TripsFilters({
           </label>
         </div>
       </div>
-      <div className="flex justify-end">
-        <Button variant="secondary" size="sm" onClick={onRefresh} isLoading={isRefreshing}>
+      <div className="flex w-full justify-stretch sm:justify-end">
+        <Button variant="secondary" size="sm" className="w-full sm:w-auto" onClick={onRefresh} isLoading={isRefreshing}>
           <RefreshCw className="h-4 w-4" />
           Actualiser
         </Button>

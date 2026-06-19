@@ -1,11 +1,6 @@
-function requireEnv(name: keyof ImportMetaEnv): string {
-  const value = import.meta.env[name];
-  if (!value || value.trim() === "") {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-  return value.trim();
-}
+const apiUrl = (import.meta.env.VITE_API_URL ?? "").trim();
 
 export const env = {
-  apiUrl: requireEnv("VITE_API_URL"),
+  /** Empty string = same-origin (Vite dev proxy → backend local). */
+  apiUrl,
 } as const;

@@ -27,14 +27,17 @@ export function SettingsPage() {
         description="Gestion de l'équipe, préférences cockpit et configuration opérationnelle V1"
       />
 
-      <nav className="mb-6 flex flex-wrap gap-2 border-b border-border pb-2" aria-label="Onglets paramètres">
+      <nav
+        className="mb-6 -mx-1 flex gap-2 overflow-x-auto border-b border-border pb-2 px-1"
+        aria-label="Onglets paramètres"
+      >
         {TABS.map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              "shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors",
               activeTab === tab.id
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"

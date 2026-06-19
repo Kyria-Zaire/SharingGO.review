@@ -46,13 +46,13 @@ export function ActivityPage() {
         description="Flux opérationnel unifié — AuditLog et incidents persistés"
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <select
           value={severityFilter}
           onChange={(event) =>
             setSeverityFilter(event.target.value as ActivityFeedSeverity | "all")
           }
-          className="flex h-9 rounded-md border border-border bg-background px-3 text-sm"
+          className="flex h-10 w-full min-w-0 rounded-md border border-border bg-background px-3 text-sm sm:w-auto sm:min-w-[12rem]"
         >
           <option value="all">Toutes sévérités</option>
           <option value="info">Info</option>
@@ -71,6 +71,7 @@ export function ActivityPage() {
         <Button
           variant="secondary"
           size="sm"
+          className="w-full sm:w-auto"
           onClick={() => feedQuery.refetch()}
           isLoading={feedQuery.isFetching}
         >

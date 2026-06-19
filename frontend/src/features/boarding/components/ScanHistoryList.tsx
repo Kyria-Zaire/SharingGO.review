@@ -18,10 +18,13 @@ export function ScanHistoryList({ entries }: ScanHistoryListProps) {
   }
 
   return (
-    <ul className="divide-y divide-border rounded-lg border border-border">
+    <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
       {entries.map((entry) => (
-        <li key={entry.id} className="flex flex-wrap items-start justify-between gap-2 px-4 py-3 text-sm">
-          <div className="space-y-1">
+        <li
+          key={entry.id}
+          className="flex flex-col gap-2 px-3 py-3 text-sm sm:flex-row sm:items-start sm:justify-between sm:gap-2 sm:px-4"
+        >
+          <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <BoardingStatusBadge status={entry.uiStatus} />
               <span className="font-medium text-foreground">{entry.title}</span>
@@ -36,7 +39,9 @@ export function ScanHistoryList({ entries }: ScanHistoryListProps) {
               </p>
             ) : null}
           </div>
-          <time className="text-xs text-muted-foreground">{formatDate(entry.at)}</time>
+          <time className="shrink-0 text-xs text-muted-foreground sm:text-right">
+            {formatDate(entry.at)}
+          </time>
         </li>
       ))}
     </ul>

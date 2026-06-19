@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { LogOut } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "@/api/auth.api";
 import { Badge } from "@/components/ui/Badge";
@@ -11,7 +11,11 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { invalidateAuthQueries } from "@/lib/query";
 import { displayName } from "@/lib/utils";
 
-export function Topbar() {
+interface TopbarProps {
+  onMenuClick: () => void;
+}
+
+export function Topbar({ onMenuClick }: TopbarProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
@@ -25,23 +29,39 @@ export function Topbar() {
   });
 
   return (
-    <header className="flex h-14 items-center justify-between gap-4 border-b border-border bg-background px-4 lg:px-6">
-      <p className="shrink-0 text-sm text-muted-foreground lg:hidden">SharingGO Admin</p>
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background px-3 sm:gap-4 sm:px-4 lg:px-6">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="shrink-0 lg:hidden"
+        onClick={onMenuClick}
+        aria-label="Ouvrir le menu"
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
+
+      <p className="min-w-0 truncate text-sm font-medium text-foreground lg:hidden">Admin</p>
+
       <div className="hidden min-w-0 flex-1 justify-center lg:flex">
         <OperationsSearch />
       </div>
+
       {user ? (
-        <div className="flex items-center gap-3">
-          <div className="hidden text-right sm:block">
-            <p className="text-sm font-medium text-foreground">
+        <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+          <div className="hidden min-w-0 text-right md:block">
+            <p className="truncate text-sm font-medium text-foreground">
               {displayName(user.firstName, user.lastName, user.email)}
             </p>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           </div>
-          <Badge variant="success">{ROLE_LABELS[user.userType]}</Badge>
+          <Badge variant="success" className="shrink-0 whitespace-nowrap">
+            {ROLE_LABELS[user.userType]}
+          </Badge>
           <Button
             variant="ghost"
             size="sm"
+            className="shrink-0"
             onClick={() => logoutMutation.mutate()}
             isLoading={logoutMutation.isPending}
             aria-label="Déconnexion"

@@ -24,7 +24,74 @@ export function ReservationsTable({
   onViewDetail,
 }: ReservationsTableProps) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <>
+      <div className="space-y-3 lg:hidden">
+        {reservations.map((reservation) => {
+          const isSelected = selectedReservationId === reservation.id;
+          const routeLabel = `${reservation.trip.line.startCity} → ${reservation.trip.line.endCity}`;
+
+          return (
+            <article
+              key={reservation.id}
+              className={`min-w-0 rounded-lg border border-border p-4 ${isSelected ? "border-primary/40 bg-primary/5" : "bg-muted/20"}`}
+            >
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-mono text-sm text-foreground" title={reservation.id}>
+                    {formatShortId(reservation.id)}
+                  </p>
+                  <p className="font-medium text-foreground">
+                    {formatPassengerLabel(reservation.user)}
+                  </p>
+                  {reservation.user.email ? (
+                    <p className="break-all text-xs text-muted-foreground">{reservation.user.email}</p>
+                  ) : null}
+                </div>
+                <ReservationStatusBadge status={reservation.status} />
+              </div>
+              <dl className="mb-3 space-y-2 text-sm">
+                <div>
+                  <dt className="text-xs text-muted-foreground">Trajet</dt>
+                  <dd className="text-foreground">
+                    {reservation.trip.line.name} · {routeLabel}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">Départ</dt>
+                  <dd className="text-foreground">{formatDate(reservation.trip.departureTime)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">Paiement</dt>
+                  <dd className="flex flex-wrap items-center gap-2">
+                    <AccessTypeBadge type={reservation.payment?.type} />
+                    {reservation.payment ? (
+                      <>
+                        <PaymentStatusBadge status={reservation.payment.status} />
+                        <span className="text-xs text-muted-foreground">
+                          {formatAmount(reservation.payment.amount, reservation.payment.currency)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Sans paiement</span>
+                    )}
+                  </dd>
+                </div>
+              </dl>
+              <Button
+                variant={isSelected ? "primary" : "secondary"}
+                size="sm"
+                className="w-full"
+                onClick={() => onViewDetail(reservation.id)}
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Voir détails
+              </Button>
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-lg border border-border lg:block">
       <table className="w-full min-w-[1100px] text-left text-sm">
         <thead className="border-b border-border bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
@@ -101,6 +168,7 @@ export function ReservationsTable({
           })}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }

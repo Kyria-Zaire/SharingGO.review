@@ -77,7 +77,11 @@ export async function fetchHealthProbe(): Promise<HealthProbeResult> {
 export async function fetchReadinessProbe(): Promise<ReadinessProbeResult> {
   const result = await fetchJsonWithTimeout("/ready");
 
-  if (!result.ok || !isReadinessResponse(result.data)) {
+  if (!result.ok || result.data === null) {
+    return { status: "unknown", data: null, httpStatus: result.httpStatus || null };
+  }
+
+  if (!isReadinessResponse(result.data)) {
     return { status: "unknown", data: null, httpStatus: result.httpStatus || null };
   }
 

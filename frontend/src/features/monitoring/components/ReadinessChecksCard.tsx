@@ -55,7 +55,7 @@ export function ReadinessChecksCard({ probe, offlineStatus }: ReadinessChecksCar
   const isPrimaryReady = probe.status;
 
   return (
-    <Card className="border-primary/40 bg-primary/5 shadow-sm shadow-primary/10">
+    <Card className="min-w-0 border-primary/40 bg-primary/5 shadow-sm shadow-primary/10">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-primary">
@@ -72,7 +72,9 @@ export function ReadinessChecksCard({ probe, offlineStatus }: ReadinessChecksCar
         </p>
       ) : (
         <p className="mb-4 text-sm text-muted-foreground">
-          Sonde /ready inaccessible — état UNKNOWN (timeout, réseau ou réponse invalide).
+          Sonde /ready inaccessible — état UNKNOWN
+          {probe.httpStatus ? ` (HTTP ${probe.httpStatus})` : ""}.
+          Vérifiez que le proxy Vite expose <code className="text-xs">/ready</code> en dev.
         </p>
       )}
 
