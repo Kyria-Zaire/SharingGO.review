@@ -73,7 +73,17 @@ export function ReservationsPage() {
   }
 
   function handleViewDetail(reservationId: string) {
-    setSelectedReservationId((current) => (current === reservationId ? null : reservationId));
+    setSelectedReservationId(reservationId);
+  }
+
+  function resolveListErrorMessage(): string {
+    if (!(listQuery.error instanceof ApiError)) {
+      return "Impossible de charger les réservations";
+    }
+    if (listQuery.error.status === 400) {
+      return "Filtres invalides. Vérifiez les champs statut, dates et identifiants.";
+    }
+    return listQuery.error.message;
   }
 
   return (
@@ -98,11 +108,7 @@ export function ReservationsPage() {
 
       {listQuery.isError ? (
         <ErrorState
-          message={
-            listQuery.error instanceof ApiError
-              ? listQuery.error.message
-              : "Impossible de charger les réservations"
-          }
+          message={resolveListErrorMessage()}
           onRetry={() => listQuery.refetch()}
         />
       ) : null}

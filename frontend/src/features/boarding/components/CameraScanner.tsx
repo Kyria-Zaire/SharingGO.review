@@ -99,10 +99,10 @@ export function CameraScanner({
         </div>
       </div>
 
-      {/* Paused overlay */}
+      {/* Paused overlay — only when camera visible without fullscreen flow */}
       {paused && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-          <p className="text-sm font-medium text-white/80 tracking-wide uppercase">En cours de traitement…</p>
+          <p className="text-sm font-medium text-white/80 tracking-wide uppercase">Scanner en pause</p>
         </div>
       )}
 

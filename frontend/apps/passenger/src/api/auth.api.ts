@@ -41,11 +41,49 @@ export async function getCurrentPassenger(): Promise<PassengerUser | null> {
   return data as PassengerUser;
 }
 
+interface AuthUserResponse {
+  user: PassengerUser;
+}
+
+export interface LoginPassengerInput {
+  email: string;
+  password: string;
+}
+
+export interface RegisterPassengerInput {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 export async function googleLoginPassenger(idToken: string): Promise<PassengerUser> {
   return http<PassengerUser>("/api/auth/google", {
     method: "POST",
     body: { idToken },
   });
+}
+
+/** POST /api/auth/login — cookie HttpOnly posé par le backend. */
+export async function loginPassengerEmailPassword(
+  input: LoginPassengerInput
+): Promise<PassengerUser> {
+  const data = await http<AuthUserResponse>("/api/auth/login", {
+    method: "POST",
+    body: input,
+  });
+  return data.user;
+}
+
+/** POST /api/auth/register — crée un CONVOYEUR (défaut Prisma) + session. */
+export async function registerPassengerEmailPassword(
+  input: RegisterPassengerInput
+): Promise<PassengerUser> {
+  const data = await http<AuthUserResponse>("/api/auth/register", {
+    method: "POST",
+    body: input,
+  });
+  return data.user;
 }
 
 export async function logoutPassenger(): Promise<void> {

@@ -6,6 +6,13 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   loginWithGoogleCredential: (credential: string) => Promise<PassengerUser>;
+  loginWithEmailPassword: (email: string, password: string) => Promise<PassengerUser>;
+  registerWithEmailPassword: (input: {
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+  }) => Promise<PassengerUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<PassengerUser | null>;
 }

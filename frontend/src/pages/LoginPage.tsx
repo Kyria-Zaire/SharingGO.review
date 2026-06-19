@@ -23,7 +23,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { data: user, isLoading } = useCurrentUser();
+  const { data: user, isPending } = useCurrentUser();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -61,8 +61,8 @@ export function LoginPage() {
     loginMutation.mutate(parsed.data);
   }
 
-  if (isLoading) {
-    return <LoadingScreen />;
+  if (isPending) {
+    return <LoadingScreen message="Chargement de la session…" />;
   }
 
   if (user && ADMIN_PANEL_ROLES.includes(user.userType)) {

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/format-date";
 import { formatBoardingPassenger } from "@/features/boarding/utils/passenger-display";
-import { BoardingReasonBadge } from "./BoardingReasonBadge";
+import { BoardingErrorAlert } from "./BoardingErrorAlert";
 import type { BoardingValidationResponse } from "@/types/boarding.types";
 
 interface ScanConfirmPanelProps {
@@ -27,12 +27,9 @@ export function ScanConfirmPanel({
       <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 sm:p-5">
         <div className="mb-3 flex items-center gap-3">
           <XCircle className="h-8 w-8 shrink-0 text-destructive" />
-          <div>
-            <p className="text-base font-bold text-foreground">QR refusé</p>
-            <p className="text-sm text-muted-foreground">Ce billet n'est pas valide.</p>
-          </div>
+          <p className="text-base font-bold text-foreground">Billet refusé</p>
         </div>
-        <BoardingReasonBadge reason={result.reason} />
+        <BoardingErrorAlert code={result.reason} />
         <Button variant="ghost" size="lg" className="mt-4 w-full" onClick={onCancel}>
           Rescanner
         </Button>

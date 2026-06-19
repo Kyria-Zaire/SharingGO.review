@@ -27,6 +27,11 @@ function fromDatetimeLocalValue(value: string): string | undefined {
   return date.toISOString();
 }
 
+function toOptionalText(value: string): string | undefined {
+  const normalized = value.trim();
+  return normalized ? normalized : undefined;
+}
+
 export interface ReservationsFiltersProps {
   filters: AdminReservationFilters;
   onChange: (filters: AdminReservationFilters) => void;
@@ -135,7 +140,7 @@ export function ReservationsFilters({
             className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             value={filters.tripId ?? ""}
             onChange={(e) =>
-              onChange({ ...filters, tripId: e.target.value || undefined, offset: 0 })
+              onChange({ ...filters, tripId: toOptionalText(e.target.value), offset: 0 })
             }
           />
         </div>
@@ -150,7 +155,7 @@ export function ReservationsFilters({
             className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             value={filters.userId ?? ""}
             onChange={(e) =>
-              onChange({ ...filters, userId: e.target.value || undefined, offset: 0 })
+              onChange({ ...filters, userId: toOptionalText(e.target.value), offset: 0 })
             }
           />
         </div>
@@ -166,7 +171,11 @@ export function ReservationsFilters({
             className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             value={filters.limit ?? 50}
             onChange={(e) =>
-              onChange({ ...filters, limit: Number(e.target.value) || 50, offset: 0 })
+              onChange({
+                ...filters,
+                limit: Math.min(100, Math.max(1, Number(e.target.value) || 50)),
+                offset: 0,
+              })
             }
           />
         </div>

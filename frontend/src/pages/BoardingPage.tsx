@@ -9,12 +9,20 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { queryKeys } from "@/constants/query-keys";
 import { BoardingScanFeedback } from "@/features/boarding/components/BoardingScanFeedback";
+import {
+  BoardingScanFlowOverlay,
+  type BoardingScanFlowPhase,
+} from "@/features/boarding/components/BoardingScanFlowOverlay";
 import { BoardingScannerPanel } from "@/features/boarding/components/BoardingScannerPanel";
 import { OfflineCapabilityCard } from "@/features/boarding/components/OfflineCapabilityCard";
-import { ScanConfirmPanel } from "@/features/boarding/components/ScanConfirmPanel";
-import { ScanNetworkError } from "@/features/boarding/components/ScanNetworkError";
 import { ScanHistoryList } from "@/features/boarding/components/ScanHistoryList";
 import { useCameraScanner } from "@/features/boarding/hooks/useCameraScanner";
+import {
+  boardingDevLog,
+  maskBoardingToken,
+  normalizeBoardingToken,
+} from "@/features/boarding/utils/boarding-dev-log";
+import { resolveBoardingErrorMessage } from "@/features/boarding/utils/boarding-error-messages";
 import { appendScanHistory } from "@/features/boarding/utils/scan-history";
 import type {
   BoardingConsumeResponse,
@@ -56,11 +64,27 @@ type ScanPhase =
   | "network-error-consume"
   | "feedback";
 
+function isFlowOverlayPhase(phase: ScanPhase): phase is BoardingScanFlowPhase {
+  return (
+    phase === "validating" ||
+    phase === "confirm" ||
+    phase === "rejected" ||
+    phase === "consuming" ||
+    phase === "network-error-validate" ||
+    phase === "network-error-consume"
+  );
+}
+
 function historyFromValidate(result: BoardingValidationResponse): Omit<BoardingScanHistoryEntry, "id" | "at"> {
   if (result.valid) {
     return { action: "validate", uiStatus: "success", title: "Contrôle valide", reservationId: result.reservation.id };
   }
-  return { action: "validate", uiStatus: "error", title: "Contrôle refusé", reason: result.reason };
+  return {
+    action: "validate",
+    uiStatus: "error",
+    title: resolveBoardingErrorMessage(result.reason).title,
+    reason: result.reason,
+  };
 }
 
 function isBoardingAlreadyUsed(result: BoardingConsumeResponse): boolean {
@@ -89,17 +113,18 @@ function historyFromConsume(
     };
   }
 
+  const reason = "reason" in result ? result.reason : undefined;
+
   return {
     action: "consume",
     uiStatus: result.ui.status,
-    title: result.ui.title,
-    reason: "reason" in result ? result.reason : undefined,
+    title: reason ? resolveBoardingErrorMessage(reason).title : result.ui.title,
+    reason,
     reservationId,
   };
 }
 
 export function BoardingPage() {
-  // ── Shared scan state machine ──────────────────────────────────────────────
   const [phase, setPhase] = useState<ScanPhase>("idle");
   const [scannedToken, setScannedToken] = useState<string | null>(null);
   const [validateResult, setValidateResult] = useState<BoardingValidationResponse | null>(null);
@@ -108,48 +133,41 @@ export function BoardingPage() {
     "default" | "retry-already-used-success"
   >("default");
   const [scanHistory, setScanHistory] = useState<BoardingScanHistoryEntry[]>([]);
-  const isConsumeRetryAfterNetworkErrorRef = useRef(false);
-
-  // ── Manual textarea state (separate from the shared scan machine) ──────────
   const [tokenInput, setTokenInput] = useState("");
 
-  // ── Offline capabilities query ─────────────────────────────────────────────
+  const isConsumeRetryAfterNetworkErrorRef = useRef(false);
+  const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cameraRef = useRef<ReturnType<typeof useCameraScanner> | null>(null);
+
   const offlineQuery = useQuery({
     queryKey: queryKeys.boarding.offlineCapabilities,
     queryFn: getBoardingOfflineCapabilities,
     staleTime: OFFLINE_STALE_TIME_MS,
   });
 
-  // ── Shared: reset all scan state and resume scanner ───────────────────────
-  const camera = useCameraScanner(
-    useCallback((token: string) => triggerValidate(token), []), // eslint-disable-line react-hooks/exhaustive-deps
-    phase !== "idle"
-  );
-
-  function resetToIdle() {
-    setPhase("idle");
-    setScannedToken(null);
-    setValidateResult(null);
-    setConsumeResult(null);
-    setConsumeFeedbackVariant("default");
-    isConsumeRetryAfterNetworkErrorRef.current = false;
-    camera.resumeScan();
-  }
-
-  // ── Shared validate mutation ───────────────────────────────────────────────
   const validateMutation = useMutation({
     mutationFn: (token: string) => validateBoarding(token),
     onSuccess: (result) => {
+      boardingDevLog("validate success", {
+        valid: result.valid,
+        reason: result.valid ? undefined : result.reason,
+        reservationId: result.valid ? result.reservation.id : undefined,
+      });
       setValidateResult(result);
       setScanHistory((prev) => appendScanHistory(prev, historyFromValidate(result)));
-      setPhase(result.valid ? "confirm" : "rejected");
+      const nextPhase = result.valid ? "confirm" : "rejected";
+      boardingDevLog("ui transition", { from: "validating", to: nextPhase });
+      setPhase(nextPhase);
     },
-    onError: () => {
+    onError: (error) => {
+      boardingDevLog("validate error", {
+        message: error instanceof Error ? error.message : "unknown",
+      });
+      boardingDevLog("ui transition", { from: "validating", to: "network-error-validate" });
       setPhase("network-error-validate");
     },
   });
 
-  // ── Shared consume mutation ────────────────────────────────────────────────
   const consumeMutation = useMutation({
     mutationFn: (token: string) => consumeBoarding(token),
     onSuccess: (result) => {
@@ -159,50 +177,88 @@ export function BoardingPage() {
       const isRetryAlreadyUsedSuccess =
         isRetryAfterNetworkError && isBoardingAlreadyUsed(result);
 
+      boardingDevLog("consume success", {
+        consumed: result.consumed,
+        valid: result.valid,
+        reason: "reason" in result ? result.reason : undefined,
+        retryAlreadyUsedSuccess: isRetryAlreadyUsedSuccess,
+      });
+
       setConsumeResult(result);
       setConsumeFeedbackVariant(isRetryAlreadyUsedSuccess ? "retry-already-used-success" : "default");
       setScanHistory((prev) =>
         appendScanHistory(prev, historyFromConsume(result, isRetryAlreadyUsedSuccess))
       );
+      boardingDevLog("ui transition", { from: "consuming", to: "feedback" });
       setPhase("feedback");
     },
-    onError: () => {
+    onError: (error) => {
+      boardingDevLog("consume error", {
+        message: error instanceof Error ? error.message : "unknown",
+      });
+      boardingDevLog("ui transition", { from: "consuming", to: "network-error-consume" });
       setPhase("network-error-consume");
     },
   });
 
-  // ── Trigger validate (camera or manual) ───────────────────────────────────
-  function triggerValidate(token: string) {
-    setScannedToken(token);
+  const resetToIdle = useCallback(() => {
+    boardingDevLog("ui transition", { from: phase, to: "idle" });
+    setPhase("idle");
+    setScannedToken(null);
     setValidateResult(null);
     setConsumeResult(null);
-    setPhase("validating");
-    validateMutation.mutate(token);
-  }
+    setConsumeFeedbackVariant("default");
+    isConsumeRetryAfterNetworkErrorRef.current = false;
+    cameraRef.current?.resumeScan();
+  }, [phase]);
 
-  // ── Manual submit → same validate flow ────────────────────────────────────
+  const triggerValidate = useCallback(
+    (rawToken: string) => {
+      const token = normalizeBoardingToken(rawToken);
+      if (!token) return;
+
+      boardingDevLog("scan detected", {
+        token: maskBoardingToken(token),
+        jwtParts: token.split(".").length,
+      });
+
+      cameraRef.current?.lockProcessing();
+      setScannedToken(token);
+      setValidateResult(null);
+      setConsumeResult(null);
+      boardingDevLog("validate request started");
+      boardingDevLog("ui transition", { from: phase, to: "validating" });
+      setPhase("validating");
+      validateMutation.mutate(token);
+    },
+    [phase, validateMutation]
+  );
+
+  const camera = useCameraScanner(triggerValidate, phase !== "idle");
+  cameraRef.current = camera;
+
   function handleManualSubmit() {
-    const token = tokenInput.trim();
+    const token = normalizeBoardingToken(tokenInput);
     if (!token) return;
     triggerValidate(token);
   }
 
-  // ── Confirm: user taps "Confirmer embarquement" ───────────────────────────
   function handleConfirm() {
     if (!scannedToken) return;
     isConsumeRetryAfterNetworkErrorRef.current = false;
+    boardingDevLog("ui transition", { from: phase, to: "consuming" });
     setPhase("consuming");
     consumeMutation.mutate(scannedToken);
   }
 
-  // ── Cancel / rescanner ────────────────────────────────────────────────────
   function handleCancel() {
     resetToIdle();
   }
 
-  // ── Retry after network error ─────────────────────────────────────────────
   function handleRetryValidate() {
     if (!scannedToken) return;
+    boardingDevLog("validate retry");
+    boardingDevLog("ui transition", { from: phase, to: "validating" });
     setPhase("validating");
     validateMutation.mutate(scannedToken);
   }
@@ -210,16 +266,16 @@ export function BoardingPage() {
   function handleRetryConsume() {
     if (!scannedToken) return;
     isConsumeRetryAfterNetworkErrorRef.current = true;
+    boardingDevLog("consume retry after network error");
+    boardingDevLog("ui transition", { from: phase, to: "consuming" });
     setPhase("consuming");
     consumeMutation.mutate(scannedToken);
   }
 
-  // ── Timeout: auto-cancel confirm after 18 s ───────────────────────────────
-  const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   useEffect(() => {
     if (phase === "confirm") {
       confirmTimerRef.current = setTimeout(() => {
+        boardingDevLog("confirm timeout — auto cancel");
         resetToIdle();
       }, CONFIRM_TIMEOUT_MS);
     }
@@ -229,39 +285,45 @@ export function BoardingPage() {
         confirmTimerRef.current = null;
       }
     };
-  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, resetToIdle]);
 
-  // ── Tab switch: reset all scan state ─────────────────────────────────────
   function handleTabChange() {
     if (phase !== "idle" && phase !== "feedback") {
       resetToIdle();
     }
-    // Clear manual textarea results too
     setTokenInput("");
   }
 
-  // ── Camera permission ─────────────────────────────────────────────────────
   const handleCameraRequestPermission = useCallback(async () => {
     await camera.requestPermission();
   }, [camera]);
 
-  // ── Feedback done (1.5 s) → resume ───────────────────────────────────────
   const handleFeedbackDone = useCallback(() => {
     resetToIdle();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [resetToIdle]);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-  const showConfirmPanel =
-    phase === "confirm" || phase === "consuming" || phase === "rejected";
+  const showFlowOverlay = isFlowOverlayPhase(phase);
+  const scannerBusy = phase !== "idle";
 
   return (
     <>
-      {/* Full-screen consume feedback overlay (1.5 s) */}
       {phase === "feedback" && consumeResult ? (
         <BoardingScanFeedback
           result={consumeResult}
           variant={consumeFeedbackVariant}
           onDone={handleFeedbackDone}
+        />
+      ) : null}
+
+      {showFlowOverlay ? (
+        <BoardingScanFlowOverlay
+          phase={phase}
+          validateResult={validateResult}
+          confirmTimeoutMs={CONFIRM_TIMEOUT_MS}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+          onRetryValidate={handleRetryValidate}
+          onRetryConsume={handleRetryConsume}
         />
       ) : null}
 
@@ -272,69 +334,25 @@ export function BoardingPage() {
       />
 
       <div className="grid min-w-0 max-w-full gap-4 sm:gap-6 lg:grid-cols-2">
-        {/* Left column */}
         <div className="min-w-0 space-y-4 sm:space-y-6">
           <BoardingScannerPanel
-            /* manual */
             tokenInput={tokenInput}
             onTokenChange={setTokenInput}
             onManualSubmit={handleManualSubmit}
             onClear={resetToIdle}
             isValidating={phase === "validating"}
             isConsuming={phase === "consuming"}
-            /* camera */
+            disabled={scannerBusy}
             cameraPermission={camera.permission}
             cameraIsScanning={camera.isScanning}
-            cameraPaused={phase !== "idle"}
+            cameraPaused={scannerBusy}
+            cameraEnabled={phase === "idle"}
             onCameraDetected={camera.handleDetected}
             onCameraRequestPermission={handleCameraRequestPermission}
-            /* tab switch */
             onTabChange={handleTabChange}
           />
-
-          {/* Validating spinner */}
-          {phase === "validating" ? (
-            <p className="text-center text-sm text-muted-foreground animate-pulse">
-              Vérification du billet…
-            </p>
-          ) : null}
-
-          {/* Network error — validate */}
-          {phase === "network-error-validate" ? (
-            <ScanNetworkError
-              context="validate"
-              onRetry={handleRetryValidate}
-              onCancel={handleCancel}
-            />
-          ) : null}
-
-          {/* Network error — consume */}
-          {phase === "network-error-consume" ? (
-            <ScanNetworkError
-              context="consume"
-              onRetry={handleRetryConsume}
-              onCancel={handleCancel}
-            />
-          ) : null}
-
-          {/* Confirm / rejected panel */}
-          {showConfirmPanel && validateResult ? (
-            <section className="space-y-2">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Résultat scan
-              </h3>
-              <ScanConfirmPanel
-                result={validateResult}
-                isConsuming={phase === "consuming"}
-                confirmTimeoutMs={CONFIRM_TIMEOUT_MS}
-                onConfirm={handleConfirm}
-                onCancel={handleCancel}
-              />
-            </section>
-          ) : null}
         </div>
 
-        {/* Right column */}
         <div className="min-w-0 space-y-4 sm:space-y-6">
           <OfflineCapabilityCard
             data={offlineQuery.data}
@@ -355,7 +373,6 @@ export function BoardingPage() {
         </div>
       </div>
 
-      {/* Standalone error display for offline capabilities */}
       {offlineQuery.isError ? (
         <ErrorState
           message="Impossible de charger les capacités offline"

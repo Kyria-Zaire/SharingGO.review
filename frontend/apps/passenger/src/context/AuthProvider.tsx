@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import {
   getCurrentPassenger,
   googleLoginPassenger,
+  loginPassengerEmailPassword,
   logoutPassenger,
+  registerPassengerEmailPassword,
 } from "@/api/auth.api";
 import { AuthContext, type AuthContextValue } from "@/context/auth-context";
 
@@ -26,6 +28,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return loggedIn;
   }, []);
 
+  const loginWithEmailPassword = useCallback(async (email: string, password: string) => {
+    const loggedIn = await loginPassengerEmailPassword({ email, password });
+    setUser(loggedIn);
+    return loggedIn;
+  }, []);
+
+  const registerWithEmailPassword = useCallback(
+    async (input: {
+      email: string;
+      password: string;
+      firstName?: string;
+      lastName?: string;
+    }) => {
+      const loggedIn = await registerPassengerEmailPassword(input);
+      setUser(loggedIn);
+      return loggedIn;
+    },
+    []
+  );
+
   const logout = useCallback(async () => {
     await logoutPassenger();
     setUser(null);
@@ -37,10 +59,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: user != null,
       isLoading,
       loginWithGoogleCredential,
+      loginWithEmailPassword,
+      registerWithEmailPassword,
       logout,
       refreshUser,
     }),
-    [user, isLoading, loginWithGoogleCredential, logout, refreshUser]
+    [
+      user,
+      isLoading,
+      loginWithGoogleCredential,
+      loginWithEmailPassword,
+      registerWithEmailPassword,
+      logout,
+      refreshUser,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

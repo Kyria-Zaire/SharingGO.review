@@ -89,8 +89,9 @@ Jamais : password, token, cookie.
 ## Intégration Google OAuth (futur)
 
 1. Provider crée ou lie un `User`
-2. Appeler `createSessionForUser` (même flow cookie/DB)
-3. Réutiliser `requireAuth` / `requireRole` inchangés
+2. Appeler `recordUserLastLogin(user.id)` depuis `backend/src/lib/user-login.ts` (F3-T12 — même règle que login email)
+3. Appeler `createSessionForUser` (même flow cookie/DB)
+4. Réutiliser `requireAuth` / `requireRole` inchangés
 
 ## Prisma Docker
 

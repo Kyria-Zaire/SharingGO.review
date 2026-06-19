@@ -13,10 +13,10 @@ interface RequireRoleProps {
 }
 
 export function RequireRole({ allowedRoles, children, fallback }: RequireRoleProps) {
-  const { data: user, isLoading } = useCurrentUser();
+  const { data: user, isPending } = useCurrentUser();
 
-  if (isLoading) {
-    return <LoadingScreen />;
+  if (isPending && !user) {
+    return <LoadingScreen message="Chargement de la session…" />;
   }
 
   if (!user) {

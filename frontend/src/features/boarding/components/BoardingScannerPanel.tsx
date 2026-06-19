@@ -23,6 +23,8 @@ export interface BoardingScannerPanelProps {
   cameraPermission: CameraPermission;
   cameraIsScanning: boolean;
   cameraPaused: boolean;
+  /** When false, camera preview is not mounted (processing overlay active). */
+  cameraEnabled?: boolean;
   onCameraDetected: (token: string) => void;
   onCameraRequestPermission: () => Promise<void>;
 
@@ -41,6 +43,7 @@ export function BoardingScannerPanel({
   cameraPermission,
   cameraIsScanning,
   cameraPaused,
+  cameraEnabled = true,
   onCameraDetected,
   onCameraRequestPermission,
   onTabChange,
@@ -88,13 +91,21 @@ export function BoardingScannerPanel({
         hidden={activeTab !== "camera"}
         className="p-3 space-y-3 sm:p-4 sm:space-y-4"
       >
-        <CameraScanner
-          permission={cameraPermission}
-          isScanning={cameraIsScanning}
-          paused={cameraPaused}
-          onDetected={onCameraDetected}
-          onRequestPermission={onCameraRequestPermission}
-        />
+        {cameraEnabled ? (
+          <CameraScanner
+            permission={cameraPermission}
+            isScanning={cameraIsScanning}
+            paused={cameraPaused}
+            onDetected={onCameraDetected}
+            onRequestPermission={onCameraRequestPermission}
+          />
+        ) : (
+          <div className="flex aspect-[3/4] w-full items-center justify-center rounded-lg border border-border bg-muted/40 sm:aspect-[4/3]">
+            <p className="px-4 text-center text-sm text-muted-foreground">
+              Traitement du scan en cours…
+            </p>
+          </div>
+        )}
         <p className="text-center text-xs text-muted-foreground">
           Pointez la caméra vers le QR code du billet passager.
         </p>

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { resolveBoardingErrorMessage } from "@/features/boarding/utils/boarding-error-messages";
 import type { BoardingConsumeResponse } from "@/types/boarding.types";
 
 const FEEDBACK_DURATION_MS = 1500;
@@ -42,16 +43,23 @@ export function BoardingScanFeedback({
     bgClass = "bg-primary";
     textClass = "text-primary-foreground";
   } else if (result.valid && result.reason === "BOARDING_ALREADY_USED") {
+    const message = resolveBoardingErrorMessage("BOARDING_ALREADY_USED");
     icon = "⚠️";
-    title = "Billet déjà utilisé";
-    subtitle = "Ce billet a déjà été scanné";
+    title = message.title;
+    subtitle = message.description;
+    bgClass = "bg-destructive";
+    textClass = "text-white";
+  } else if ("reason" in result && result.reason) {
+    const message = resolveBoardingErrorMessage(result.reason);
+    icon = "❌";
+    title = message.title;
+    subtitle = message.description;
     bgClass = "bg-destructive";
     textClass = "text-white";
   } else {
-    // BoardingConsumptionFailure — valid: false
     icon = "❌";
     title = "Refusé";
-    subtitle = result.reason;
+    subtitle = "Ce billet ne peut pas être accepté.";
     bgClass = "bg-destructive";
     textClass = "text-white";
   }
