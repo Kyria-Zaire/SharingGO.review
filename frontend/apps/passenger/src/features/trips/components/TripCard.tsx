@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TripAvailabilityBadge } from "@/features/trips/components/TripAvailabilityBadge";
 import { TICKET_PRICE_LABEL } from "@/constants/pricing";
-import { deriveTripAvailability, formatRemainingSeatsLabel, isTripBookable, normalizeTripSeats } from "@/lib/trip-availability";
+import { deriveTripAvailability, formatReservedSeatsLabel, isTripBookable, normalizeTripSeats } from "@/lib/trip-availability";
 import { formatDayLabel, formatTime } from "@/lib/format-date";
 import { cn } from "@/lib/cn";
 import { ROUTES } from "@/types/routes";
@@ -51,9 +51,9 @@ export function TripCard({ trip }: TripCardProps) {
           <dd className="font-medium text-foreground">{routeLabel}</dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Places restantes</dt>
+          <dt className="text-muted-foreground">Places réservées</dt>
           <dd className="font-medium text-foreground">
-            {formatRemainingSeatsLabel(seats.remainingSeats, seats.totalSeats)}
+            {formatReservedSeatsLabel(seats.reservedSeats, seats.totalSeats)}
           </dd>
         </div>
         <div className="col-span-2">

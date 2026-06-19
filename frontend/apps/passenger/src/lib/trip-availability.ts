@@ -3,6 +3,11 @@ import type { PublicTrip, TripAvailabilityView } from "@/types/trips.types";
 /** Places restantes ≤ seuil → badge « Bientôt complet » (CDC V1 : 8 places max). */
 export const ALMOST_FULL_REMAINING_THRESHOLD = 2;
 
+/** Places réservées ≥ ce seuil (sur 8) → badge « Bientôt complet » (= total − seuil restant). */
+export function almostFullReservedThreshold(totalSeats: number): number {
+  return Math.max(0, totalSeats - ALMOST_FULL_REMAINING_THRESHOLD);
+}
+
 const STATUS_LABELS = {
   available: "Disponible",
   almost_full: "Bientôt complet",
@@ -35,18 +40,14 @@ export interface NormalizedTripSeats {
 export function normalizeTripSeats(trip: PublicTrip): NormalizedTripSeats {
   const totalSeats = Math.max(0, trip.totalSeats);
   const reservedSeats = Math.min(Math.max(0, trip.reservedSeats), totalSeats);
-  const computedRemaining = Math.max(0, totalSeats - reservedSeats);
-  const apiRemaining = Math.max(0, trip.remainingSeats);
-
-  const remainingSeats =
-    apiRemaining !== computedRemaining ? computedRemaining : apiRemaining;
+  const remainingSeats = Math.max(0, totalSeats - reservedSeats);
   const isFull = remainingSeats <= 0;
 
   return { totalSeats, reservedSeats, remainingSeats, isFull };
 }
 
 export function deriveTripAvailability(trip: PublicTrip, now = new Date()): TripAvailabilityView {
-  const { remainingSeats, isFull } = normalizeTripSeats(trip);
+  const { reservedSeats, isFull, totalSeats } = normalizeTripSeats(trip);
   const departure = new Date(trip.departureTime);
 
   if (trip.isDisabled) {
@@ -76,7 +77,7 @@ export function deriveTripAvailability(trip: PublicTrip, now = new Date()): Trip
     };
   }
 
-  if (remainingSeats <= ALMOST_FULL_REMAINING_THRESHOLD) {
+  if (reservedSeats >= almostFullReservedThreshold(totalSeats)) {
     return {
       status: "almost_full",
       label: STATUS_LABELS.almost_full,
@@ -123,14 +124,28 @@ export function deriveTripDetailReservationCta(trip: PublicTrip, now = new Date(
   };
 }
 
+/** Libellé liste /trips : X = places déjà réservées (occupation), pas restantes. */
+export function formatReservedSeatsLabel(reservedSeats: number, totalSeats: number): string {
+  if (reservedSeats <= 0) {
+    return `0 place réservée sur ${totalSeats}`;
+  }
+  if (reservedSeats === 1) {
+    return `1 place réservée sur ${totalSeats}`;
+  }
+  if (reservedSeats >= totalSeats) {
+    return `${totalSeats} places réservées sur ${totalSeats}`;
+  }
+  return `${reservedSeats} places réservées sur ${totalSeats}`;
+}
+
 export function formatRemainingSeatsLabel(remainingSeats: number, totalSeats: number): string {
   if (remainingSeats <= 0) {
-    return `0 sur ${totalSeats} — complet`;
+    return `0 place restante sur ${totalSeats}`;
   }
   if (remainingSeats === 1) {
-    return `1 place libre sur ${totalSeats}`;
+    return `1 place restante sur ${totalSeats}`;
   }
-  return `${remainingSeats} places libres sur ${totalSeats}`;
+  return `${remainingSeats} places restantes sur ${totalSeats}`;
 }
 
 export function sortTripsByDeparture(trips: PublicTrip[]): PublicTrip[] {

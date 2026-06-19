@@ -1,9 +1,9 @@
 # BUG-QA-01 — Trip Availability Badge Consistency
 
-**Ticket :** BUG-QA-01  
+**Ticket :** BUG-QA-01 (+ BUG-QA-01B/C)  
 **Feature :** FEATURE-QA-02  
 **Date :** 2026-06-19  
-**Verdict :** **PASS** (frontend) · aucun backend modifié
+**Verdict :** **VALIDÉ CTO** (frontend) · aucun backend modifié
 
 ---
 
@@ -11,12 +11,12 @@
 
 | Finding | Détail |
 |---------|--------|
-| **Logique badge** | Déjà centralisée dans `trip-availability.ts` — règles **correctes** |
-| **Comportement observé** | 8/8 restantes → « Disponible » · 2/8 restantes → « Bientôt complet » — **conforme** aux règles métier |
-| **Confusion UX** | Format `2 / 8` sous « Places restantes » ambigu (places libres vs occupées) |
-| **Risque technique** | Écart possible entre `remainingSeats`, `reservedSeats`, `isFull` API |
+| **Référentiel UI** | Liste `/trips` affichait des **places restantes** alors que l’utilisateur lit **X/8** comme des places **réservées** |
+| **Symptôme** | « 2 places libres sur 8 » + badge « Bientôt complet » — incohérent pour l’utilisateur (il lit 2/8 pris → Disponible) |
+| **Réalité métier** | 2 restantes = 6 réservées → badge « Bientôt complet » était correct côté seuil, mais **mauvais référentiel affiché** |
+| **Risque technique** | Écart possible entre `remainingSeats` API et `reservedSeats` — normalisation basée sur `reservedSeats` |
 
-**Conclusion :** pas de bug de seuil badge ; renforcement normalisation + libellé places explicite.
+**Conclusion :** correction du **référentiel affiché** (réservées) + badges alignés sur l’occupation.
 
 ---
 
@@ -29,28 +29,33 @@ Ordre d’évaluation (`deriveTripAvailability`) :
 | 1 | `isDisabled` | Indisponible | disabled |
 | 2 | départ passé | Passé | disabled |
 | 3 | `isFull` ou `remainingSeats <= 0` | Complet | disabled |
-| 4 | `remainingSeats <= 2` | Bientôt complet | actif (navigation / réserver) |
+| 4 | `reservedSeats >= totalSeats - 2` | Bientôt complet | actif |
 | 5 | sinon | Disponible | actif |
 
-Seuil exporté : `ALMOST_FULL_REMAINING_THRESHOLD = 2`.
+Seuil : `ALMOST_FULL_REMAINING_THRESHOLD = 2` → `almostFullReservedThreshold(total)` (= 6 sur 8).
 
-Normalisation : `normalizeTripSeats()` recalcule `remainingSeats = totalSeats - reservedSeats` si incohérence API.
+Normalisation : `remainingSeats = totalSeats - reservedSeats` (source : `reservedSeats` API).
 
 ---
 
 ## 3. Matrice QA manuelle
 
-| remaining | reserved | total | isFull | Attendu badge | CTA liste | CTA détail |
-|-----------|----------|-------|--------|---------------|-----------|------------|
-| 8 | 0 | 8 | false | Disponible | Voir le trajet ✓ | Réserver ✓ |
-| 7 | 1 | 8 | false | Disponible | ✓ | ✓ |
-| 3 | 5 | 8 | false | Disponible | ✓ | ✓ |
-| 2 | 6 | 8 | false | Bientôt complet | ✓ | ✓ |
-| 1 | 7 | 8 | false | Bientôt complet | ✓ | ✓ |
-| 0 | 8 | 8 | true | Complet | disabled | disabled |
-| * | * | * | * | Passé (départ < now) | disabled | disabled |
+| reserved | remaining | total | Attendu badge | Libellé liste `/trips` |
+|----------|-----------|-------|---------------|------------------------|
+| 0 | 8 | 8 | Disponible | `0 place réservée sur 8` |
+| 2 | 6 | 8 | Disponible | `2 places réservées sur 8` |
+| 6 | 2 | 8 | Bientôt complet | `6 places réservées sur 8` |
+| 8 | 0 | 8 | Complet | `8 places réservées sur 8` |
 
-Libellé places (liste) : `N places libres sur 8` (plus de `N / 8` seul).
+Lecture produit intuitive :
+
+```text
+0/8 réservé → Disponible
+6/8 réservé → Bientôt complet
+8/8 réservé → Complet
+```
+
+Page détail : `TripSeatsCard` conserve restantes + capacité + libellé restantes.
 
 ---
 
@@ -58,38 +63,28 @@ Libellé places (liste) : `N places libres sur 8` (plus de `N / 8` seul).
 
 | Fichier | Changement |
 |---------|------------|
-| `lib/trip-availability.ts` | `normalizeTripSeats`, seuil constant, `isTripBookable`, `formatRemainingSeatsLabel` |
-| `TripCard.tsx` | Libellé places + `isTripBookable` |
-| `TripSeatsCard.tsx` | Normalisation + libellé cohérent |
+| `lib/trip-availability.ts` | `formatReservedSeatsLabel`, badge sur `reservedSeats`, `almostFullReservedThreshold` |
+| `TripCard.tsx` | « Places réservées » + `formatReservedSeatsLabel` |
+| `TripSeatsCard.tsx` | restantes sur détail (inchangé fonctionnellement) |
 | `TripAvailabilityBadge.tsx` | inchangé (variants OK) |
-| `TripDetailHero.tsx` | inchangé (utilise `deriveTripAvailability`) |
-| `ReservationEntryFooter.tsx` | inchangé (CTA via `deriveTripDetailReservationCta`) |
 
 ---
 
 ## 5. Composants vérifiés
 
 - [x] `trip-availability.ts` — source unique
-- [x] `TripCard` — badge + places + CTA
+- [x] `TripCard` — badge + occupation + CTA
 - [x] `TripsList` — délègue à TripCard
 - [x] `TripDetailHero` — badge
-- [x] `TripSeatsCard` — compteurs
-- [x] `TripDetailPage` / `ReservationEntryFooter` — CTA réserver
+- [x] `TripSeatsCard` — compteurs détail
 - [x] Backend — **non modifié** (`public-trips.service.ts` cohérent)
 
 ---
 
 ## 6. Tests
 
-Pas de runner test configuré dans `frontend/apps/passenger` — matrice QA manuelle ci-dessus.
+`npm run lint` · `npm run build` — PASS. Pas de runner test unitaire configuré dans passenger.
 
 ---
 
-## 7. Limitations
-
-- Seuil « Bientôt complet » fixe à **2** (CDC 8 places) — non configurable UI.
-- `isDisabled` backend non exposé — statut Indisponible réservé futur.
-
----
-
-*BUG-QA-01 — prêt review CTO · pas de commit sans validation.*
+*BUG-QA-01 — VALIDÉ CTO · commit `fix(passenger): align trip availability display with reserved seats`.*
