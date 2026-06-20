@@ -26,18 +26,38 @@ export const INCIDENT_SOURCE_LABELS: Record<IncidentSource, string> = {
 };
 
 export const INCIDENT_STATUS_LABELS: Record<IncidentStatus, string> = {
-  OPEN: "Open",
-  IN_PROGRESS: "In progress",
-  RESOLVED: "Resolved",
-  CLOSED: "Closed",
+  OPEN: "Ouvert",
+  IN_PROGRESS: "En cours",
+  RESOLVED: "Résolu",
+  CLOSED: "Clôturé",
 };
 
 export const INCIDENT_SEVERITY_LABELS: Record<IncidentSeverity, string> = {
-  LOW: "Low",
-  MEDIUM: "Medium",
-  HIGH: "High",
-  CRITICAL: "Critical",
+  LOW: "Faible",
+  MEDIUM: "Moyenne",
+  HIGH: "Élevée",
+  CRITICAL: "Critique",
 };
+
+export const INCIDENT_SOURCE_FILTER_OPTIONS: { value: IncidentSource | "all"; label: string }[] = [
+  { value: "all", label: "Toutes" },
+  { value: "BOARDING_FIELD", label: "Terrain" },
+  { value: "DEPARTURE_HEURISTIC", label: "Départs" },
+  { value: "MONITORING", label: "Monitoring" },
+  { value: "MANUAL", label: "Admin" },
+];
+
+export const INCIDENT_STATUS_FILTER_OPTIONS: {
+  value: IncidentStatus | "all" | "active";
+  label: string;
+}[] = [
+  { value: "all", label: "Tous" },
+  { value: "active", label: "Actifs (ouvert + en cours)" },
+  { value: "OPEN", label: "Ouvert" },
+  { value: "IN_PROGRESS", label: "En cours" },
+  { value: "RESOLVED", label: "Résolu" },
+  { value: "CLOSED", label: "Clôturé" },
+];
 
 export function getIncidentTypeLabel(type: IncidentType): string {
   return INCIDENT_TYPE_LABELS[type] ?? type;

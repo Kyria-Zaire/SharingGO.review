@@ -1,11 +1,14 @@
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { incidentResolveSummaryLines } from "@/features/incidents/utils/incident-resolve-summary";
 import type { AdminIncident } from "@/types/incidents.types";
+import type { AdminTrip } from "@/types/trips.types";
 
 const MIN_RESOLUTION_LENGTH = 10;
 
 interface IncidentResolveDialogProps {
   incident: AdminIncident | null;
+  trip?: AdminTrip;
   open: boolean;
   isSubmitting: boolean;
   errorMessage?: string | null;
@@ -15,6 +18,7 @@ interface IncidentResolveDialogProps {
 
 export function IncidentResolveDialog({
   incident,
+  trip,
   open,
   isSubmitting,
   errorMessage,
@@ -32,6 +36,7 @@ export function IncidentResolveDialog({
 
   const trimmed = resolution.trim();
   const canSubmit = trimmed.length >= MIN_RESOLUTION_LENGTH && !isSubmitting;
+  const summaryLines = incidentResolveSummaryLines(incident, trip);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center">
@@ -46,6 +51,15 @@ export function IncidentResolveDialog({
           Résoudre {incident.code}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">{incident.title}</p>
+
+        <dl className="mt-4 space-y-2 rounded-md border border-border bg-muted/30 px-3 py-3 text-sm">
+          {summaryLines.map((line) => (
+            <div key={line.label} className="flex gap-2">
+              <dt className="w-16 shrink-0 font-medium text-muted-foreground">{line.label}</dt>
+              <dd className="text-foreground">{line.value}</dd>
+            </div>
+          ))}
+        </dl>
 
         <form
           className="mt-4 space-y-4"

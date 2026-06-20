@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/cn";
+import { ROUTES } from "@/constants/routes";
 import { formatIncidentTime } from "@/features/incidents/utils/format-incident-time";
 import { ACTIVITY_INCIDENT_EVENT_LABELS } from "@/features/incidents/constants/incident-labels";
 import { formatActivityEvent } from "@/features/activity/utils/format-activity-event";
@@ -11,6 +13,12 @@ const severityClass: Record<ActivityFeedEvent["severity"], string> = {
   critical: "border-destructive/30 text-destructive",
 };
 
+const INCIDENT_LINK_TYPES = new Set([
+  "INCIDENT_CREATED",
+  "INCIDENT_RESOLVED",
+  "INCIDENT_CLOSED",
+]);
+
 export function ActivityFeedCard({ event }: { event: ActivityFeedEvent }) {
   const presentation = formatActivityEvent(event);
   const eventTypeLabel = ACTIVITY_INCIDENT_EVENT_LABELS[event.type] ?? event.type.replaceAll("_", " ");
@@ -20,6 +28,13 @@ export function ActivityFeedCard({ event }: { event: ActivityFeedEvent }) {
     (presentation.technicalDetail.startsWith("{") ||
       presentation.technicalDetail.startsWith("[") ||
       presentation.technicalDetail.length > presentation.summary.length);
+
+  const incidentLink =
+    INCIDENT_LINK_TYPES.has(event.type) &&
+    event.entityType === "Incident" &&
+    event.entityId
+      ? `${ROUTES.incidents}?incidentId=${encodeURIComponent(event.entityId)}`
+      : null;
 
   return (
     <article className="min-w-0 overflow-hidden rounded-lg border border-border bg-muted/20 px-3 py-3 sm:px-4">
@@ -49,13 +64,23 @@ export function ActivityFeedCard({ event }: { event: ActivityFeedEvent }) {
         </details>
       ) : null}
 
-      <p className="mt-2 break-words text-xs text-muted-foreground">
-        {formatIncidentTime(event.timestamp)}
-        {event.actorName ? ` · ${event.actorName}` : ""}
-        {event.entityType && event.entityId
-          ? ` · ${event.entityType} ${formatShortId(event.entityId)}`
-          : ""}
-      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <span className="break-words">
+          {formatIncidentTime(event.timestamp)}
+          {event.actorName ? ` · ${event.actorName}` : ""}
+          {event.entityType && event.entityId
+            ? ` · ${event.entityType} ${formatShortId(event.entityId)}`
+            : ""}
+        </span>
+        {incidentLink ? (
+          <Link
+            to={incidentLink}
+            className="font-medium text-primary hover:underline"
+          >
+            Voir l'incident
+          </Link>
+        ) : null}
+      </div>
     </article>
   );
 }

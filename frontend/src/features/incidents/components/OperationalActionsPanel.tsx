@@ -43,7 +43,7 @@ export function OperationalActionsPanel({
           Créer incident
         </Button>
         <Link
-          to={`${ROUTES.incidents}?openOnly=1`}
+          to={`${ROUTES.incidents}?status=active`}
           className="inline-flex h-8 items-center gap-2 rounded-md border border-border bg-muted px-3 text-xs font-medium text-foreground hover:bg-muted/80"
         >
           <AlertTriangle className="h-4 w-4" />

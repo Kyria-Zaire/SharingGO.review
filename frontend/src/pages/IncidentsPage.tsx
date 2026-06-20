@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { CriticalIncidentsSection } from "@/features/incidents/components/CriticalIncidentsSection";
 import { IncidentCreateForm } from "@/features/incidents/components/IncidentCreateForm";
 import { IncidentFilters } from "@/features/incidents/components/IncidentFilters";
+import { IncidentKpiGrid } from "@/features/incidents/components/IncidentKpiGrid";
 import { IncidentResolveDialog } from "@/features/incidents/components/IncidentResolveDialog";
 import { IncidentToast } from "@/features/incidents/components/IncidentToast";
 import { IncidentsList } from "@/features/incidents/components/IncidentsList";
@@ -16,6 +17,7 @@ import { useIncidentTripMap } from "@/features/incidents/hooks/useIncidentTripMa
 import { useIncidentsList, useIncidentsOperations } from "@/features/incidents/hooks/useIncidents";
 import { clearLegacyLocalIncidents } from "@/features/incidents/storage/incidents-storage";
 import { filterIncidents } from "@/features/incidents/utils/filter-incidents";
+import { computeIncidentKpis } from "@/features/incidents/utils/incident-kpis";
 import { partitionCriticalOpen } from "@/features/incidents/utils/sort-incidents";
 import type { IncidentFiltersState, IncidentType } from "@/types/incidents.types";
 import { DEFAULT_INCIDENT_FILTERS } from "@/types/incidents.types";
@@ -35,6 +37,35 @@ function mapCategoryToType(category: string | null): IncidentType {
   }
 }
 
+function parseInitialFilters(searchParams: URLSearchParams): IncidentFiltersState {
+  const filters: IncidentFiltersState = { ...DEFAULT_INCIDENT_FILTERS };
+
+  if (searchParams.get("openOnly") === "1" || searchParams.get("status") === "active") {
+    filters.status = "active";
+  }
+
+  const severity = searchParams.get("severity");
+  if (severity === "CRITICAL" || searchParams.get("filter") === "critical") {
+    filters.severity = "CRITICAL";
+    filters.status = "active";
+  }
+
+  const source = searchParams.get("source");
+  if (source) {
+    filters.source = source as IncidentFiltersState["source"];
+  }
+
+  const tripId = searchParams.get("tripId");
+  if (tripId) {
+    filters.tripSearch = tripId;
+  }
+
+  const q = searchParams.get("q");
+  if (q) filters.searchText = q;
+
+  return filters;
+}
+
 export function IncidentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const listQuery = useIncidentsList({ limit: 100, offset: 0 });
@@ -43,29 +74,26 @@ export function IncidentsPage() {
     dismissToast,
     createIncident,
     resolveIncident,
+    assignIncident,
     clearResolvedIncidents,
     importLocal,
     isCreating,
     isResolving,
+    isAssigning,
     resolveError,
     isImporting,
   } = useIncidentsOperations();
 
   const { tripById } = useIncidentTripMap();
   const [resolveTargetId, setResolveTargetId] = useState<string | null>(null);
+  const highlightId = searchParams.get("incidentId");
 
   const [showCreateForm, setShowCreateForm] = useState(
     () => searchParams.get("create") === "1"
   );
-  const [filters, setFilters] = useState<IncidentFiltersState>(() => ({
-    ...DEFAULT_INCIDENT_FILTERS,
-    openOnly: searchParams.get("openOnly") === "1",
-    severity:
-      searchParams.get("severity") === "critical" || searchParams.get("filter") === "critical"
-        ? "CRITICAL"
-        : "all",
-    type: "all",
-  }));
+  const [filters, setFilters] = useState<IncidentFiltersState>(() =>
+    parseInitialFilters(searchParams)
+  );
 
   const initialTripId = searchParams.get("tripId") ?? "";
   const initialType = mapCategoryToType(searchParams.get("category"));
@@ -74,11 +102,22 @@ export function IncidentsPage() {
     if (searchParams.get("create") === "1") setShowCreateForm(true);
   }, [searchParams]);
 
+  useEffect(() => {
+    if (!highlightId || listQuery.isLoading) return;
+    const timer = window.setTimeout(() => {
+      document
+        .querySelector(`[data-incident-id="${highlightId}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [highlightId, listQuery.isLoading, listQuery.dataUpdatedAt]);
+
   const incidents = useMemo(() => listQuery.data?.incidents ?? [], [listQuery.data?.incidents]);
+  const kpis = useMemo(() => computeIncidentKpis(incidents), [incidents]);
 
   const filteredIncidents = useMemo(
-    () => filterIncidents(incidents, filters),
-    [incidents, filters]
+    () => filterIncidents(incidents, filters, tripById),
+    [incidents, filters, tripById]
   );
 
   const { criticalOpen, others } = useMemo(
@@ -92,7 +131,7 @@ export function IncidentsPage() {
     setSearchParams({});
   }
 
-  async function handleResolve(incidentId: string) {
+  function handleResolve(incidentId: string) {
     setResolveTargetId(incidentId);
   }
 
@@ -104,6 +143,10 @@ export function IncidentsPage() {
     } catch {
       // error surfaced via resolveError
     }
+  }
+
+  async function handleAssign(incidentId: string, userId: string | null) {
+    await assignIncident(incidentId, userId);
   }
 
   const resolveTarget = resolveTargetId
@@ -132,7 +175,7 @@ export function IncidentsPage() {
   }
 
   function handleFilterCritical() {
-    setFilters((current) => ({ ...current, severity: "CRITICAL", openOnly: true }));
+    setFilters((current) => ({ ...current, severity: "CRITICAL", status: "active" }));
   }
 
   const hasAnyIncidents = filteredIncidents.length > 0;
@@ -141,8 +184,10 @@ export function IncidentsPage() {
     <>
       <PageHeader
         title="Incidents"
-        description="Workflow incident opérationnel persisté — partagé entre administrateurs"
+        description="Centre opérationnel — filtrage, affectation, résolution et clôture"
       />
+
+      <IncidentKpiGrid kpis={kpis} />
 
       <OperationalActionsPanel
         incidents={incidents}
@@ -189,8 +234,8 @@ export function IncidentsPage() {
       {!listQuery.isLoading && !listQuery.isError && !hasAnyIncidents ? (
         <EmptyState
           badge="Aucun incident"
-          title="Aucun incident opérationnel"
-          description="Créez un incident depuis cette page, le monitoring ou les départs."
+          title="Aucun incident pour ces filtres"
+          description="Ajustez les filtres ou créez un incident depuis cette page, le monitoring ou les départs."
         />
       ) : null}
 
@@ -199,9 +244,19 @@ export function IncidentsPage() {
           <CriticalIncidentsSection
             incidents={criticalOpen}
             tripById={tripById}
+            highlightId={highlightId}
             onResolve={handleResolve}
+            onAssign={handleAssign}
+            isAssigning={isAssigning}
           />
-          <IncidentsList incidents={others} tripById={tripById} onResolve={handleResolve} />
+          <IncidentsList
+            incidents={others}
+            tripById={tripById}
+            highlightId={highlightId}
+            onResolve={handleResolve}
+            onAssign={handleAssign}
+            isAssigning={isAssigning}
+          />
         </>
       ) : null}
 
@@ -209,6 +264,11 @@ export function IncidentsPage() {
 
       <IncidentResolveDialog
         incident={resolveTarget}
+        trip={
+          resolveTarget?.relatedTripId
+            ? tripById.get(resolveTarget.relatedTripId)
+            : undefined
+        }
         open={resolveTargetId !== null}
         isSubmitting={isResolving}
         errorMessage={resolveErrorMessage}

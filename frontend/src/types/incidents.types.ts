@@ -111,6 +111,7 @@ export interface PatchAdminIncidentBody {
   type?: IncidentType;
   relatedReservationId?: string | null;
   relatedTripId?: string | null;
+  assignedToUserId?: string | null;
 }
 
 export interface ImportLocalIncidentPayload {
@@ -131,17 +132,23 @@ export interface ImportLocalIncidentsResponse {
   count: number;
 }
 
-/** UI filter state (maps to API on fetch) */
+/** UI filter state — filtrage client sur la liste chargée (limit 100). */
 export interface IncidentFiltersState {
-  openOnly: boolean;
+  source: IncidentSource | "all";
+  status: IncidentStatus | "all" | "active";
   severity: IncidentSeverity | "all";
   type: IncidentType | "all";
+  searchText: string;
+  tripSearch: string;
 }
 
 export const DEFAULT_INCIDENT_FILTERS: IncidentFiltersState = {
-  openOnly: false,
+  source: "all",
+  status: "all",
   severity: "all",
   type: "all",
+  searchText: "",
+  tripSearch: "",
 };
 
 export type ActivityFeedSeverity = "info" | "warning" | "critical";

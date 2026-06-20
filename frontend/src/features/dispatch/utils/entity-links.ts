@@ -13,7 +13,7 @@ export function getDispatchEntityHref(event: DispatchActivityEvent): string | nu
     case "Payment":
       return `${ROUTES.payments}?paymentId=${encodeURIComponent(event.entityId)}`;
     case "Incident":
-      return ROUTES.incidents;
+      return `${ROUTES.incidents}?incidentId=${encodeURIComponent(event.entityId)}`;
     default:
       return null;
   }

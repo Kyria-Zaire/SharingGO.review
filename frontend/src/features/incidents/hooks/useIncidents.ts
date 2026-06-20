@@ -66,6 +66,20 @@ export function useIncidentsOperations() {
     },
   });
 
+  const assignMutation = useMutation({
+    mutationFn: ({
+      incidentId,
+      assignedToUserId,
+    }: {
+      incidentId: string;
+      assignedToUserId: string | null;
+    }) => patchAdminIncident(incidentId, { assignedToUserId }),
+    onSuccess: async (incident) => {
+      await invalidate();
+      showToast(`Incident ${incident.code} affecté`);
+    },
+  });
+
   const importMutation = useMutation({
     mutationFn: (payload: ImportLocalIncidentPayload[]) => importLocalIncidents(payload),
     onSuccess: async (result) => {
@@ -90,6 +104,12 @@ export function useIncidentsOperations() {
     [closeResolvedMutation]
   );
 
+  const assignIncident = useCallback(
+    (incidentId: string, assignedToUserId: string | null) =>
+      assignMutation.mutateAsync({ incidentId, assignedToUserId }),
+    [assignMutation]
+  );
+
   const importLocal = useCallback(
     (payload: ImportLocalIncidentPayload[]) => importMutation.mutateAsync(payload),
     [importMutation]
@@ -100,10 +120,12 @@ export function useIncidentsOperations() {
     dismissToast: () => setToastMessage(null),
     createIncident,
     resolveIncident,
+    assignIncident,
     clearResolvedIncidents,
     importLocal,
     isCreating: createMutation.isPending,
     isResolving: resolveMutation.isPending,
+    isAssigning: assignMutation.isPending,
     resolveError: resolveMutation.error,
     isImporting: importMutation.isPending,
   };
