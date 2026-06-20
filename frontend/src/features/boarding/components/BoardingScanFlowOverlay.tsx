@@ -19,6 +19,7 @@ interface BoardingScanFlowOverlayProps {
   onCancel: () => void;
   onRetryValidate: () => void;
   onRetryConsume: () => void;
+  onReportIncident?: () => void;
 }
 
 export function BoardingScanFlowOverlay({
@@ -29,6 +30,7 @@ export function BoardingScanFlowOverlay({
   onCancel,
   onRetryValidate,
   onRetryConsume,
+  onReportIncident,
 }: BoardingScanFlowOverlayProps) {
   return (
     <div
@@ -85,6 +87,7 @@ export function BoardingScanFlowOverlay({
               confirmTimeoutMs={confirmTimeoutMs}
               onConfirm={onConfirm}
               onCancel={onCancel}
+              onReportIncident={phase === "rejected" ? onReportIncident : undefined}
             />
           </div>
         ) : null}

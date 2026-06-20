@@ -49,10 +49,11 @@ export function useIncidentsOperations() {
   });
 
   const resolveMutation = useMutation({
-    mutationFn: (incidentId: string) =>
-      patchAdminIncident(incidentId, { status: "RESOLVED" }),
-    onSuccess: async () => {
+    mutationFn: ({ incidentId, resolution }: { incidentId: string; resolution: string }) =>
+      patchAdminIncident(incidentId, { status: "RESOLVED", resolution }),
+    onSuccess: async (incident) => {
       await invalidate();
+      showToast(`Incident ${incident.code} résolu`);
     },
   });
 
@@ -79,7 +80,8 @@ export function useIncidentsOperations() {
   );
 
   const resolveIncident = useCallback(
-    (incidentId: string) => resolveMutation.mutateAsync(incidentId),
+    (incidentId: string, resolution: string) =>
+      resolveMutation.mutateAsync({ incidentId, resolution }),
     [resolveMutation]
   );
 
@@ -101,6 +103,8 @@ export function useIncidentsOperations() {
     clearResolvedIncidents,
     importLocal,
     isCreating: createMutation.isPending,
+    isResolving: resolveMutation.isPending,
+    resolveError: resolveMutation.error,
     isImporting: importMutation.isPending,
   };
 }

@@ -1,4 +1,5 @@
 import { formatShortId } from "@/lib/format-id";
+import { ACTIVITY_INCIDENT_EVENT_LABELS } from "@/features/incidents/constants/incident-labels";
 import type { ActivityFeedEvent } from "@/types/incidents.types";
 
 export interface ActivityEventPresentation {
@@ -71,9 +72,15 @@ function formatKnownAuditEvent(
         ? `Contrôle boarding refusé — ${reason}`
         : "Contrôle boarding refusé";
     case "INCIDENT_CREATED":
-      return "Incident signalé";
+      return meta && stringField(meta, "code")
+        ? `Incident ${stringField(meta, "code")} signalé`
+        : "Incident signalé";
     case "INCIDENT_RESOLVED":
       return "Incident résolu";
+    case "INCIDENT_CLOSED":
+      return "Incident clôturé";
+    case "INCIDENT_SUGGESTED":
+      return "Suggestion de création d'incident";
     default:
       if (tripId) {
         return `Trajet ${formatShortId(tripId)}`;
@@ -83,10 +90,20 @@ function formatKnownAuditEvent(
 }
 
 export function formatActivityEvent(event: ActivityFeedEvent): ActivityEventPresentation {
-  if (event.type === "INCIDENT_CREATED" || event.type === "INCIDENT_RESOLVED") {
+  if (
+    event.type === "INCIDENT_CREATED" ||
+    event.type === "INCIDENT_RESOLVED" ||
+    event.type === "INCIDENT_CLOSED" ||
+    event.type === "INCIDENT_SUGGESTED"
+  ) {
+    const humanType = ACTIVITY_INCIDENT_EVENT_LABELS[event.type] ?? event.type;
+    const summary =
+      event.description?.trim() && !event.description.trim().startsWith("{")
+        ? event.description.trim()
+        : event.title;
     return {
-      summary: event.description ?? event.title,
-      technicalDetail: event.entityId ? `Incident ${formatShortId(event.entityId)}` : undefined,
+      summary,
+      technicalDetail: `${humanType}${event.entityId ? ` · ${formatShortId(event.entityId)}` : ""}`,
     };
   }
 

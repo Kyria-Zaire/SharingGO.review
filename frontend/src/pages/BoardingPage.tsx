@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import {
   consumeBoarding,
   getBoardingOfflineCapabilities,
@@ -7,7 +8,9 @@ import {
 } from "@/api/admin-boarding.api";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Button } from "@/components/ui/Button";
 import { queryKeys } from "@/constants/query-keys";
+import { FieldIncidentReportSheet } from "@/features/boarding/components/FieldIncidentReportSheet";
 import { BoardingScanFeedback } from "@/features/boarding/components/BoardingScanFeedback";
 import {
   BoardingScanFlowOverlay,
@@ -134,6 +137,8 @@ export function BoardingPage() {
   >("default");
   const [scanHistory, setScanHistory] = useState<BoardingScanHistoryEntry[]>([]);
   const [tokenInput, setTokenInput] = useState("");
+  const [fieldIncidentSheetOpen, setFieldIncidentSheetOpen] = useState(false);
+  const [fieldIncidentMode, setFieldIncidentMode] = useState<"scan-rejected" | "free">("free");
 
   const isConsumeRetryAfterNetworkErrorRef = useRef(false);
   const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -302,6 +307,20 @@ export function BoardingPage() {
     resetToIdle();
   }, [resetToIdle]);
 
+  const openFreeFieldIncidentSheet = useCallback(() => {
+    setFieldIncidentMode("free");
+    setFieldIncidentSheetOpen(true);
+  }, []);
+
+  const openScanRejectedFieldIncidentSheet = useCallback(() => {
+    setFieldIncidentMode("scan-rejected");
+    setFieldIncidentSheetOpen(true);
+  }, []);
+
+  const closeFieldIncidentSheet = useCallback(() => {
+    setFieldIncidentSheetOpen(false);
+  }, []);
+
   const showFlowOverlay = isFlowOverlayPhase(phase);
   const scannerBusy = phase !== "idle";
 
@@ -324,14 +343,39 @@ export function BoardingPage() {
           onCancel={handleCancel}
           onRetryValidate={handleRetryValidate}
           onRetryConsume={handleRetryConsume}
+          onReportIncident={openScanRejectedFieldIncidentSheet}
         />
       ) : null}
+
+      <FieldIncidentReportSheet
+        open={fieldIncidentSheetOpen}
+        mode={fieldIncidentMode}
+        onClose={closeFieldIncidentSheet}
+        scannedToken={scannedToken}
+        scanReason={validateResult?.valid === false ? validateResult.reason : undefined}
+        scanContext={validateResult?.valid === false ? validateResult.context : undefined}
+      />
 
       <PageHeader
         title="Boarding Operations"
         description="Validation et supervision des embarquements"
         className="mb-4 sm:mb-6"
       />
+
+      {phase === "idle" ? (
+        <div className="mb-4 sm:mb-6">
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
+            className="h-12 w-full gap-2 text-base font-semibold sm:w-auto sm:min-w-[16rem]"
+            onClick={openFreeFieldIncidentSheet}
+          >
+            <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />
+            Signaler un problème
+          </Button>
+        </div>
+      ) : null}
 
       <div className="grid min-w-0 max-w-full gap-4 sm:gap-6 lg:grid-cols-2">
         <div className="min-w-0 space-y-4 sm:space-y-6">

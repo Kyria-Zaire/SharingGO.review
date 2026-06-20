@@ -1,3 +1,5 @@
+import { boardingDevLog } from "./boarding-dev-log";
+
 export interface BoardingErrorMessage {
   title: string;
   description: string;
@@ -90,8 +92,9 @@ export function resolveBoardingErrorMessage(code: string | undefined): BoardingE
   return BOARDING_ERROR_MESSAGES[normalized] ?? FALLBACK_MESSAGE;
 }
 
-/** Code technique visible uniquement hors build production (dev / preview local). */
+/** Code technique : log dev uniquement, jamais affiché à l'UI terrain (OPS-02C-T1B). */
 export function boardingErrorDevCode(code: string | undefined): string | null {
   if (import.meta.env.PROD || !code?.trim()) return null;
-  return code.trim();
+  boardingDevLog("boarding error code", { code: code.trim() });
+  return null;
 }

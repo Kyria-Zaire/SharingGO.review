@@ -7,10 +7,12 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { CriticalIncidentsSection } from "@/features/incidents/components/CriticalIncidentsSection";
 import { IncidentCreateForm } from "@/features/incidents/components/IncidentCreateForm";
 import { IncidentFilters } from "@/features/incidents/components/IncidentFilters";
+import { IncidentResolveDialog } from "@/features/incidents/components/IncidentResolveDialog";
 import { IncidentToast } from "@/features/incidents/components/IncidentToast";
 import { IncidentsList } from "@/features/incidents/components/IncidentsList";
 import { LocalIncidentsImportBanner } from "@/features/incidents/components/LocalIncidentsImportBanner";
 import { OperationalActionsPanel } from "@/features/incidents/components/OperationalActionsPanel";
+import { useIncidentTripMap } from "@/features/incidents/hooks/useIncidentTripMap";
 import { useIncidentsList, useIncidentsOperations } from "@/features/incidents/hooks/useIncidents";
 import { clearLegacyLocalIncidents } from "@/features/incidents/storage/incidents-storage";
 import { filterIncidents } from "@/features/incidents/utils/filter-incidents";
@@ -44,8 +46,13 @@ export function IncidentsPage() {
     clearResolvedIncidents,
     importLocal,
     isCreating,
+    isResolving,
+    resolveError,
     isImporting,
   } = useIncidentsOperations();
+
+  const { tripById } = useIncidentTripMap();
+  const [resolveTargetId, setResolveTargetId] = useState<string | null>(null);
 
   const [showCreateForm, setShowCreateForm] = useState(
     () => searchParams.get("create") === "1"
@@ -86,11 +93,31 @@ export function IncidentsPage() {
   }
 
   async function handleResolve(incidentId: string) {
-    const incident = incidents.find((item) => item.id === incidentId);
-    if (!incident) return;
-    const confirmed = window.confirm(`Résoudre l'incident ${incident.code} ?`);
-    if (confirmed) await resolveIncident(incidentId);
+    setResolveTargetId(incidentId);
   }
+
+  async function handleResolveSubmit(resolution: string) {
+    if (!resolveTargetId) return;
+    try {
+      await resolveIncident(resolveTargetId, resolution);
+      setResolveTargetId(null);
+    } catch {
+      // error surfaced via resolveError
+    }
+  }
+
+  const resolveTarget = resolveTargetId
+    ? incidents.find((item) => item.id === resolveTargetId) ?? null
+    : null;
+
+  const resolveErrorMessage =
+    resolveError instanceof ApiError
+      ? resolveError.code === "RESOLUTION_REQUIRED"
+        ? "La note de résolution doit contenir au moins 10 caractères."
+        : resolveError.message
+      : resolveError
+        ? "Impossible de résoudre l'incident."
+        : null;
 
   async function handleClearResolved() {
     const resolvedIds = incidents
@@ -169,12 +196,25 @@ export function IncidentsPage() {
 
       {!listQuery.isLoading && !listQuery.isError && hasAnyIncidents ? (
         <>
-          <CriticalIncidentsSection incidents={criticalOpen} onResolve={handleResolve} />
-          <IncidentsList incidents={others} onResolve={handleResolve} />
+          <CriticalIncidentsSection
+            incidents={criticalOpen}
+            tripById={tripById}
+            onResolve={handleResolve}
+          />
+          <IncidentsList incidents={others} tripById={tripById} onResolve={handleResolve} />
         </>
       ) : null}
 
       <IncidentToast message={toastMessage} onDismiss={dismissToast} />
+
+      <IncidentResolveDialog
+        incident={resolveTarget}
+        open={resolveTargetId !== null}
+        isSubmitting={isResolving}
+        errorMessage={resolveErrorMessage}
+        onClose={() => setResolveTargetId(null)}
+        onSubmit={handleResolveSubmit}
+      />
     </>
   );
 }

@@ -26,7 +26,7 @@ export function BoardingResultCard({
   className,
 }: BoardingResultCardProps) {
   const errorMessage = reason ? resolveBoardingErrorMessage(reason) : null;
-  const devCode = boardingErrorDevCode(reason);
+  boardingErrorDevCode(reason);
   const displayTitle = errorMessage?.title ?? ui.title;
   const displayMessage = errorMessage?.description ?? ui.message;
 
@@ -47,9 +47,6 @@ export function BoardingResultCard({
       </div>
       <h3 className="text-lg font-semibold text-foreground">{displayTitle}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{displayMessage}</p>
-      {devCode ? (
-        <p className="mt-2 font-mono text-[10px] text-muted-foreground/70">[{devCode}]</p>
-      ) : null}
 
       {passenger || trip || reservationId ? (
         <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">

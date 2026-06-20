@@ -47,6 +47,13 @@ export interface BoardingReservation {
   usedAt?: string | null;
 }
 
+export interface BoardingFailureContext {
+  tripId?: string;
+  reservationId?: string;
+  reason: string;
+  passenger?: BoardingPassenger;
+}
+
 export interface BoardingValidationSuccess {
   valid: true;
   reservation: BoardingReservation;
@@ -57,6 +64,7 @@ export interface BoardingValidationSuccess {
 export interface BoardingValidationFailure {
   valid: false;
   reason: BoardingValidationReason;
+  context?: BoardingFailureContext;
 }
 
 export type BoardingValidationResponse = BoardingValidationSuccess | BoardingValidationFailure;
@@ -85,6 +93,7 @@ export interface BoardingConsumptionFailure {
   consumed: false;
   reason: BoardingConsumptionReason;
   ui: BoardingUiMessage;
+  context?: BoardingFailureContext;
 }
 
 export type BoardingConsumeResponse =

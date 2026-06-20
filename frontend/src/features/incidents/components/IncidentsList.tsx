@@ -1,12 +1,15 @@
 import { isOpenIncidentStatus } from "@/features/incidents/constants/incident-labels";
 import { IncidentCard } from "./IncidentCard";
 import type { AdminIncident } from "@/types/incidents.types";
+import type { AdminTrip } from "@/types/trips.types";
 
 export function IncidentsList({
   incidents,
+  tripById,
   onResolve,
 }: {
   incidents: AdminIncident[];
+  tripById: Map<string, AdminTrip>;
   onResolve: (incidentId: string) => void;
 }) {
   if (incidents.length === 0) return null;
@@ -25,7 +28,12 @@ export function IncidentsList({
           </h2>
           <div className="grid gap-3">
             {openIncidents.map((incident) => (
-              <IncidentCard key={incident.id} incident={incident} onResolve={onResolve} />
+              <IncidentCard
+                key={incident.id}
+                incident={incident}
+                trip={incident.relatedTripId ? tripById.get(incident.relatedTripId) : undefined}
+                onResolve={onResolve}
+              />
             ))}
           </div>
         </section>
@@ -38,7 +46,12 @@ export function IncidentsList({
           </h2>
           <div className="grid gap-3">
             {resolvedIncidents.map((incident) => (
-              <IncidentCard key={incident.id} incident={incident} resolvedSection />
+              <IncidentCard
+                key={incident.id}
+                incident={incident}
+                trip={incident.relatedTripId ? tripById.get(incident.relatedTripId) : undefined}
+                resolvedSection
+              />
             ))}
           </div>
         </section>

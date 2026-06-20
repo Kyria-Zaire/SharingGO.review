@@ -16,7 +16,7 @@ export function BoardingErrorAlert({
   className,
 }: BoardingErrorAlertProps) {
   const message = resolveBoardingErrorMessage(code);
-  const devCode = boardingErrorDevCode(code);
+  boardingErrorDevCode(code);
 
   return (
     <div
@@ -30,11 +30,6 @@ export function BoardingErrorAlert({
     >
       <p className="text-sm font-semibold text-foreground">{message.title}</p>
       <p className="mt-1 text-sm text-muted-foreground">{message.description}</p>
-      {devCode ? (
-        <p className="mt-2 font-mono text-[10px] text-muted-foreground/70" aria-hidden>
-          [{devCode}]
-        </p>
-      ) : null}
     </div>
   );
 }

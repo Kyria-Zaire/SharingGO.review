@@ -1,5 +1,6 @@
 import { cn } from "@/lib/cn";
 import { formatIncidentTime } from "@/features/incidents/utils/format-incident-time";
+import { ACTIVITY_INCIDENT_EVENT_LABELS } from "@/features/incidents/constants/incident-labels";
 import { formatActivityEvent } from "@/features/activity/utils/format-activity-event";
 import { formatShortId } from "@/lib/format-id";
 import type { ActivityFeedEvent } from "@/types/incidents.types";
@@ -12,6 +13,7 @@ const severityClass: Record<ActivityFeedEvent["severity"], string> = {
 
 export function ActivityFeedCard({ event }: { event: ActivityFeedEvent }) {
   const presentation = formatActivityEvent(event);
+  const eventTypeLabel = ACTIVITY_INCIDENT_EVENT_LABELS[event.type] ?? event.type.replaceAll("_", " ");
   const showTechnical =
     presentation.technicalDetail &&
     presentation.technicalDetail !== presentation.summary &&
@@ -24,9 +26,7 @@ export function ActivityFeedCard({ event }: { event: ActivityFeedEvent }) {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">{presentation.summary}</p>
-          <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground" title={event.type}>
-            {event.type.replaceAll("_", " ")}
-          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{eventTypeLabel}</p>
         </div>
         <span
           className={cn(

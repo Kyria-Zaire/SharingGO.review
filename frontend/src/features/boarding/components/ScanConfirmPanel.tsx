@@ -1,8 +1,9 @@
-import { CheckCircle, XCircle, User, Clock, MapPin } from "lucide-react";
+import { CheckCircle, XCircle, User, Clock, MapPin, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/format-date";
 import { formatBoardingPassenger } from "@/features/boarding/utils/passenger-display";
+import { canReportFieldIncidentFromScanReason } from "@/features/boarding/utils/field-incident-mapping";
 import { BoardingErrorAlert } from "./BoardingErrorAlert";
 import type { BoardingValidationResponse } from "@/types/boarding.types";
 
@@ -13,6 +14,7 @@ interface ScanConfirmPanelProps {
   confirmTimeoutMs: number;
   onConfirm: () => void;
   onCancel: () => void;
+  onReportIncident?: () => void;
 }
 
 export function ScanConfirmPanel({
@@ -21,8 +23,12 @@ export function ScanConfirmPanel({
   confirmTimeoutMs,
   onConfirm,
   onCancel,
+  onReportIncident,
 }: ScanConfirmPanelProps) {
   if (!result.valid) {
+    const showReport =
+      onReportIncident != null && canReportFieldIncidentFromScanReason(result.reason);
+
     return (
       <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 sm:p-5">
         <div className="mb-3 flex items-center gap-3">
@@ -30,7 +36,18 @@ export function ScanConfirmPanel({
           <p className="text-base font-bold text-foreground">Billet refusé</p>
         </div>
         <BoardingErrorAlert code={result.reason} />
-        <Button variant="ghost" size="lg" className="mt-4 w-full" onClick={onCancel}>
+        {showReport ? (
+          <Button
+            variant="secondary"
+            size="lg"
+            className="mt-4 h-14 w-full gap-2 text-base font-semibold"
+            onClick={onReportIncident}
+          >
+            <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden />
+            Signaler un incident
+          </Button>
+        ) : null}
+        <Button variant="ghost" size="lg" className="mt-3 w-full" onClick={onCancel}>
           Rescanner
         </Button>
       </div>

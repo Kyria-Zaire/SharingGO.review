@@ -11,18 +11,11 @@ export interface BoardingReasonBadgeProps {
 /** Libellé court pour historique — titre lisible, code technique en DEV seulement. */
 export function BoardingReasonBadge({ reason }: BoardingReasonBadgeProps) {
   const { title } = resolveBoardingErrorMessage(reason);
-  const devCode = boardingErrorDevCode(reason);
+  boardingErrorDevCode(reason);
 
   return (
-    <Badge
-      variant="muted"
-      className="text-[10px] font-medium"
-      title={devCode ?? undefined}
-    >
+    <Badge variant="muted" className="text-[10px] font-medium">
       {title}
-      {devCode ? (
-        <span className="ml-1 font-mono font-normal text-muted-foreground/70">[{devCode}]</span>
-      ) : null}
     </Badge>
   );
 }

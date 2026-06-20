@@ -1,10 +1,28 @@
-export type IncidentType = "DELAY" | "TECHNICAL" | "BEHAVIOR" | "OTHER";
+export type IncidentType =
+  | "DELAY"
+  | "TECHNICAL"
+  | "BEHAVIOR"
+  | "OTHER"
+  | "BOARDING"
+  | "CAPACITY"
+  | "PAYMENT"
+  | "NO_SHOW"
+  | "SAFETY";
+
+export type IncidentSource =
+  | "MANUAL"
+  | "BOARDING_FIELD"
+  | "DEPARTURE_HEURISTIC"
+  | "MONITORING"
+  | "ACTIVITY_SUGGESTION";
 
 export type IncidentStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 
 export type IncidentSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
-export interface AdminIncidentCreator {
+export type IncidentClosedReason = "FIXED" | "FALSE_ALARM" | "DUPLICATE" | "WONT_FIX";
+
+export interface AdminIncidentUserRef {
   id: string;
   email: string;
   firstName: string | null;
@@ -19,15 +37,25 @@ export interface AdminIncident {
   type: IncidentType;
   status: IncidentStatus;
   severity: IncidentSeverity;
+  source: IncidentSource;
+  sourceRef?: unknown;
+  closedReason?: IncidentClosedReason | null;
   relatedReservationId: string | null;
   relatedTripId: string | null;
   createdBy: string;
+  assignedToUserId?: string | null;
+  resolvedByUserId?: string | null;
   createdAt: string;
   updatedAt: string;
   resolvedAt: string | null;
   resolution: string | null;
-  creator: AdminIncidentCreator;
+  creator: AdminIncidentUserRef;
+  resolver?: AdminIncidentUserRef | null;
+  assignee?: AdminIncidentUserRef | null;
 }
+
+/** @deprecated use AdminIncidentUserRef */
+export type AdminIncidentCreator = AdminIncidentUserRef;
 
 export interface AdminIncidentListResponse {
   incidents: AdminIncident[];
