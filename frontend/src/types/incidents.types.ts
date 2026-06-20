@@ -63,14 +63,34 @@ export interface AdminIncidentListResponse {
   offset: number;
 }
 
+export const HEURISTIC_KINDS = [
+  "near_departure",
+  "no_passengers",
+  "unknown_readiness",
+  "no_boarding_activity",
+  "full_not_boarded",
+  "boarding_late",
+] as const;
+
+export type HeuristicKind = (typeof HEURISTIC_KINDS)[number];
+
 export interface AdminIncidentFilters {
   status?: IncidentStatus;
   type?: IncidentType;
   severity?: IncidentSeverity;
+  source?: IncidentSource;
+  relatedTripId?: string;
   from?: string;
   to?: string;
   limit?: number;
   offset?: number;
+}
+
+export interface PromoteHeuristicBody {
+  relatedTripId: string;
+  heuristicKind: HeuristicKind;
+  severity?: IncidentSeverity;
+  description?: string;
 }
 
 export interface CreateAdminIncidentBody {

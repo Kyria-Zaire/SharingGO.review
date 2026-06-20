@@ -1,3 +1,5 @@
+import type { HeuristicKind } from "@/types/incidents.types";
+
 /** UX-only departure readiness — not persisted, not backend truth. */
 export type DepartureReadinessStatus =
   | "READY"
@@ -20,6 +22,7 @@ export type DepartureIncidentSeverity = "info" | "warning" | "critical";
 export interface DepartureIncident {
   id: string;
   label: string;
+  heuristicKind: HeuristicKind;
   severity: DepartureIncidentSeverity;
 }
 

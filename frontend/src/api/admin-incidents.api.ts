@@ -7,6 +7,7 @@ import type {
   ImportLocalIncidentPayload,
   ImportLocalIncidentsResponse,
   PatchAdminIncidentBody,
+  PromoteHeuristicBody,
 } from "@/types/incidents.types";
 import { http } from "./http";
 
@@ -17,6 +18,8 @@ export async function listAdminIncidents(
     status: filters.status,
     type: filters.type,
     severity: filters.severity,
+    source: filters.source,
+    relatedTripId: filters.relatedTripId,
     from: filters.from,
     to: filters.to,
     limit: filters.limit !== undefined ? String(filters.limit) : undefined,
@@ -31,6 +34,13 @@ export async function getAdminIncident(incidentId: string): Promise<AdminInciden
 
 export async function createAdminIncident(body: CreateAdminIncidentBody): Promise<AdminIncident> {
   return http<AdminIncident>("/api/admin/incidents", { method: "POST", body });
+}
+
+export async function promoteHeuristicIncident(body: PromoteHeuristicBody): Promise<AdminIncident> {
+  return http<AdminIncident>("/api/admin/incidents/promote-heuristic", {
+    method: "POST",
+    body,
+  });
 }
 
 export async function patchAdminIncident(

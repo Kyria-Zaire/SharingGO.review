@@ -224,6 +224,18 @@ async function main() {
     body: promoteBody,
   });
   if (promote1.status === 201) {
+    const promotedId = promote1.data.id;
+    const feedDup = await jsonFetch("/api/admin/activity-feed?limit=50", { cookie: adminCookie });
+    const createdEvents = (feedDup.data.events ?? []).filter(
+      (e) => e.type === "INCIDENT_CREATED" && e.entityId === promotedId
+    );
+    if (createdEvents.length !== 1) {
+      throw new Error(
+        `activity feed dedup: expected 1 INCIDENT_CREATED for incident ${promotedId}, got ${createdEvents.length}`
+      );
+    }
+    console.log("✓ activity feed single INCIDENT_CREATED per promotion");
+
     const promoteDup = await jsonFetch("/api/admin/incidents/promote-heuristic", {
       method: "POST",
       cookie: adminCookie,

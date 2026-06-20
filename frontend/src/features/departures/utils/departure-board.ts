@@ -27,6 +27,7 @@ function incident(id: string, label: string, kind: string): DepartureIncident {
   return {
     id,
     label,
+    heuristicKind: kind as DepartureIncident["heuristicKind"],
     severity: SEVERITY_BY_KIND[kind] ?? "info",
   };
 }

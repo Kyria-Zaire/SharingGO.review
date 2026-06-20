@@ -1,4 +1,5 @@
 import { formatShortId } from "@/lib/format-id";
+import { HEURISTIC_KIND_LABELS } from "@/features/departures/constants/heuristic-labels";
 import { ACTIVITY_INCIDENT_EVENT_LABELS } from "@/features/incidents/constants/incident-labels";
 import type { ActivityFeedEvent } from "@/types/incidents.types";
 
@@ -71,10 +72,19 @@ function formatKnownAuditEvent(
       return reason
         ? `Contrôle boarding refusé — ${reason}`
         : "Contrôle boarding refusé";
-    case "INCIDENT_CREATED":
+    case "INCIDENT_CREATED": {
+      const source = meta ? stringField(meta, "source") : undefined;
+      const heuristicKind = meta ? stringField(meta, "heuristicKind") : undefined;
+      if (source === "DEPARTURE_HEURISTIC" || heuristicKind) {
+        const code = meta ? stringField(meta, "code") : undefined;
+        return code
+          ? `Incident créé depuis Départs — ${code}`
+          : "Incident créé depuis Départs";
+      }
       return meta && stringField(meta, "code")
         ? `Incident ${stringField(meta, "code")} signalé`
         : "Incident signalé";
+    }
     case "INCIDENT_RESOLVED":
       return "Incident résolu";
     case "INCIDENT_CLOSED":
@@ -97,6 +107,35 @@ export function formatActivityEvent(event: ActivityFeedEvent): ActivityEventPres
     event.type === "INCIDENT_SUGGESTED"
   ) {
     const humanType = ACTIVITY_INCIDENT_EVENT_LABELS[event.type] ?? event.type;
+
+    if (event.type === "INCIDENT_CREATED") {
+      const meta = parseMetadata(event.description);
+      const source = meta ? stringField(meta, "source") : undefined;
+      const heuristicKind = meta ? stringField(meta, "heuristicKind") : undefined;
+      const codeFromMeta = meta ? stringField(meta, "code") : undefined;
+
+      if (source === "DEPARTURE_HEURISTIC" || heuristicKind) {
+        return {
+          summary: codeFromMeta
+            ? `Incident créé depuis Départs — ${codeFromMeta}`
+            : "Incident créé depuis Départs",
+          technicalDetail: `${humanType}${event.entityId ? ` · ${formatShortId(event.entityId)}` : ""}`,
+        };
+      }
+
+      const heuristicTitles = Object.values(HEURISTIC_KIND_LABELS);
+      const description = event.description?.trim();
+      if (description && heuristicTitles.includes(description)) {
+        const codeMatch = /^Incident (INC-\d+)/i.exec(event.title);
+        return {
+          summary: codeMatch
+            ? `Incident créé depuis Départs — ${codeMatch[1]}`
+            : "Incident créé depuis Départs",
+          technicalDetail: `${humanType}${event.entityId ? ` · ${formatShortId(event.entityId)}` : ""}`,
+        };
+      }
+    }
+
     const summary =
       event.description?.trim() && !event.description.trim().startsWith("{")
         ? event.description.trim()

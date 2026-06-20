@@ -9,9 +9,16 @@ import { TableSkeleton } from "@/components/ui/TableSkeleton";
 import { queryKeys } from "@/constants/query-keys";
 import { DepartureProgressCard } from "@/features/departures/components/DepartureProgressCard";
 import { DeparturesFilters } from "@/features/departures/components/DeparturesFilters";
+import { PromoteHeuristicDialog } from "@/features/departures/components/PromoteHeuristicDialog";
+import { useDeparturePromotedIncidents } from "@/features/departures/hooks/useDeparturePromotedIncidents";
+import { usePromoteHeuristic } from "@/features/departures/hooks/usePromoteHeuristic";
 import { fetchDepartureBoard } from "@/features/departures/services/fetch-departure-board";
+import { promotedIncidentKey } from "@/features/departures/utils/promoted-incident-utils";
+import { IncidentToast } from "@/features/incidents/components/IncidentToast";
 import { MonitoringLastUpdated } from "@/features/monitoring/components/MonitoringLastUpdated";
-import type { DepartureFilters } from "@/types/departures.types";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import type { DepartureFilters, DepartureTripView } from "@/types/departures.types";
+import type { HeuristicKind } from "@/types/incidents.types";
 
 const DEPARTURES_STALE_TIME_MS = 15_000;
 const REFRESH_COOLDOWN_MS = 2_000;
@@ -23,6 +30,17 @@ export function DeparturesPage() {
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [refreshCooldown, setRefreshCooldown] = useState(false);
+  const [promoteTarget, setPromoteTarget] = useState<DepartureTripView | null>(null);
+
+  const userQuery = useCurrentUser();
+  const {
+    promote,
+    isPromoting,
+    toastMessage,
+    duplicateMessage,
+    dismissToast,
+    clearDuplicateMessage,
+  } = usePromoteHeuristic();
 
   const filterKey = useMemo(() => ({ ...filters }), [filters]);
 
@@ -37,6 +55,13 @@ export function DeparturesPage() {
     queryFn: listAdminLines,
     staleTime: 5 * 60 * 1000,
   });
+
+  const departures = useMemo(
+    () => boardQuery.data?.departures ?? [],
+    [boardQuery.data?.departures]
+  );
+  const tripIds = useMemo(() => departures.map((view) => view.tripId), [departures]);
+  const { promotedMap } = useDeparturePromotedIncidents(tripIds, departures.length > 0);
 
   useEffect(() => {
     if (boardQuery.isSuccess || boardQuery.isError) {
@@ -53,7 +78,29 @@ export function DeparturesPage() {
     });
   }
 
-  const departures = boardQuery.data?.departures ?? [];
+  const promoteHeuristicOptions = useMemo((): HeuristicKind[] => {
+    if (!promoteTarget) return [];
+    return promoteTarget.incidents
+      .filter(
+        (incident) =>
+          !promotedMap.has(promotedIncidentKey(promoteTarget.tripId, incident.heuristicKind))
+      )
+      .map((incident) => incident.heuristicKind);
+  }, [promoteTarget, promotedMap]);
+
+  async function handlePromoteSubmit(heuristicKind: HeuristicKind) {
+    if (!promoteTarget) return;
+    clearDuplicateMessage();
+    try {
+      await promote({
+        relatedTripId: promoteTarget.tripId,
+        heuristicKind,
+      });
+      setPromoteTarget(null);
+    } catch {
+      // erreurs gérées dans le hook (toast / duplicateMessage)
+    }
+  }
 
   return (
     <>
@@ -99,10 +146,31 @@ export function DeparturesPage() {
       {!boardQuery.isLoading && !boardQuery.isError && departures.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {departures.map((view) => (
-            <DepartureProgressCard key={view.tripId} view={view} />
+            <DepartureProgressCard
+              key={view.tripId}
+              view={view}
+              userType={userQuery.data?.userType}
+              promotedMap={promotedMap}
+              onPromote={setPromoteTarget}
+            />
           ))}
         </div>
       ) : null}
+
+      <PromoteHeuristicDialog
+        view={promoteTarget}
+        heuristicOptions={promoteHeuristicOptions}
+        open={promoteTarget !== null && promoteHeuristicOptions.length > 0}
+        isSubmitting={isPromoting}
+        errorMessage={duplicateMessage}
+        onClose={() => {
+          clearDuplicateMessage();
+          setPromoteTarget(null);
+        }}
+        onSubmit={(heuristicKind) => void handlePromoteSubmit(heuristicKind)}
+      />
+
+      <IncidentToast message={toastMessage} onDismiss={dismissToast} />
     </>
   );
 }

@@ -24,6 +24,13 @@ const SUGGEST_INCIDENT_ACTIONS = new Set([
   "PAYMENT_REJECTED_PENDING_EXPIRED",
 ]);
 
+/** Incident lifecycle events are synthesized from the `incidents` table — skip audit duplicates. */
+const INCIDENT_AUDIT_ACTIONS_CANONICAL_FROM_INCIDENTS = new Set([
+  "INCIDENT_CREATED",
+  "INCIDENT_RESOLVED",
+  "INCIDENT_CLOSED",
+]);
+
 function actorDisplayName(user: {
   email: string;
   firstName: string | null;
@@ -83,6 +90,10 @@ export async function listAdminActivityFeed(query: ListActivityFeedQuery) {
   const events: ActivityFeedEvent[] = [];
 
   for (const log of auditLogs) {
+    if (INCIDENT_AUDIT_ACTIONS_CANONICAL_FROM_INCIDENTS.has(log.action)) {
+      continue;
+    }
+
     const baseEvent: ActivityFeedEvent = {
       id: `audit:${log.id}`,
       type: log.action,

@@ -2,20 +2,45 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/cn";
 import { ROUTES } from "@/constants/routes";
 import { formatDate } from "@/lib/format-date";
+import { isAdminPanelRole } from "@/constants/roles";
 import type { DepartureTripView } from "@/types/departures.types";
+import type { AdminIncident } from "@/types/incidents.types";
+import type { UserType } from "@/types/auth.types";
 import { BoardingProgressBar } from "./BoardingProgressBar";
 import { DepartureIncidentBadge } from "./DepartureIncidentBadge";
 import { DepartureReadinessBadge } from "./DepartureReadinessBadge";
 import { NearDepartureBadge } from "./NearDepartureBadge";
+import { PromotedIncidentBadge } from "./PromotedIncidentBadge";
+import {
+  getPromotedIncidentsForTrip,
+  promotedIncidentKey,
+} from "@/features/departures/utils/promoted-incident-utils";
 
 interface DepartureProgressCardProps {
   view: DepartureTripView;
+  userType?: UserType;
+  promotedMap: Map<string, AdminIncident>;
+  onPromote?: (view: DepartureTripView) => void;
 }
 
-export function DepartureProgressCard({ view }: DepartureProgressCardProps) {
+export function DepartureProgressCard({
+  view,
+  userType,
+  promotedMap,
+  onPromote,
+}: DepartureProgressCardProps) {
   const nearClass = view.nearDeparture
     ? "border-warning/40 shadow-sm shadow-warning/10 ring-1 ring-warning/20"
     : "border-border";
+
+  const promotedForTrip = getPromotedIncidentsForTrip(view.tripId, promotedMap);
+  const unpromotedHeuristics = view.incidents.filter(
+    (incident) => !promotedMap.has(promotedIncidentKey(view.tripId, incident.heuristicKind))
+  );
+  const canPromote =
+    Boolean(onPromote) &&
+    Boolean(userType && isAdminPanelRole(userType)) &&
+    unpromotedHeuristics.length > 0;
 
   return (
     <article
@@ -64,20 +89,34 @@ export function DepartureProgressCard({ view }: DepartureProgressCardProps) {
         </div>
       </dl>
 
-      {view.incidents.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
+      {view.incidents.length > 0 || promotedForTrip.length > 0 ? (
+        <div className="mb-3 flex flex-wrap gap-1.5">
           {view.incidents.map((incident) => (
             <DepartureIncidentBadge key={incident.id} incident={incident} />
+          ))}
+          {promotedForTrip.map((incident) => (
+            <PromotedIncidentBadge key={incident.id} incident={incident} />
           ))}
         </div>
       ) : null}
 
-      <Link
-        to={`${ROUTES.incidents}?tripId=${encodeURIComponent(view.tripId)}&category=departure&create=1`}
-        className="mt-3 inline-flex h-8 items-center rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-muted/30"
-      >
-        Signaler incident
-      </Link>
+      <div className="flex flex-wrap gap-2">
+        {canPromote ? (
+          <button
+            type="button"
+            onClick={() => onPromote?.(view)}
+            className="inline-flex h-8 items-center rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-muted/30"
+          >
+            Promouvoir
+          </button>
+        ) : null}
+        <Link
+          to={`${ROUTES.incidents}?tripId=${encodeURIComponent(view.tripId)}&category=departure&create=1`}
+          className="inline-flex h-8 items-center rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground hover:bg-muted/30"
+        >
+          Signaler incident
+        </Link>
+      </div>
     </article>
   );
 }
