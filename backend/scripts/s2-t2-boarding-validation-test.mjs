@@ -121,6 +121,15 @@ async function main() {
   const convoyeurCookie = await login("convoyeur1@sharinggo.demo", password);
 
   const { jwt, reservationId, tripId } = await getPassengerJwt(passengerCookie);
+
+  const startBoarding = await fetch(`${baseUrl}/api/admin/trips/${tripId}/start-boarding`, {
+    method: "POST",
+    headers: { cookie: adminCookie },
+  });
+  if (!startBoarding.ok) {
+    throw new Error(`start-boarding failed: ${startBoarding.status}`);
+  }
+
   const payload = JSON.parse(Buffer.from(jwt.split(".")[1], "base64url").toString("utf8"));
 
   const ok = await validate(adminCookie, jwt);
@@ -194,11 +203,29 @@ async function main() {
     iat: Math.floor(Date.now() / 1000),
     exp: futureExp,
   });
-  const oldDep = psql(`SELECT "departureTime" FROM "Trip" WHERE id='${tripId}';`).trim();
-  psql(`UPDATE "Trip" SET "departureTime"=NOW() - INTERVAL '2 hours' WHERE id='${tripId}';`);
-  assertInvalid((await validate(adminCookie, windowJwt)).body, "BOARDING_WINDOW_EXPIRED");
-  psql(`UPDATE "Trip" SET "departureTime"='${oldDep}' WHERE id='${tripId}';`);
-  console.log("✓ boarding window passée → BOARDING_WINDOW_EXPIRED");
+  const lifecycleSnap = psql(`
+    SELECT "lifecycleStatus","boardingStartedAt","departedAt","completedAt","cancelledAt"
+    FROM "Trip" WHERE id='${tripId}';
+  `).trim();
+
+  await fetch(`${baseUrl}/api/admin/trips/${tripId}/depart`, {
+    method: "POST",
+    headers: { cookie: adminCookie },
+  });
+  assertInvalid((await validate(adminCookie, windowJwt)).body, "BOARDING_CLOSED");
+
+  const [lcStatus, lcBoarding, lcDeparted, lcCompleted, lcCancelled] = lifecycleSnap.split("|");
+  const sqlNull = (v) => (v === "" || v === undefined ? "NULL" : `'${v}'`);
+  psql(`
+    UPDATE "Trip"
+    SET "lifecycleStatus"='${lcStatus || "BOARDING"}',
+        "boardingStartedAt"=${sqlNull(lcBoarding)},
+        "departedAt"=${sqlNull(lcDeparted)},
+        "completedAt"=${sqlNull(lcCompleted)},
+        "cancelledAt"=${sqlNull(lcCancelled)}
+    WHERE id='${tripId}';
+  `);
+  console.log("✓ lifecycle DEPARTED → BOARDING_CLOSED");
 
   const payId = psql(`SELECT id FROM "Payment" WHERE "reservationId"='${reservationId}';`).trim();
   if (payId) {
@@ -210,6 +237,14 @@ async function main() {
   }
 
   console.log("\nS2-T2 boarding validation tests OK");
+
+  psql(`
+    UPDATE "Trip"
+    SET "lifecycleStatus"='WAITING',
+        "boardingStartedAt"=NULL,
+        "departedAt"=NULL
+    WHERE id='${tripId}';
+  `);
 }
 
 main().catch((e) => {

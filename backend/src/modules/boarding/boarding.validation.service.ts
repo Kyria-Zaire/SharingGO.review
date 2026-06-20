@@ -2,7 +2,7 @@ import { PaymentStatus, ReservationStatus } from "@prisma/client";
 import { writeAuditLog } from "../../lib/audit-log.js";
 import { logger } from "../../lib/logger.js";
 import { prisma } from "../../lib/prisma.js";
-import { BOARDING_GRACE_MS } from "./boarding.constants.js";
+import { evaluateTripLifecycleBoarding } from "./boarding-eligibility.js";
 import { verifyBoardingToken } from "./boarding-jwt.js";
 import {
   BOARDING_VALIDATION_REASONS,
@@ -32,10 +32,6 @@ function mapJwtVerificationReason(
   }
 }
 
-function isBoardingWindowOpen(departureTime: Date, now: Date): boolean {
-  return departureTime.getTime() + BOARDING_GRACE_MS > now.getTime();
-}
-
 function auditActionForReason(reason: BoardingValidationReason): string {
   switch (reason) {
     case BOARDING_VALIDATION_REASONS.TOKEN_REVOKED:
@@ -43,6 +39,11 @@ function auditActionForReason(reason: BoardingValidationReason): string {
     case BOARDING_VALIDATION_REASONS.EXPIRED_TOKEN:
     case BOARDING_VALIDATION_REASONS.BOARDING_WINDOW_EXPIRED:
       return "BOARDING_TOKEN_EXPIRED";
+    case BOARDING_VALIDATION_REASONS.BOARDING_NOT_STARTED:
+    case BOARDING_VALIDATION_REASONS.BOARDING_CLOSED:
+    case BOARDING_VALIDATION_REASONS.TRIP_COMPLETED:
+    case BOARDING_VALIDATION_REASONS.TRIP_CANCELLED:
+      return "BOARDING_LIFECYCLE_BLOCKED";
     case BOARDING_VALIDATION_REASONS.INTERNAL_VALIDATION_ERROR:
       return "BOARDING_INTERNAL_VALIDATION_ERROR";
     default:
@@ -189,14 +190,9 @@ export async function validateBoardingTokenSubmission(
       );
     }
 
-    const now = new Date();
-    if (!isBoardingWindowOpen(reservation.trip.departureTime, now)) {
-      return fail(
-        adminUserId,
-        BOARDING_VALIDATION_REASONS.BOARDING_WINDOW_EXPIRED,
-        context,
-        passengerContext
-      );
+    const lifecycleReason = evaluateTripLifecycleBoarding(reservation.trip.lifecycleStatus);
+    if (lifecycleReason !== null) {
+      return fail(adminUserId, lifecycleReason, context, passengerContext);
     }
 
     if (!reservation.payment || reservation.payment.status !== PaymentStatus.SUCCEEDED) {

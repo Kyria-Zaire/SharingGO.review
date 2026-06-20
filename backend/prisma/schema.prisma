@@ -93,6 +93,14 @@ enum IncidentSeverity {
   CRITICAL
 }
 
+enum TripLifecycleStatus {
+  WAITING
+  BOARDING
+  DEPARTED
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -123,6 +131,7 @@ model User {
   incidentsCreated    Incident[]    @relation("IncidentCreator")
   incidentsAssigned   Incident[]    @relation("IncidentAssignee")
   incidentsResolved   Incident[]    @relation("IncidentResolver")
+  tripsLifecycleUpdated Trip[]      @relation("TripLifecycleUpdatedBy")
 
   @@index([email])
   @@index([createdByUserId])
@@ -193,6 +202,15 @@ model Trip {
 
   totalSeats Int @default(8)
 
+  lifecycleStatus            TripLifecycleStatus @default(WAITING)
+  boardingStartedAt          DateTime?
+  departedAt                 DateTime?
+  completedAt                DateTime?
+  cancelledAt                DateTime?
+  lifecycleUpdatedByUserId   String?
+  lifecycleUpdatedBy         User?               @relation("TripLifecycleUpdatedBy", fields: [lifecycleUpdatedByUserId], references: [id], onDelete: SetNull)
+  cancellationReason         String?
+
   reservations        Reservation[]
   pendingReservations PendingReservation[]
 
@@ -202,6 +220,7 @@ model Trip {
 
   @@index([departureTime])
   @@index([lineId])
+  @@index([lifecycleStatus])
 }
 
 model PendingReservation {

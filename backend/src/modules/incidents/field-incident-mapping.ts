@@ -14,6 +14,10 @@ export const FIELD_INCIDENT_BOARDING_REASONS = [
   BOARDING_CONSUMPTION_REASONS.TOKEN_REVOKED,
   BOARDING_CONSUMPTION_REASONS.RESERVATION_NOT_CONFIRMED,
   BOARDING_CONSUMPTION_REASONS.TRIP_DISABLED,
+  BOARDING_CONSUMPTION_REASONS.BOARDING_NOT_STARTED,
+  BOARDING_CONSUMPTION_REASONS.BOARDING_CLOSED,
+  BOARDING_CONSUMPTION_REASONS.TRIP_COMPLETED,
+  BOARDING_CONSUMPTION_REASONS.TRIP_CANCELLED,
   BOARDING_CONSUMPTION_REASONS.BOARDING_WINDOW_EXPIRED,
   BOARDING_CONSUMPTION_REASONS.PAYMENT_NOT_SUCCEEDED,
   BOARDING_CONSUMPTION_REASONS.INTERNAL_VALIDATION_ERROR,
@@ -47,6 +51,26 @@ const BOARDING_REASON_MAP: Record<FieldIncidentBoardingReason, DerivedFieldIncid
   TRIP_DISABLED: {
     title: "Trajet indisponible",
     type: IncidentType.TECHNICAL,
+    severityFloor: IncidentSeverity.HIGH,
+  },
+  BOARDING_NOT_STARTED: {
+    title: "Embarquement non ouvert",
+    type: IncidentType.BOARDING,
+    severityFloor: IncidentSeverity.MEDIUM,
+  },
+  BOARDING_CLOSED: {
+    title: "Embarquement fermé",
+    type: IncidentType.BOARDING,
+    severityFloor: IncidentSeverity.MEDIUM,
+  },
+  TRIP_COMPLETED: {
+    title: "Trajet terminé",
+    type: IncidentType.BOARDING,
+    severityFloor: IncidentSeverity.LOW,
+  },
+  TRIP_CANCELLED: {
+    title: "Trajet annulé",
+    type: IncidentType.BOARDING,
     severityFloor: IncidentSeverity.HIGH,
   },
   BOARDING_WINDOW_EXPIRED: {

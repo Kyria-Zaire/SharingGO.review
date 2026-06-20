@@ -16,6 +16,12 @@ import {
   listTripsHandler,
   updateTripHandler,
 } from "./trips.controller.js";
+import {
+  cancelTripHandler,
+  markCompletedHandler,
+  markDepartedHandler,
+  startBoardingHandler,
+} from "../trips/trip-lifecycle.controller.js";
 
 const adminMiddleware = [
   asyncHandler(requireAuth),
@@ -33,6 +39,10 @@ tripsRouter.post("/", ...adminMiddleware, asyncHandler(createTripHandler));
 tripsRouter.get("/", ...adminMiddleware, asyncHandler(listTripsHandler));
 tripsRouter.get("/:id", ...adminMiddleware, asyncHandler(getTripHandler));
 tripsRouter.patch("/:id", ...adminMiddleware, asyncHandler(updateTripHandler));
+tripsRouter.post("/:id/start-boarding", ...adminMiddleware, asyncHandler(startBoardingHandler));
+tripsRouter.post("/:id/depart", ...adminMiddleware, asyncHandler(markDepartedHandler));
+tripsRouter.post("/:id/complete", ...adminMiddleware, asyncHandler(markCompletedHandler));
+tripsRouter.post("/:id/cancel", ...adminMiddleware, asyncHandler(cancelTripHandler));
 tripsRouter.post("/:id/disable", ...adminMiddleware, asyncHandler(disableTripHandler));
 tripsRouter.post("/:id/enable", ...adminMiddleware, asyncHandler(enableTripHandler));
 

@@ -55,6 +55,26 @@ const REASON_UI_MAP: Record<BoardingConsumptionReason, BoardingUiMessage> = {
     title: "Trajet indisponible",
     message: "Ce trajet n'est plus actif",
   },
+  [BOARDING_CONSUMPTION_REASONS.BOARDING_NOT_STARTED]: {
+    status: BOARDING_UI_STATUS.WARNING,
+    title: "Embarquement non ouvert",
+    message: "L'embarquement n'a pas encore commencé pour ce trajet",
+  },
+  [BOARDING_CONSUMPTION_REASONS.BOARDING_CLOSED]: {
+    status: BOARDING_UI_STATUS.WARNING,
+    title: "Embarquement fermé",
+    message: "Le bus est parti — embarquement impossible",
+  },
+  [BOARDING_CONSUMPTION_REASONS.TRIP_COMPLETED]: {
+    status: BOARDING_UI_STATUS.WARNING,
+    title: "Trajet terminé",
+    message: "Ce trajet est terminé",
+  },
+  [BOARDING_CONSUMPTION_REASONS.TRIP_CANCELLED]: {
+    status: BOARDING_UI_STATUS.ERROR,
+    title: "Trajet annulé",
+    message: "Ce trajet a été annulé",
+  },
   [BOARDING_CONSUMPTION_REASONS.BOARDING_WINDOW_EXPIRED]: {
     status: BOARDING_UI_STATUS.WARNING,
     title: "Fenêtre expirée",
