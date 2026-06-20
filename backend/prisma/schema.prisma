@@ -56,7 +56,27 @@ enum IncidentType {
   DELAY
   TECHNICAL
   BEHAVIOR
+  BOARDING
+  CAPACITY
+  PAYMENT
+  NO_SHOW
+  SAFETY
   OTHER
+}
+
+enum IncidentSource {
+  MANUAL
+  BOARDING_FIELD
+  DEPARTURE_HEURISTIC
+  MONITORING
+  ACTIVITY_SUGGESTION
+}
+
+enum IncidentClosedReason {
+  FIXED
+  FALSE_ALARM
+  DUPLICATE
+  WONT_FIX
 }
 
 enum IncidentStatus {
@@ -101,6 +121,8 @@ model User {
   oauthAccounts       OAuthAccount[]
   consumedReservations Reservation[] @relation("ConsumedReservations")
   incidentsCreated    Incident[]    @relation("IncidentCreator")
+  incidentsAssigned   Incident[]    @relation("IncidentAssignee")
+  incidentsResolved   Incident[]    @relation("IncidentResolver")
 
   @@index([email])
   @@index([createdByUserId])
@@ -315,24 +337,37 @@ model AuditLog {
 }
 
 model Incident {
-  id                   String           @id @default(cuid())
-  code                 String           @unique
+  id                   String                @id @default(cuid())
+  code                 String                @unique
   title                String
   description          String?
   type                 IncidentType
-  status               IncidentStatus   @default(OPEN)
+  status               IncidentStatus        @default(OPEN)
   severity             IncidentSeverity
-  relatedReservationId String?          @map("related_reservation_id")
-  relatedTripId        String?          @map("related_trip_id")
-  createdBy            String           @map("created_by")
-  creator              User             @relation("IncidentCreator", fields: [createdBy], references: [id])
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  source               IncidentSource        @default(MANUAL)
+  sourceRef            Json?
+  occurredAt           DateTime              @default(now())
+  closedReason         IncidentClosedReason?
+  relatedReservationId String?               @map("related_reservation_id")
+  relatedTripId        String?               @map("related_trip_id")
+  createdBy            String                @map("created_by")
+  creator              User                  @relation("IncidentCreator", fields: [createdBy], references: [id])
+  assignedToUserId     String?               @map("assigned_to_user_id")
+  assignee             User?                 @relation("IncidentAssignee", fields: [assignedToUserId], references: [id])
+  resolvedByUserId     String?               @map("resolved_by_user_id")
+  resolver             User?                 @relation("IncidentResolver", fields: [resolvedByUserId], references: [id])
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
   resolvedAt           DateTime?
   resolution           String?
 
   @@index([status])
+  @@index([severity])
+  @@index([source])
   @@index([relatedReservationId])
   @@index([relatedTripId])
   @@index([createdAt])
+  @@index([status, severity])
+  @@index([relatedTripId, status])
+  @@index([assignedToUserId])
 }

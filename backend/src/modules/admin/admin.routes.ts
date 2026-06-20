@@ -9,6 +9,7 @@ import {
   importLocalIncidentsHandler,
   listAdminIncidentsHandler,
   patchAdminIncidentHandler,
+  promoteHeuristicIncidentHandler,
 } from "./admin-incidents.controller.js";
 import { getAdminTripOccupancyHandler } from "./admin-occupancy.controller.js";
 import { listAdminPaymentsHandler } from "./admin-payments.controller.js";
@@ -79,6 +80,12 @@ adminOperationsRouter.post(
   "/incidents/import-local",
   ...adminMiddleware,
   asyncHandler(importLocalIncidentsHandler)
+);
+
+adminOperationsRouter.post(
+  "/incidents/promote-heuristic",
+  ...adminMiddleware,
+  asyncHandler(promoteHeuristicIncidentHandler)
 );
 
 adminOperationsRouter.get(

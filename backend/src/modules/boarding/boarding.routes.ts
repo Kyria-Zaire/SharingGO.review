@@ -9,6 +9,7 @@ import {
   getBoardingTokenHandler,
   validateBoardingTokenHandler,
 } from "./boarding.controller.js";
+import { createFieldIncidentHandler } from "./field-incidents.controller.js";
 import { getBoardingOfflineCapabilitiesHandler } from "./boarding-offline.controller.js";
 
 export const boardingRouter = Router();
@@ -16,6 +17,14 @@ export const boardingRouter = Router();
 boardingRouter.get(
   "/offline-capabilities",
   asyncHandler(getBoardingOfflineCapabilitiesHandler)
+);
+
+boardingRouter.post(
+  "/field-incidents",
+  adminLimiter,
+  asyncHandler(requireAuth),
+  requireRole(...BOARDING_FIELD_SCAN_ROLES),
+  asyncHandler(createFieldIncidentHandler)
 );
 
 boardingRouter.post(

@@ -6,6 +6,7 @@ import {
   importLocalIncidentsBodySchema,
   listAdminIncidentsQuerySchema,
   patchAdminIncidentBodySchema,
+  promoteHeuristicBodySchema,
 } from "./admin-incidents.schemas.js";
 import * as adminIncidentsService from "./admin-incidents.service.js";
 
@@ -45,4 +46,13 @@ export async function importLocalIncidentsHandler(req: Request, res: Response): 
   const body = parseBody(importLocalIncidentsBodySchema, req.body);
   const result = await adminIncidentsService.importLocalIncidents(body, req.user!.id);
   res.status(200).json(result);
+}
+
+export async function promoteHeuristicIncidentHandler(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const body = parseBody(promoteHeuristicBodySchema, req.body);
+  const incident = await adminIncidentsService.promoteHeuristicIncident(body, req.user!.id);
+  res.status(201).json(incident);
 }

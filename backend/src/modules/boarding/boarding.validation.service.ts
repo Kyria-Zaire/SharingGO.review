@@ -10,6 +10,10 @@ import {
 } from "./boarding-validation-reasons.js";
 import type { BoardingValidationResponse } from "./boarding.validation.types.js";
 import { BoardingTokenVerificationError } from "./boarding.types.js";
+import {
+  buildBoardingFailureContext,
+  type BoardingFailurePassengerContext,
+} from "./boarding-context.types.js";
 
 function mapJwtVerificationReason(
   reason: BoardingTokenVerificationError["reason"]
@@ -74,7 +78,8 @@ async function auditBoardingValidation(input: {
 async function fail(
   adminUserId: string,
   reason: BoardingValidationReason,
-  context: { reservationId?: string; tripId?: string; requestId?: string }
+  context: { reservationId?: string; tripId?: string; requestId?: string },
+  passenger?: BoardingFailurePassengerContext
 ): Promise<BoardingValidationResponse> {
   logger.info("Boarding validation failed", {
     reason,
@@ -93,7 +98,16 @@ async function fail(
     requestId: context.requestId,
   });
 
-  return { valid: false, reason };
+  return {
+    valid: false,
+    reason,
+    context: buildBoardingFailureContext({
+      reservationId: context.reservationId,
+      tripId: context.tripId,
+      reason,
+      passenger,
+    }),
+  };
 }
 
 export async function validateBoardingTokenSubmission(
@@ -133,29 +147,65 @@ export async function validateBoardingTokenSubmission(
       return fail(adminUserId, BOARDING_VALIDATION_REASONS.RESERVATION_NOT_FOUND, context);
     }
 
+    const passengerContext: BoardingFailurePassengerContext = {
+      id: reservation.user.id,
+      firstName: reservation.user.firstName,
+      lastName: reservation.user.lastName,
+    };
+
     if (reservation.userId !== payload.userId || reservation.tripId !== payload.tripId) {
-      return fail(adminUserId, BOARDING_VALIDATION_REASONS.TOKEN_REVOKED, context);
+      return fail(
+        adminUserId,
+        BOARDING_VALIDATION_REASONS.TOKEN_REVOKED,
+        context,
+        passengerContext
+      );
     }
 
     if (!reservation.boardingToken || reservation.boardingToken !== payload.opaqueBoardingToken) {
-      return fail(adminUserId, BOARDING_VALIDATION_REASONS.TOKEN_REVOKED, context);
+      return fail(
+        adminUserId,
+        BOARDING_VALIDATION_REASONS.TOKEN_REVOKED,
+        context,
+        passengerContext
+      );
     }
 
     if (reservation.status !== ReservationStatus.CONFIRMED) {
-      return fail(adminUserId, BOARDING_VALIDATION_REASONS.RESERVATION_NOT_CONFIRMED, context);
+      return fail(
+        adminUserId,
+        BOARDING_VALIDATION_REASONS.RESERVATION_NOT_CONFIRMED,
+        context,
+        passengerContext
+      );
     }
 
     if (reservation.trip.deletedAt !== null) {
-      return fail(adminUserId, BOARDING_VALIDATION_REASONS.TRIP_DISABLED, context);
+      return fail(
+        adminUserId,
+        BOARDING_VALIDATION_REASONS.TRIP_DISABLED,
+        context,
+        passengerContext
+      );
     }
 
     const now = new Date();
     if (!isBoardingWindowOpen(reservation.trip.departureTime, now)) {
-      return fail(adminUserId, BOARDING_VALIDATION_REASONS.BOARDING_WINDOW_EXPIRED, context);
+      return fail(
+        adminUserId,
+        BOARDING_VALIDATION_REASONS.BOARDING_WINDOW_EXPIRED,
+        context,
+        passengerContext
+      );
     }
 
     if (!reservation.payment || reservation.payment.status !== PaymentStatus.SUCCEEDED) {
-      return fail(adminUserId, BOARDING_VALIDATION_REASONS.PAYMENT_NOT_SUCCEEDED, context);
+      return fail(
+        adminUserId,
+        BOARDING_VALIDATION_REASONS.PAYMENT_NOT_SUCCEEDED,
+        context,
+        passengerContext
+      );
     }
 
     await auditBoardingValidation({
@@ -216,6 +266,11 @@ export async function validateBoardingTokenSubmission(
     return {
       valid: false,
       reason: BOARDING_VALIDATION_REASONS.INTERNAL_VALIDATION_ERROR,
+      context: buildBoardingFailureContext({
+        reservationId: context.reservationId,
+        tripId: context.tripId,
+        reason: BOARDING_VALIDATION_REASONS.INTERNAL_VALIDATION_ERROR,
+      }),
     };
   }
 }

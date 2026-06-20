@@ -20,6 +20,10 @@ import {
 } from "./boarding-ui-messages.js";
 import { BoardingTokenVerificationError } from "./boarding.types.js";
 import type { VerifiedBoardingPayload } from "./boarding.types.js";
+import {
+  buildBoardingFailureContext,
+  type BoardingFailurePassengerContext,
+} from "./boarding-context.types.js";
 
 function mapJwtVerificationReason(
   reason: BoardingTokenVerificationError["reason"]
@@ -62,7 +66,8 @@ async function auditConsumption(input: {
 function failure(
   adminUserId: string,
   reason: BoardingConsumptionReason,
-  context: { reservationId?: string; tripId?: string; requestId?: string }
+  context: { reservationId?: string; tripId?: string; requestId?: string },
+  passenger?: BoardingFailurePassengerContext
 ): BoardingConsumptionResponse {
   logger.info("Boarding consumption failed", {
     reason,
@@ -81,7 +86,18 @@ function failure(
     requestId: context.requestId,
   });
 
-  return { valid: false, consumed: false, reason, ui: getConsumeFailureUi(reason) };
+  return {
+    valid: false,
+    consumed: false,
+    reason,
+    ui: getConsumeFailureUi(reason),
+    context: buildBoardingFailureContext({
+      reservationId: context.reservationId,
+      tripId: context.tripId,
+      reason,
+      passenger,
+    }),
+  };
 }
 
 function toSuccessResponse(
@@ -234,25 +250,41 @@ export async function consumeBoardingTokenSubmission(
       return failure(adminUserId, BOARDING_CONSUMPTION_REASONS.RESERVATION_NOT_FOUND, context);
     }
 
+    const passengerContext: BoardingFailurePassengerContext = {
+      id: preCheck.user.id,
+      firstName: preCheck.user.firstName,
+      lastName: preCheck.user.lastName,
+    };
+
     if (preCheck.status === ReservationStatus.USED) {
       const usedReason = evaluateUsedBoardingMatch(preCheck, payload);
       if (usedReason === null) {
         return handleAlreadyUsed(adminUserId, preCheck, requestId);
       }
-      return failure(adminUserId, usedReason, context);
+      return failure(adminUserId, usedReason, context, passengerContext);
     }
 
     if (preCheck.status !== ReservationStatus.CONFIRMED) {
       if (!payloadMatchesReservation(preCheck, payload)) {
-        return failure(adminUserId, BOARDING_CONSUMPTION_REASONS.TOKEN_REVOKED, context);
+        return failure(
+          adminUserId,
+          BOARDING_CONSUMPTION_REASONS.TOKEN_REVOKED,
+          context,
+          passengerContext
+        );
       }
-      return failure(adminUserId, BOARDING_CONSUMPTION_REASONS.RESERVATION_NOT_CONFIRMED, context);
+      return failure(
+        adminUserId,
+        BOARDING_CONSUMPTION_REASONS.RESERVATION_NOT_CONFIRMED,
+        context,
+        passengerContext
+      );
     }
 
     const now = new Date();
     const preEligibility = evaluateConfirmedConsumptionEligibility(preCheck, payload, now);
     if (preEligibility !== null) {
-      return failure(adminUserId, preEligibility, context);
+      return failure(adminUserId, preEligibility, context, passengerContext);
     }
 
     const txResult = await consumeInTransaction(
@@ -316,6 +348,11 @@ export async function consumeBoardingTokenSubmission(
       consumed: false,
       reason: BOARDING_CONSUMPTION_REASONS.INTERNAL_CONSUMPTION_ERROR,
       ui: getConsumeFailureUi(BOARDING_CONSUMPTION_REASONS.INTERNAL_CONSUMPTION_ERROR),
+      context: buildBoardingFailureContext({
+        reservationId: context.reservationId,
+        tripId: context.tripId,
+        reason: BOARDING_CONSUMPTION_REASONS.INTERNAL_CONSUMPTION_ERROR,
+      }),
     };
   }
 }

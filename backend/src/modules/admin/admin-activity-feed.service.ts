@@ -2,6 +2,7 @@ import { IncidentSeverity, IncidentStatus } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
 import { mapDbSeverityToFeed } from "./admin-incidents.mappers.js";
 import type { ListActivityFeedQuery } from "./admin-incidents.schemas.js";
+import { incidentInclude } from "../incidents/incident-include.js";
 
 export interface ActivityFeedEvent {
   id: string;
@@ -17,6 +18,11 @@ export interface ActivityFeedEvent {
 }
 
 const FETCH_CAP = 250;
+
+const SUGGEST_INCIDENT_ACTIONS = new Set([
+  "BOARDING_CONSUMPTION_ERROR",
+  "PAYMENT_REJECTED_PENDING_EXPIRED",
+]);
 
 function actorDisplayName(user: {
   email: string;
@@ -68,11 +74,7 @@ export async function listAdminActivityFeed(query: ListActivityFeedQuery) {
     }),
     prisma.incident.findMany({
       where: dateFilter ? { createdAt: dateFilter } : undefined,
-      include: {
-        creator: {
-          select: { id: true, email: true, firstName: true, lastName: true },
-        },
-      },
+      include: incidentInclude,
       orderBy: { createdAt: "desc" },
       take: FETCH_CAP,
     }),
@@ -81,7 +83,7 @@ export async function listAdminActivityFeed(query: ListActivityFeedQuery) {
   const events: ActivityFeedEvent[] = [];
 
   for (const log of auditLogs) {
-    events.push({
+    const baseEvent: ActivityFeedEvent = {
       id: `audit:${log.id}`,
       type: log.action,
       severity: auditSeverity(log.action),
@@ -95,7 +97,23 @@ export async function listAdminActivityFeed(query: ListActivityFeedQuery) {
       actorName: log.actorUser ? actorDisplayName(log.actorUser) : undefined,
       entityId: log.targetId ?? undefined,
       entityType: log.targetType,
-    });
+    };
+    events.push(baseEvent);
+
+    if (SUGGEST_INCIDENT_ACTIONS.has(log.action)) {
+      events.push({
+        id: `audit:suggest:${log.id}`,
+        type: "INCIDENT_SUGGESTED",
+        severity: "warning",
+        title: "Créer un incident opérationnel",
+        description: `Suggestion depuis ${log.action}`,
+        timestamp: log.createdAt.toISOString(),
+        actorUserId: log.actorUserId ?? undefined,
+        actorName: log.actorUser ? actorDisplayName(log.actorUser) : undefined,
+        entityId: log.id,
+        entityType: "AuditLog",
+      });
+    }
   }
 
   for (const incident of incidents) {
@@ -117,6 +135,7 @@ export async function listAdminActivityFeed(query: ListActivityFeedQuery) {
       (incident.status === IncidentStatus.RESOLVED ||
         incident.status === IncidentStatus.CLOSED)
     ) {
+      const resolver = incident.resolver ?? incident.creator;
       events.push({
         id: `incident:resolved:${incident.id}`,
         type: "INCIDENT_RESOLVED",
@@ -125,8 +144,24 @@ export async function listAdminActivityFeed(query: ListActivityFeedQuery) {
         title: `Incident ${incident.code} resolved`,
         description: incident.resolution ?? incident.title,
         timestamp: incident.resolvedAt.toISOString(),
-        actorUserId: incident.createdBy,
-        actorName: actorDisplayName(incident.creator),
+        actorUserId: incident.resolvedByUserId ?? incident.createdBy,
+        actorName: actorDisplayName(resolver),
+        entityId: incident.id,
+        entityType: "Incident",
+      });
+    }
+
+    if (incident.status === IncidentStatus.CLOSED) {
+      const closer = incident.resolver ?? incident.creator;
+      events.push({
+        id: `incident:closed:${incident.id}`,
+        type: "INCIDENT_CLOSED",
+        severity: "info",
+        title: `Incident ${incident.code} closed`,
+        description: incident.closedReason ?? undefined,
+        timestamp: (incident.resolvedAt ?? incident.updatedAt).toISOString(),
+        actorUserId: incident.resolvedByUserId ?? incident.createdBy,
+        actorName: actorDisplayName(closer),
         entityId: incident.id,
         entityType: "Incident",
       });

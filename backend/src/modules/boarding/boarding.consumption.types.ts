@@ -3,6 +3,7 @@ import {
   type BoardingConsumptionReason,
 } from "./boarding-consumption-reasons.js";
 import type { BoardingUiMessage } from "./boarding-ui.types.js";
+import type { BoardingFailureContext } from "./boarding-context.types.js";
 
 export interface BoardingConsumptionPassengerDto {
   id: string;
@@ -45,6 +46,7 @@ export interface BoardingConsumptionFailureResponse {
   consumed: false;
   reason: BoardingConsumptionReason;
   ui: BoardingUiMessage;
+  context?: BoardingFailureContext;
 }
 
 export type BoardingConsumptionResponse =

@@ -1,4 +1,5 @@
 import type { BoardingValidationReason } from "./boarding-validation-reasons.js";
+import type { BoardingFailureContext } from "./boarding-context.types.js";
 
 export interface BoardingValidationPassengerDto {
   id: string;
@@ -34,6 +35,7 @@ export interface BoardingValidationSuccessResponse {
 export interface BoardingValidationFailureResponse {
   valid: false;
   reason: BoardingValidationReason;
+  context?: BoardingFailureContext;
 }
 
 export type BoardingValidationResponse =

@@ -1,9 +1,13 @@
 import {
+  IncidentClosedReason,
   IncidentSeverity,
+  IncidentSource,
   IncidentStatus,
   IncidentType,
 } from "@prisma/client";
 import { z } from "zod";
+import { incidentSourceRefSchema } from "../incidents/incident-source-ref.schema.js";
+import { HEURISTIC_KINDS } from "../incidents/promote-heuristic-mapping.js";
 
 const isoDateTime = z.string().datetime({ message: "Invalid ISO datetime" });
 
@@ -17,6 +21,8 @@ export const listAdminIncidentsQuerySchema = z
     status: z.nativeEnum(IncidentStatus).optional(),
     type: z.nativeEnum(IncidentType).optional(),
     severity: z.nativeEnum(IncidentSeverity).optional(),
+    source: z.nativeEnum(IncidentSource).optional(),
+    relatedTripId: z.string().trim().min(1).optional(),
     from: isoDateTime.optional(),
     to: isoDateTime.optional(),
     ...paginationSchema,
@@ -42,6 +48,10 @@ export const createAdminIncidentBodySchema = z.object({
   severity: z.nativeEnum(IncidentSeverity),
   relatedReservationId: z.string().trim().min(1).optional(),
   relatedTripId: z.string().trim().min(1).optional(),
+  source: z.nativeEnum(IncidentSource).optional(),
+  sourceRef: incidentSourceRefSchema.optional(),
+  occurredAt: isoDateTime.optional(),
+  assignedToUserId: z.string().trim().min(1).optional(),
 });
 
 export type CreateAdminIncidentBody = z.infer<typeof createAdminIncidentBodySchema>;
@@ -52,16 +62,27 @@ export const patchAdminIncidentBodySchema = z
     severity: z.nativeEnum(IncidentSeverity).optional(),
     title: z.string().trim().min(1).max(120).optional(),
     description: z.string().trim().max(500).nullable().optional(),
-    resolution: z.string().trim().max(500).nullable().optional(),
+    resolution: z.string().trim().min(10).max(500).nullable().optional(),
     type: z.nativeEnum(IncidentType).optional(),
     relatedReservationId: z.string().trim().min(1).nullable().optional(),
     relatedTripId: z.string().trim().min(1).nullable().optional(),
+    closedReason: z.nativeEnum(IncidentClosedReason).nullable().optional(),
+    assignedToUserId: z.string().trim().min(1).nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required",
   });
 
 export type PatchAdminIncidentBody = z.infer<typeof patchAdminIncidentBodySchema>;
+
+export const promoteHeuristicBodySchema = z.object({
+  relatedTripId: z.string().trim().min(1),
+  heuristicKind: z.enum(HEURISTIC_KINDS),
+  severity: z.nativeEnum(IncidentSeverity).optional(),
+  description: z.string().trim().max(500).optional(),
+});
+
+export type PromoteHeuristicBody = z.infer<typeof promoteHeuristicBodySchema>;
 
 const localSeveritySchema = z.enum(["info", "warning", "critical"]);
 const localStatusSchema = z.enum(["open", "resolved"]);
