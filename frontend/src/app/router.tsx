@@ -5,6 +5,8 @@ import { BoardingPage } from "@/pages/BoardingPage";
 import { DeparturesPage } from "@/pages/DeparturesPage";
 import { ActivityPage } from "@/pages/ActivityPage";
 import { DispatchPage } from "@/pages/DispatchPage";
+import { ExploitationHistoryDetailPage } from "@/pages/ExploitationHistoryDetailPage";
+import { ExploitationHistoryListPage } from "@/pages/ExploitationHistoryListPage";
 import { IncidentsPage } from "@/pages/IncidentsPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { LoginPage } from "@/pages/LoginPage";
@@ -32,6 +34,8 @@ export const router = createBrowserRouter([
       { path: "boarding", element: <BoardingPage /> },
       { path: "departures", element: <DeparturesPage /> },
       { path: "incidents", element: <IncidentsPage /> },
+      { path: "history", element: <ExploitationHistoryListPage /> },
+      { path: "history/:tripId", element: <ExploitationHistoryDetailPage /> },
       { path: "activity", element: <ActivityPage /> },
       { path: "dispatch", element: <DispatchPage /> },
       { path: "monitoring", element: <MonitoringPage /> },

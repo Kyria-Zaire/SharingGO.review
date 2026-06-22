@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { ADMIN_NAV_ITEMS } from "@/constants/navigation";
+import { ADMIN_NAV_SECTIONS } from "@/constants/navigation";
 import { useOpenIncidentCount } from "@/features/incidents/hooks/useOpenIncidentCount";
 import { cn } from "@/lib/cn";
 
@@ -33,30 +33,39 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           <p className="text-xs font-medium uppercase tracking-wider text-primary">SharingGO</p>
           <p className="mt-1 text-sm font-semibold text-foreground">Admin cockpit</p>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
-          {ADMIN_NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.href}
-              to={item.href}
-              end={item.end}
-              onClick={onMobileClose}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )
-              }
-            >
-              <item.icon className="h-4 w-4 shrink-0" aria-hidden />
-              <span className="min-w-0 flex-1">{item.label}</span>
-              {item.showOpenIncidentBadge && openIncidentCount > 0 ? (
-                <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
-                  {openIncidentCount}
-                </span>
+        <nav className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
+          {ADMIN_NAV_SECTIONS.map((section) => (
+            <div key={section.label ?? "main"} className="flex flex-col gap-1">
+              {section.label ? (
+                <p className="px-3 pt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {section.label}
+                </p>
               ) : null}
-            </NavLink>
+              {section.items.map((item) => (
+                <NavLink
+                  key={item.href}
+                  to={item.href}
+                  end={item.end}
+                  onClick={onMobileClose}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )
+                  }
+                >
+                  <item.icon className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="min-w-0 flex-1">{item.label}</span>
+                  {item.showOpenIncidentBadge && openIncidentCount > 0 ? (
+                    <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
+                      {openIncidentCount}
+                    </span>
+                  ) : null}
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
       </aside>

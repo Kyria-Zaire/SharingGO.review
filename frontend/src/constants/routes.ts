@@ -9,6 +9,7 @@ export const ROUTES = {
   monitoring: "/monitoring",
   departures: "/departures",
   incidents: "/incidents",
+  exploitationHistory: "/history",
   activity: "/activity",
   dispatch: "/dispatch",
   settings: "/settings",

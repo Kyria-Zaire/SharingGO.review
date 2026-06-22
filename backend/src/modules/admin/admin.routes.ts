@@ -11,6 +11,7 @@ import {
   patchAdminIncidentHandler,
   promoteHeuristicIncidentHandler,
 } from "./admin-incidents.controller.js";
+import { getExploitationHistoryHandler } from "./admin-exploitation-history.controller.js";
 import { getAdminTripOccupancyHandler } from "./admin-occupancy.controller.js";
 import { listAdminPaymentsHandler } from "./admin-payments.controller.js";
 import { listAdminPendingHandler } from "./admin-pending.controller.js";
@@ -62,6 +63,12 @@ adminOperationsRouter.get(
   "/trips/:id/occupancy",
   ...adminMiddleware,
   asyncHandler(getAdminTripOccupancyHandler)
+);
+
+adminOperationsRouter.get(
+  "/trips/:id/exploitation-history",
+  ...adminMiddleware,
+  asyncHandler(getExploitationHistoryHandler)
 );
 
 adminOperationsRouter.get(

@@ -46,6 +46,12 @@ export const queryKeys = {
   dispatch: {
     feed: (filters: Record<string, unknown>) => ["dispatch", "feed", filters] as const,
   },
+  exploitationHistory: {
+    all: ["exploitation-history"] as const,
+    list: (filters: Record<string, unknown>) =>
+      ["exploitation-history", "list", filters] as const,
+    detail: (tripId: string) => ["exploitation-history", "detail", tripId] as const,
+  },
   settings: {
     teamAll: ["settings", "team"] as const,
     team: (filters: Record<string, unknown>) => ["settings", "team", filters] as const,
