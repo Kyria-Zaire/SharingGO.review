@@ -13,6 +13,13 @@ import {
 } from "./admin-incidents.controller.js";
 import { getExploitationHistoryHandler } from "./admin-exploitation-history.controller.js";
 import { getAdminTripOccupancyHandler } from "./admin-occupancy.controller.js";
+import {
+  exportReportCsvHandler,
+  getOperationsIncidentsReportHandler,
+  getOperationsOverviewHandler,
+  getOperationsRevenueReportHandler,
+  getOperationsTripsReportHandler,
+} from "./admin-reports.controller.js";
 import { listAdminPaymentsHandler } from "./admin-payments.controller.js";
 import { listAdminPendingHandler } from "./admin-pending.controller.js";
 import {
@@ -69,6 +76,36 @@ adminOperationsRouter.get(
   "/trips/:id/exploitation-history",
   ...adminMiddleware,
   asyncHandler(getExploitationHistoryHandler)
+);
+
+adminOperationsRouter.get(
+  "/reports/operations/overview",
+  ...adminMiddleware,
+  asyncHandler(getOperationsOverviewHandler)
+);
+
+adminOperationsRouter.get(
+  "/reports/operations/trips",
+  ...adminMiddleware,
+  asyncHandler(getOperationsTripsReportHandler)
+);
+
+adminOperationsRouter.get(
+  "/reports/operations/incidents",
+  ...adminMiddleware,
+  asyncHandler(getOperationsIncidentsReportHandler)
+);
+
+adminOperationsRouter.get(
+  "/reports/operations/revenue",
+  ...adminMiddleware,
+  asyncHandler(getOperationsRevenueReportHandler)
+);
+
+adminOperationsRouter.get(
+  "/reports/export/:reportKey",
+  ...adminMiddleware,
+  asyncHandler(exportReportCsvHandler)
 );
 
 adminOperationsRouter.get(

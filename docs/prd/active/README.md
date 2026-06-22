@@ -12,6 +12,7 @@ Aucun code feature significatif sans PRD ici (sauf hotfix incident documenté).
 
 | PRD | Fichier | Status |
 |-----|---------|--------|
+| OPS-05 Reporting & Exports | [OPS-05-reporting-exports.md](./OPS-05-reporting-exports.md) | DESIGN |
 | OPS-02 Incident Management | [OPS-02-incident-management.md](./OPS-02-incident-management.md) | BUILD (OPS-02B backend — VERIFY CTO) |
 | FEATURE-QA-02 Passenger Edge Cases | [PRD-FEATURE-QA-02-passenger-edge-cases-hardening.md](./PRD-FEATURE-QA-02-passenger-edge-cases-hardening.md) | DISCOVER |
 | S0-T1 Infrastructure | [PRD-S0-T1-infrastructure.md](./PRD-S0-T1-infrastructure.md) | VERIFY |
