@@ -5,6 +5,7 @@ import type {
   AdminTripListResponse,
   AdminTripsListFilters,
   TripOccupancy,
+  TripLifecycleStatus,
 } from "@/types/trips.types";
 import { http } from "./http";
 
@@ -32,4 +33,34 @@ export async function disableAdminTrip(tripId: string): Promise<{ trip: AdminTri
 
 export async function enableAdminTrip(tripId: string): Promise<{ trip: AdminTrip }> {
   return http<{ trip: AdminTrip }>(`/api/admin/trips/${tripId}/enable`, { method: "POST" });
+}
+
+export interface CancelTripPayload {
+  reason: string;
+}
+
+export async function startBoardingAdminTrip(tripId: string): Promise<{ trip: AdminTrip }> {
+  return http<{ trip: AdminTrip }>(`/api/admin/trips/${tripId}/start-boarding`, { method: "POST" });
+}
+
+export async function departAdminTrip(tripId: string): Promise<{ trip: AdminTrip }> {
+  return http<{ trip: AdminTrip }>(`/api/admin/trips/${tripId}/depart`, { method: "POST" });
+}
+
+export async function completeAdminTrip(tripId: string): Promise<{ trip: AdminTrip }> {
+  return http<{ trip: AdminTrip }>(`/api/admin/trips/${tripId}/complete`, { method: "POST" });
+}
+
+export async function cancelAdminTrip(
+  tripId: string,
+  payload: CancelTripPayload
+): Promise<{ trip: AdminTrip }> {
+  return http<{ trip: AdminTrip }>(`/api/admin/trips/${tripId}/cancel`, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function isTerminalLifecycle(status: TripLifecycleStatus): boolean {
+  return status === "COMPLETED" || status === "CANCELLED";
 }

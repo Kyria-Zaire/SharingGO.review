@@ -22,10 +22,23 @@ export interface AdminTrip {
   departureTime: string;
   arrivalTime: string | null;
   totalSeats: number;
+  lifecycleStatus: TripLifecycleStatus;
+  boardingStartedAt: string | null;
+  departedAt: string | null;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  cancellationReason: string | null;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
+export type TripLifecycleStatus =
+  | "WAITING"
+  | "BOARDING"
+  | "DEPARTED"
+  | "COMPLETED"
+  | "CANCELLED";
 
 export interface AdminTripListResponse {
   trips: AdminTrip[];

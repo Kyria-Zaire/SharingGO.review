@@ -108,6 +108,7 @@ export function buildDepartureTripView(
     isDisabled: Boolean(trip.deletedAt),
     incidents: computeDepartureIncidents(trip, occupancy, guardedReadiness, now),
     occupancyLoaded,
+    lifecycleStatus: trip.lifecycleStatus,
   };
 }
 

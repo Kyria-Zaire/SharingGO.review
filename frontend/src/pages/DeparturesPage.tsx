@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { listAdminLines } from "@/api/admin-trips.api";
 import { ApiError } from "@/api/http";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -14,6 +14,7 @@ import { useDeparturePromotedIncidents } from "@/features/departures/hooks/useDe
 import { usePromoteHeuristic } from "@/features/departures/hooks/usePromoteHeuristic";
 import { fetchDepartureBoard } from "@/features/departures/services/fetch-departure-board";
 import { promotedIncidentKey } from "@/features/departures/utils/promoted-incident-utils";
+import { useTripLifecycleActions } from "@/features/departures/hooks/useTripLifecycleActions";
 import { IncidentToast } from "@/features/incidents/components/IncidentToast";
 import { MonitoringLastUpdated } from "@/features/monitoring/components/MonitoringLastUpdated";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -49,6 +50,18 @@ export function DeparturesPage() {
     queryFn: () => fetchDepartureBoard(filters),
     staleTime: DEPARTURES_STALE_TIME_MS,
   });
+
+  const refreshDeparturesBoard = useCallback(async () => {
+    await boardQuery.refetch();
+    setLastUpdated(new Date());
+  }, [boardQuery]);
+
+  const {
+    runLifecycleAction,
+    isLifecyclePending,
+    toastMessage: lifecycleToastMessage,
+    dismissToast: dismissLifecycleToast,
+  } = useTripLifecycleActions(refreshDeparturesBoard);
 
   const linesQuery = useQuery({
     queryKey: queryKeys.admin.lines,
@@ -152,6 +165,10 @@ export function DeparturesPage() {
               userType={userQuery.data?.userType}
               promotedMap={promotedMap}
               onPromote={setPromoteTarget}
+              isLifecyclePending={isLifecyclePending}
+              onLifecycleAction={async (tripId, action, reason) => {
+                await runLifecycleAction({ tripId, action, reason });
+              }}
             />
           ))}
         </div>
@@ -171,6 +188,7 @@ export function DeparturesPage() {
       />
 
       <IncidentToast message={toastMessage} onDismiss={dismissToast} />
+      <IncidentToast message={lifecycleToastMessage} onDismiss={dismissLifecycleToast} />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import type { HeuristicKind } from "@/types/incidents.types";
+import type { TripLifecycleStatus } from "@/types/trips.types";
 
 /** UX-only departure readiness — not persisted, not backend truth. */
 export type DepartureReadinessStatus =
@@ -51,6 +52,7 @@ export interface DepartureTripView {
   isDisabled: boolean;
   incidents: DepartureIncident[];
   occupancyLoaded: boolean;
+  lifecycleStatus: TripLifecycleStatus;
 }
 
 export interface DepartureBoardData {
