@@ -13,6 +13,7 @@ import { LoginPage } from "@/pages/LoginPage";
 import { MonitoringPage } from "@/pages/MonitoringPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { PaymentsPage } from "@/pages/PaymentsPage";
+import { ReportsPage } from "@/pages/ReportsPage";
 import { ReservationsPage } from "@/pages/ReservationsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { SubscriptionsPage } from "@/pages/SubscriptionsPage";
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
       { path: "incidents", element: <IncidentsPage /> },
       { path: "history", element: <ExploitationHistoryListPage /> },
       { path: "history/:tripId", element: <ExploitationHistoryDetailPage /> },
+      { path: "reports", element: <ReportsPage /> },
       { path: "activity", element: <ActivityPage /> },
       { path: "dispatch", element: <DispatchPage /> },
       { path: "monitoring", element: <MonitoringPage /> },

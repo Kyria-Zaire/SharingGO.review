@@ -10,6 +10,7 @@ export const ROUTES = {
   departures: "/departures",
   incidents: "/incidents",
   exploitationHistory: "/history",
+  reports: "/reports",
   activity: "/activity",
   dispatch: "/dispatch",
   settings: "/settings",

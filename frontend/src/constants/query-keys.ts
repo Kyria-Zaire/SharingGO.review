@@ -52,6 +52,13 @@ export const queryKeys = {
       ["exploitation-history", "list", filters] as const,
     detail: (tripId: string) => ["exploitation-history", "detail", tripId] as const,
   },
+  reports: {
+    all: ["reports"] as const,
+    overview: (period: Record<string, unknown>) => ["reports", "overview", period] as const,
+    trips: (filters: Record<string, unknown>) => ["reports", "trips", filters] as const,
+    incidents: (filters: Record<string, unknown>) => ["reports", "incidents", filters] as const,
+    revenue: (period: Record<string, unknown>) => ["reports", "revenue", period] as const,
+  },
   settings: {
     teamAll: ["settings", "team"] as const,
     team: (filters: Record<string, unknown>) => ["settings", "team", filters] as const,
