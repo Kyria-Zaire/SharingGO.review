@@ -1,10 +1,12 @@
 /**
- * Shared responsive width for passenger shell (header, main, bottom nav).
- * Mobile: max-w-lg (512px) — unchanged from MVP.
- * Tablet/desktop: progressive widening.
+ * Conteneur shell — aligné maquette PO (1280 / 1440 / 1920).
  */
+export const passengerHeaderContainerClass =
+  "mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px]";
+
+/** Largeur contenu applicatif (hors landing pleine largeur). */
 export const passengerShellWidthClass =
-  "mx-auto w-full max-w-lg md:max-w-3xl lg:max-w-5xl xl:max-w-6xl";
+  "mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8 xl:max-w-[1440px] 2xl:max-w-[1536px]";
 
 /** Narrow content blocks (profile, login form) within the wider shell. */
 export const passengerContentNarrowClass = "mx-auto w-full max-w-md lg:max-w-xl";
