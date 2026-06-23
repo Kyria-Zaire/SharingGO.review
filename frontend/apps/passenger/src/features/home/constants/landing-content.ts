@@ -15,7 +15,7 @@ export const HERO_CONTENT = {
     "Réservez votre place à bord de nos navettes Châlons-en-Champagne ↔ Vatry en quelques clics.",
   subtitleBold: "à bord",
   ctaPrimary: "Voir les trajets disponibles",
-  ctaSecondary: "Comment ça fonctionne ?",
+  ctaSecondary: "Découvrir nos abonnements",
 } as const;
 
 export const HERO_TRUST_ITEMS = [

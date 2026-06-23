@@ -7,6 +7,8 @@ export async function fetchPublicTrips(
 ): Promise<PublicTripsListResponse> {
   const qs = buildQuery({
     date: query.date,
+    from: query.from,
+    to: query.to,
     lineId: query.lineId,
     limit: query.limit ?? 50,
     offset: query.offset ?? 0,

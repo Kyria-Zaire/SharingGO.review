@@ -68,7 +68,7 @@ function MobileNavDrawer({
         onClick={onClose}
       />
       <nav
-        className="fixed inset-y-0 left-0 z-50 w-[min(100%,18rem)] border-r border-border bg-background p-5 md:hidden"
+        className="fixed inset-y-0 left-0 z-50 w-[min(100%,18rem)] border-r border-white/10 bg-black p-5 md:hidden"
         style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}
         aria-label="Menu principal"
       >
@@ -114,7 +114,7 @@ export function PassengerHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur-md">
+    <header className="sticky top-0 z-50 isolate border-b border-white/10 bg-black">
       <div
         className={passengerHeaderContainerClass}
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}

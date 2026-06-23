@@ -27,6 +27,8 @@ export interface PublicTripsListResponse {
 export interface PublicTripsQuery {
   date?: string;
   lineId?: string;
+  from?: string;
+  to?: string;
   limit?: number;
   offset?: number;
 }

@@ -15,6 +15,7 @@ export interface LandingInfoGridSectionProps {
   items: readonly LandingInfoItem[];
   icons: Record<string, LucideIcon>;
   iconVariant?: "primary" | "muted";
+  titleCentered?: boolean;
 }
 
 export function LandingInfoGridSection({
@@ -24,12 +25,13 @@ export function LandingInfoGridSection({
   items,
   icons,
   iconVariant = "primary",
+  titleCentered = true,
 }: LandingInfoGridSectionProps) {
   const titleId = `${id ?? title.replace(/\s+/g, "-").toLowerCase()}-title`;
 
   return (
     <section
-      className={cn(landingSectionClass, "border-t border-border/40")}
+      className={cn(landingSectionClass, "border-t border-white/[0.06]")}
       aria-labelledby={titleId}
     >
       {anchorIds?.map((anchorId) => (
@@ -38,7 +40,13 @@ export function LandingInfoGridSection({
       {id ? <div id={id} className="scroll-mt-24" /> : null}
 
       <div className={landingContainerClass}>
-        <h2 id={titleId} className="mb-8 text-xl font-bold text-foreground sm:text-2xl">
+        <h2
+          id={titleId}
+          className={cn(
+            "mb-8 text-xl font-bold text-foreground sm:text-2xl",
+            titleCentered && "text-center"
+          )}
+        >
           {title}
         </h2>
 
@@ -48,14 +56,18 @@ export function LandingInfoGridSection({
             return (
               <article
                 key={item.id}
-                className={cn(landingCardClass, "flex gap-4 p-5")}
+                className={cn(
+                  landingCardClass,
+                  "flex gap-4 p-5 transition-colors hover:border-white/10",
+                  "bg-[#161616]"
+                )}
               >
                 <span
                   className={cn(
                     "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
                     iconVariant === "primary"
-                      ? "bg-primary/15 text-primary"
-                      : "border border-border bg-muted/40 text-foreground"
+                      ? "border border-primary/30 bg-primary/10 text-primary"
+                      : "border border-white/10 bg-[#141414] text-foreground"
                   )}
                 >
                   {Icon ? <Icon className="h-5 w-5" aria-hidden /> : null}

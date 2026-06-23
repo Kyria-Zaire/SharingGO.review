@@ -5,6 +5,7 @@ import { z } from "zod";
 import { login } from "@/api/auth.api";
 import { ApiError } from "@/api/http";
 import { Button } from "@/components/ui/Button";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
@@ -73,8 +74,10 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <div className="mb-6 space-y-1 text-center">
-          <p className="text-xs font-medium uppercase tracking-wider text-primary">SharingGO</p>
-          <h1 className="text-xl font-semibold text-foreground">Connexion admin</h1>
+          <div className="flex justify-center">
+            <BrandLogo size="md" />
+          </div>
+          <h1 className="mt-3 text-xl font-semibold text-foreground">Connexion admin</h1>
           <p className="text-sm text-muted-foreground">
             Session par cookie HttpOnly — aucun token stocké côté navigateur.
           </p>

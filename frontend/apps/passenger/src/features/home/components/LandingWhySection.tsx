@@ -1,4 +1,4 @@
-import { Armchair, BadgePercent, MessagesSquare, Route } from "lucide-react";
+import { BadgePercent, Bus, MessagesSquare, Route } from "lucide-react";
 import {
   LANDING_SECTION_IDS,
   WHY_CHOOSE_ITEMS,
@@ -7,7 +7,7 @@ import { LandingInfoGridSection } from "./LandingInfoGridSection";
 
 const WHY_ICONS = {
   reliable: Route,
-  comfort: Armchair,
+  comfort: Bus,
   pricing: BadgePercent,
   support: MessagesSquare,
 } as const;

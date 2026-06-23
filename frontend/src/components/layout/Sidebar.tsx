@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { ADMIN_NAV_SECTIONS } from "@/constants/navigation";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useOpenIncidentCount } from "@/features/incidents/hooks/useOpenIncidentCount";
 import { cn } from "@/lib/cn";
 
@@ -30,8 +31,8 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         )}
       >
         <div className="border-b border-border px-4 py-5">
-          <p className="text-xs font-medium uppercase tracking-wider text-primary">SharingGO</p>
-          <p className="mt-1 text-sm font-semibold text-foreground">Admin cockpit</p>
+          <BrandLogo size="sm" />
+          <p className="mt-2 text-sm font-semibold text-foreground">Admin cockpit</p>
         </div>
         <nav className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
           {ADMIN_NAV_SECTIONS.map((section) => (

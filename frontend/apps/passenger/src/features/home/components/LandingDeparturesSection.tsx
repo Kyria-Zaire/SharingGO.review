@@ -3,32 +3,63 @@ import { ArrowRight } from "lucide-react";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { cn } from "@/lib/cn";
 import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
-import { deriveTripAvailability } from "@/lib/trip-availability";
-import { todayParisDateKey } from "@/lib/format-date";
-import { usePublicTrips } from "@/hooks/usePublicTrips";
 import { ROUTES } from "@/types/routes";
 import { LANDING_SECTION_IDS } from "@/features/home/constants/landing-content";
 import {
+  landingCardClass,
   landingContainerClass,
+  landingDepartureCardClass,
+  landingDeparturesGridClass,
   landingOutlineButtonClass,
   landingPrimaryButtonClass,
   landingSectionClass,
 } from "@/features/home/lib/landing-layout";
+import {
+  LANDING_DEPARTURES_LIMIT,
+  useLandingUpcomingTrips,
+} from "@/hooks/useLandingUpcomingTrips";
 import { LandingDepartureCard } from "./LandingDepartureCard";
+import type { PublicTrip } from "@/types/trips.types";
 
-function DeparturesSkeleton({ count }: { count: number }) {
+function DeparturesSingleTripDesktopLayout({ trip }: { trip: PublicTrip }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,21.5rem)_minmax(0,1fr)] lg:items-stretch lg:gap-5">
+      <LandingDepartureCard trip={trip} />
+
+      <aside
+        className={cn(
+          landingCardClass,
+          "hidden flex-col justify-center border-white/[0.08] bg-[#1a1d23] p-8 lg:flex"
+        )}
+        aria-label="Accès au planning complet"
+      >
+        <h3 className="text-lg font-semibold text-foreground">Planning complet</h3>
+        <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+          D&apos;autres horaires sont disponibles sur la ligne Châlons-en-Champagne ↔ Vatry.
+          Consultez le planning pour choisir votre créneau.
+        </p>
+        <Link
+          to={ROUTES.trips}
+          className={cn(landingOutlineButtonClass, "mt-6 inline-flex w-fit gap-2")}
+        >
+          Voir tous les trajets
+          <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+      </aside>
+    </div>
+  );
+}
+
+function DeparturesSkeleton() {
   return (
     <div
-      className={cn(
-        "grid gap-4",
-        count === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1"
-      )}
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
       aria-hidden
     >
-      {Array.from({ length: count }).map((_, index) => (
+      {Array.from({ length: LANDING_DEPARTURES_LIMIT }).map((_, index) => (
         <div
           key={index}
-          className="h-52 animate-pulse rounded-2xl border border-border/60 bg-muted/20"
+          className={cn(landingDepartureCardClass, "min-h-[11.5rem] animate-pulse")}
         />
       ))}
     </div>
@@ -36,59 +67,43 @@ function DeparturesSkeleton({ count }: { count: number }) {
 }
 
 export function LandingDeparturesSection() {
-  const dateFilter = { preset: "today" as const, dateKey: todayParisDateKey() };
-  const tripsQuery = usePublicTrips(dateFilter);
-  const trips = (tripsQuery.data?.trips ?? [])
-    .filter((trip) => deriveTripAvailability(trip).status !== "past")
-    .slice(0, 4);
-  const mobileTrips = trips.slice(0, 2);
-  const errorMessage = formatUserFacingError(tripsQuery.error, USER_MESSAGES.tripsLoad);
+  const departuresQuery = useLandingUpcomingTrips(LANDING_DEPARTURES_LIMIT);
+  const { trips } = departuresQuery;
+  const errorMessage = formatUserFacingError(departuresQuery.error, USER_MESSAGES.tripsLoad);
 
   return (
     <section
       id={LANDING_SECTION_IDS.departures}
-      className={cn(landingSectionClass, "border-t border-border/40")}
+      className={cn(landingSectionClass, "border-t border-white/[0.06]")}
       aria-labelledby="landing-departures-title"
     >
       <div className={landingContainerClass}>
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <h2 id="landing-departures-title" className="text-xl font-bold text-foreground sm:text-2xl">
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <h2 id="landing-departures-title" className="text-xl font-bold text-foreground lg:text-2xl">
             Prochains départs
           </h2>
           <Link
             to={ROUTES.trips}
-            className="hidden items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/90 sm:inline-flex"
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/90"
           >
             Voir tous les trajets
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
-          <Link
-            to={ROUTES.trips}
-            className="text-sm font-medium text-primary sm:hidden"
-          >
-            Voir tout
-          </Link>
         </div>
 
-        {tripsQuery.isLoading ? (
-          <>
-            <div className="hidden lg:block">
-              <DeparturesSkeleton count={4} />
-            </div>
-            <div className="lg:hidden">
-              <DeparturesSkeleton count={2} />
-            </div>
-          </>
+        {departuresQuery.isLoading ? <DeparturesSkeleton /> : null}
+
+        {departuresQuery.isError ? (
+          <ErrorState
+            message={errorMessage}
+            onRetry={() => void departuresQuery.refetch()}
+          />
         ) : null}
 
-        {tripsQuery.isError ? (
-          <ErrorState message={errorMessage} onRetry={() => void tripsQuery.refetch()} />
-        ) : null}
-
-        {!tripsQuery.isLoading && !tripsQuery.isError && trips.length === 0 ? (
-          <div className="rounded-2xl border border-border/80 bg-muted/20 px-6 py-10 text-center">
+        {!departuresQuery.isLoading && !departuresQuery.isError && trips.length === 0 ? (
+          <div className="rounded-2xl border border-white/[0.06] bg-[#1a1d23] px-6 py-10 text-center">
             <p className="text-sm text-muted-foreground">
-              Aucun départ prévu aujourd&apos;hui. Consultez le planning complet.
+              Aucun départ à venir. Consultez le planning complet.
             </p>
             <Link to={ROUTES.trips} className={cn(landingPrimaryButtonClass, "mt-5 inline-flex")}>
               Voir tous les trajets
@@ -96,26 +111,16 @@ export function LandingDeparturesSection() {
           </div>
         ) : null}
 
-        {!tripsQuery.isLoading && !tripsQuery.isError && trips.length > 0 ? (
-          <>
-            <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+        {!departuresQuery.isLoading && !departuresQuery.isError && trips.length > 0 ? (
+          trips.length === 1 ? (
+            <DeparturesSingleTripDesktopLayout trip={trips[0]!} />
+          ) : (
+            <div className={landingDeparturesGridClass(trips.length)}>
               {trips.map((trip) => (
-                <LandingDepartureCard key={trip.id} trip={trip} variant="desktop" />
+                <LandingDepartureCard key={trip.id} trip={trip} />
               ))}
             </div>
-
-            <div className="space-y-3 lg:hidden">
-              {mobileTrips.map((trip) => (
-                <LandingDepartureCard key={trip.id} trip={trip} variant="mobile" />
-              ))}
-              <Link
-                to={ROUTES.trips}
-                className={cn(landingOutlineButtonClass, "mt-2 w-full")}
-              >
-                Voir tous les trajets
-              </Link>
-            </div>
-          </>
+          )
         ) : null}
       </div>
     </section>

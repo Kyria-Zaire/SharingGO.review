@@ -1,4 +1,4 @@
-import { toParisDateKey, todayParisDateKey } from "@/lib/format-date";
+import { toParisDateKey, todayParisDateKey, tomorrowParisDateKey, formatDate } from "@/lib/format-date";
 import { normalizeTripSeats } from "@/lib/trip-availability";
 import type { PublicTrip } from "@/types/trips.types";
 
@@ -24,6 +24,20 @@ export function formatRemainingSeatsLabel(trip: PublicTrip): string {
 export function isTripToday(trip: PublicTrip): boolean {
   const departureKey = toParisDateKey(new Date(trip.departureTime));
   return departureKey === todayParisDateKey();
+}
+
+export function isTripTomorrow(trip: PublicTrip): boolean {
+  const departureKey = toParisDateKey(new Date(trip.departureTime));
+  return departureKey === tomorrowParisDateKey();
+}
+
+/** Badge court pour les départs au-delà de demain. */
+export function formatTripDayBadgeLabel(trip: PublicTrip): string {
+  return formatDate(trip.departureTime, "fr-FR", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
 }
 
 export const LANDING_TICKET_PRICE_LABEL = "8,00 €";

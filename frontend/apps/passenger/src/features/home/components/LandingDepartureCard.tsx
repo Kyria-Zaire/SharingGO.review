@@ -1,6 +1,5 @@
 import { Armchair } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/cn";
 import { formatTime } from "@/lib/format-date";
 import { isTripBookable, deriveTripAvailability } from "@/lib/trip-availability";
@@ -9,85 +8,91 @@ import type { PublicTrip } from "@/types/trips.types";
 import {
   LANDING_TICKET_PRICE_LABEL,
   formatRemainingSeatsLabel,
-  formatTripRouteShort,
+  formatTripDayBadgeLabel,
   isTripToday,
+  isTripTomorrow,
+  shortCityLabel,
 } from "@/features/home/lib/landing-trip-utils";
-import { landingCardClass, landingOutlineButtonClass } from "@/features/home/lib/landing-layout";
+import {
+  landingDepartureCardClass,
+  landingReserveButtonClass,
+} from "@/features/home/lib/landing-layout";
+
+function RouteLabel({ from, to }: { from: string; to: string }) {
+  return (
+    <div className="space-y-0.5 text-sm font-semibold leading-snug text-foreground">
+      <p>{from}</p>
+      <p>
+        <span className="text-primary">→</span> {to}
+      </p>
+    </div>
+  );
+}
+
+function TodayBadge() {
+  return (
+    <span className="inline-flex rounded-md bg-primary px-2 py-0.5 text-[0.65rem] font-semibold leading-none text-primary-foreground">
+      Aujourd&apos;hui
+    </span>
+  );
+}
+
+function TomorrowBadge() {
+  return (
+    <span className="inline-flex rounded-md border border-primary/40 bg-primary/10 px-2 py-0.5 text-[0.65rem] font-semibold leading-none text-primary">
+      Demain
+    </span>
+  );
+}
+
+function DateBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex rounded-md border border-white/15 bg-white/5 px-2 py-0.5 text-[0.65rem] font-semibold leading-none text-foreground/85">
+      {label}
+    </span>
+  );
+}
+
+function TripDayBadge({ trip }: { trip: PublicTrip }) {
+  if (isTripToday(trip)) return <TodayBadge />;
+  if (isTripTomorrow(trip)) return <TomorrowBadge />;
+  return <DateBadge label={formatTripDayBadgeLabel(trip)} />;
+}
 
 export interface LandingDepartureCardProps {
   trip: PublicTrip;
-  variant?: "desktop" | "mobile";
 }
 
-export function LandingDepartureCard({ trip, variant = "desktop" }: LandingDepartureCardProps) {
+export function LandingDepartureCard({ trip }: LandingDepartureCardProps) {
   const availability = deriveTripAvailability(trip);
   const canBook = isTripBookable(availability);
-  const route = formatTripRouteShort(trip);
   const seatsLabel = formatRemainingSeatsLabel(trip);
-  const showTodayBadge = isTripToday(trip);
-
-  if (variant === "mobile") {
-    return (
-      <article className={cn(landingCardClass, "flex items-stretch gap-4 p-4")}>
-        <div className="min-w-0 flex-1">
-          {showTodayBadge ? (
-            <Badge variant="success" className="mb-2 text-[0.65rem]">
-              Aujourd&apos;hui
-            </Badge>
-          ) : null}
-          <p className="text-xl font-bold text-foreground">{formatTime(trip.departureTime)}</p>
-          <p className="mt-1 text-sm text-foreground">
-            <span className="text-primary">{route.split(" → ")[0]}</span>
-            <span className="text-muted-foreground"> → </span>
-            <span className="text-primary">{route.split(" → ")[1]}</span>
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">{seatsLabel}</p>
-        </div>
-        <div className="flex shrink-0 flex-col items-end justify-between">
-          <Armchair className="h-5 w-5 text-muted-foreground/70" aria-hidden />
-          <p className="text-base font-bold text-foreground">{LANDING_TICKET_PRICE_LABEL}</p>
-        </div>
-      </article>
-    );
-  }
 
   return (
-    <article className={cn(landingCardClass, "flex h-full flex-col p-5")}>
+    <article className={cn(landingDepartureCardClass, "flex min-h-[11.5rem] flex-col p-6")}>
       <div className="mb-4 flex items-start justify-between gap-2">
-        {showTodayBadge ? (
-          <Badge variant="success" className="text-[0.65rem]">
-            Aujourd&apos;hui
-          </Badge>
-        ) : (
-          <span />
-        )}
-        <Armchair className="h-5 w-5 text-muted-foreground/70" aria-hidden />
+        <TripDayBadge trip={trip} />
+        <Armchair className="h-[1.125rem] w-[1.125rem] stroke-[1.5] text-foreground/45" aria-hidden />
       </div>
 
-      <p className="text-3xl font-bold tracking-tight text-foreground">
+      <p className="text-[1.75rem] font-bold leading-none tracking-tight text-foreground">
         {formatTime(trip.departureTime)}
       </p>
-      <p className="mt-2 text-sm font-medium text-foreground">
-        <span className="text-primary">{route.split(" → ")[0]}</span>
-        <span className="text-muted-foreground"> → </span>
-        <span className="text-primary">{route.split(" → ")[1]}</span>
-      </p>
-      <p className="mt-1 text-sm text-muted-foreground">{seatsLabel}</p>
 
-      <div className="mt-auto flex items-center justify-between gap-3 pt-6">
-        <p className="text-lg font-bold text-foreground">{LANDING_TICKET_PRICE_LABEL}</p>
+      <div className="mt-2.5">
+        <RouteLabel from={trip.line.startCity} to={shortCityLabel(trip.line.endCity)} />
+      </div>
+
+      <p className="mt-1.5 text-xs text-muted-foreground">{seatsLabel}</p>
+
+      <div className="mt-auto flex items-center justify-between gap-3 pt-5">
+        <p className="text-base font-bold text-foreground">{LANDING_TICKET_PRICE_LABEL}</p>
         {canBook ? (
-          <Link
-            to={ROUTES.tripDetail(trip.id)}
-            className={cn(landingOutlineButtonClass, "shrink-0 px-5")}
-          >
+          <Link to={ROUTES.tripDetail(trip.id)} className={cn(landingReserveButtonClass, "shrink-0")}>
             Réserver
           </Link>
         ) : (
-          <span
-            className={cn(landingOutlineButtonClass, "cursor-not-allowed opacity-50")}
-            aria-disabled
-          >
+          <span className={cn(landingReserveButtonClass, "cursor-not-allowed opacity-50")} aria-disabled>
             {availability.ctaLabel}
           </span>
         )}

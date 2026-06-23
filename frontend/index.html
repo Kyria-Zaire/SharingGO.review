@@ -33,12 +33,9 @@
         text-align: center;
       }
 
-      #app-splash .brand {
-        color: #22c55e;
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
+      #app-splash .splash-logo {
+        height: 4.5rem;
+        width: auto;
       }
 
       #app-splash .subtitle {
@@ -72,7 +69,13 @@
   <body>
     <div id="root">
       <div id="app-splash" aria-live="polite" aria-busy="true">
-        <p class="brand">SharingGO</p>
+        <img
+          class="splash-logo"
+          src="/images/SharingGO.png"
+          alt="SharingGO"
+          width="320"
+          height="72"
+        />
         <p class="subtitle">Admin cockpit</p>
         <div class="spinner" aria-hidden="true"></div>
         <p class="message">Chargement de la session…</p>

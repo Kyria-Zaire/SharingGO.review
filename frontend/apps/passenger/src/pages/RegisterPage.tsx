@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { AuthFormAlert } from "@/components/auth/AuthFormAlert";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -83,10 +84,10 @@ export function RegisterPage() {
   return (
     <div className={passengerContentNarrowClass}>
       <div className="mb-8 text-center">
-        <p className="text-[0.65rem] font-medium uppercase tracking-widest text-primary">
-          SharingGO
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+        <div className="flex justify-center">
+          <BrandLogo size="md" />
+        </div>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
           Créer un compte
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">

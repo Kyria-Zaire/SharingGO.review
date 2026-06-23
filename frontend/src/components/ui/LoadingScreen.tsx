@@ -1,3 +1,5 @@
+import { BrandLogo } from "@/components/brand/BrandLogo";
+
 export function LoadingScreen({
   message = "Chargement de la session…",
 }: {
@@ -11,7 +13,9 @@ export function LoadingScreen({
       aria-busy="true"
     >
       <div className="text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">SharingGO</p>
+        <div className="flex justify-center">
+          <BrandLogo size="md" />
+        </div>
         <p className="mt-2 text-sm font-medium text-foreground">Admin cockpit</p>
       </div>
 
