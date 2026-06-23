@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "@/api/http";
+import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreatePendingReservation } from "@/hooks/useCreatePendingReservation";
@@ -28,12 +29,8 @@ export function TripDetailPage() {
     tripQuery.error instanceof ApiError && tripQuery.error.code === "TRIP_NOT_FOUND";
 
   const errorMessageTrip = isNotFound
-    ? "Trajet introuvable"
-    : tripQuery.error instanceof ApiError
-      ? tripQuery.error.message
-      : tripQuery.error instanceof Error
-        ? tripQuery.error.message
-        : "Impossible de charger ce trajet";
+    ? USER_MESSAGES.tripNotFound
+    : formatUserFacingError(tripQuery.error, USER_MESSAGES.tripLoad);
 
   const showSkeleton = tripQuery.isPending && !tripQuery.data;
 
@@ -66,12 +63,12 @@ export function TripDetailPage() {
         >
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </Link>
-        <h1 className="text-lg font-semibold text-foreground">Détails du trajet</h1>
+        <h1 className="text-lg font-semibold text-foreground">Détail du trajet</h1>
       </header>
 
       {showSkeleton ? <TripDetailSkeleton /> : null}
 
-      {!tripId ? <ErrorState message="Identifiant de trajet manquant" /> : null}
+      {!tripId ? <ErrorState message={USER_MESSAGES.tripIdMissing} /> : null}
 
       {tripId && tripQuery.isError ? (
         <div className="space-y-4">

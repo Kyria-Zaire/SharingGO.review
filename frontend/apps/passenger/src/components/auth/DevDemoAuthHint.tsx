@@ -11,7 +11,7 @@ export function DevDemoAuthHint({ onUseDemo }: DevDemoAuthHintProps) {
 
   return (
     <div className="mt-4 rounded-md border border-dashed border-border bg-muted/40 px-3 py-2.5 text-xs text-muted-foreground">
-      <p className="font-medium text-foreground">Compte demo (dev)</p>
+      <p className="font-medium text-foreground">Compte démo (développement)</p>
       <p className="mt-1 font-mono">{DEMO_EMAIL}</p>
       <p className="font-mono">{DEMO_PASSWORD}</p>
       <button

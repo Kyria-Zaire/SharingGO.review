@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarDays } from "lucide-react";
-import { ApiError } from "@/api/http";
+import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -21,7 +21,7 @@ function BookingsListSkeleton() {
 
 const EMPTY_MESSAGES: Record<BookingsFilter, { title: string; description: string }> = {
   upcoming: {
-    title: "Aucune réservation à venir",
+    title: "Vous n'avez aucune réservation à venir",
     description: "Réservez un trajet pour le retrouver ici avant le départ.",
   },
   past: {
@@ -29,7 +29,7 @@ const EMPTY_MESSAGES: Record<BookingsFilter, { title: string; description: strin
     description: "Vos trajets terminés apparaîtront dans cet onglet.",
   },
   all: {
-    title: "Aucune réservation",
+    title: "Vous n'avez aucune réservation",
     description: "Vos billets confirmés apparaîtront ici après paiement.",
   },
 };
@@ -38,12 +38,10 @@ export function BookingsPage() {
   const [filter, setFilter] = useState<BookingsFilter>("upcoming");
   const reservationsQuery = useUserReservations(filter);
 
-  const errorMessage =
-    reservationsQuery.error instanceof ApiError
-      ? reservationsQuery.error.message
-      : reservationsQuery.error instanceof Error
-        ? reservationsQuery.error.message
-        : "Impossible de charger vos réservations.";
+  const errorMessage = formatUserFacingError(
+    reservationsQuery.error,
+    USER_MESSAGES.reservationsLoad
+  );
 
   const reservations = reservationsQuery.data?.reservations ?? [];
   const isEmpty = !reservationsQuery.isPending && reservations.length === 0;
@@ -53,7 +51,7 @@ export function BookingsPage() {
     <>
       <PageHeader
         title="Mes réservations"
-        description="Vos trajets confirmés sur la navette Sharing Go."
+        description="Vos billets confirmés sur la navette SharingGO."
       />
 
       <BookingsFilterTabs value={filter} onChange={setFilter} />

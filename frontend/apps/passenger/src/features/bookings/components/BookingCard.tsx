@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { formatDayLabel, formatTime } from "@/lib/format-date";
 import {
   formatPaymentAmount,
+  getPaymentStatusLabel,
   getReservationStatusView,
 } from "@/lib/reservation-status";
 import { cn } from "@/lib/cn";
@@ -52,8 +53,8 @@ export function BookingCard({ reservation }: BookingCardProps) {
         </div>
         <div>
           <dt className="text-muted-foreground">Paiement</dt>
-          <dd className="font-medium capitalize text-foreground">
-            {payment?.status?.toLowerCase() ?? "—"}
+          <dd className="font-medium text-foreground">
+            {getPaymentStatusLabel(payment?.status)}
           </dd>
         </div>
       </dl>

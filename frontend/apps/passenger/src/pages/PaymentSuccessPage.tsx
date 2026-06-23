@@ -64,7 +64,7 @@ export function PaymentSuccessPage() {
           {isConfirming ? (
             <>
               <p className="text-sm font-medium text-foreground">
-                Paiement reçu
+                Finalisation en cours
               </p>
               <p className="text-sm text-muted-foreground">
                 Nous confirmons actuellement votre réservation. Cela peut prendre
@@ -87,7 +87,7 @@ export function PaymentSuccessPage() {
           ) : (
             <>
               <p className="text-sm font-medium text-foreground">
-                Confirmation en cours côté serveur
+                Nous finalisons votre réservation
               </p>
               <p className="text-sm text-muted-foreground">
                 Le paiement a bien été enregistré. La confirmation peut prendre
@@ -96,7 +96,7 @@ export function PaymentSuccessPage() {
               </p>
               <p className="text-xs text-muted-foreground">
                 Si votre billet n&apos;apparaît pas après 2 minutes, contactez le
-                support avec votre reçu Stripe.
+                support avec votre confirmation de paiement.
               </p>
             </>
           )}

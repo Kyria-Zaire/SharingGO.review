@@ -4,6 +4,7 @@ import { createCheckoutSession } from "@/api/payments.api";
 import { ApiError } from "@/api/http";
 import { queryKeys } from "@/constants/query-keys";
 import { saveLastCheckout } from "@/lib/checkout-session-storage";
+import { USER_MESSAGES } from "@/lib/user-facing-errors";
 import type { PaymentApiErrorCode } from "@/types/payments";
 import { ROUTES } from "@/types/routes";
 
@@ -35,14 +36,14 @@ function getCheckoutErrorMessage(error: unknown): string | null {
       case "RATE_LIMITED_CHECKOUT":
         return "Trop de tentatives de paiement. Patientez un instant.";
       case "CHECKOUT_CREATE_FAILED":
-        return "Impossible d'ouvrir le paiement Stripe. Réessayez.";
+        return "Impossible d'ouvrir la page de paiement. Réessayez.";
       default:
-        return error.message;
+        return USER_MESSAGES.generic;
     }
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return USER_MESSAGES.generic;
   }
 
   return "Impossible de démarrer le paiement. Réessayez.";

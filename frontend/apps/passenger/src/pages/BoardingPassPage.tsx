@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import QRCode from "react-qr-code";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "@/api/http";
+import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -16,7 +17,7 @@ import { ROUTES } from "@/types/routes";
 
 function BoardingPassSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true">
+    <div className="space-y-4" aria-busy="true" aria-label="Chargement de votre billet">
       <div className="h-24 animate-pulse rounded-xl bg-muted" />
       <div className="mx-auto h-64 max-w-[280px] animate-pulse rounded-xl bg-muted" />
       <div className="h-12 animate-pulse rounded-xl bg-muted" />
@@ -140,7 +141,7 @@ export function BoardingPassPage() {
   };
 
   if (!reservationId) {
-    return <ErrorState message="Identifiant de réservation manquant" />;
+    return <ErrorState message={USER_MESSAGES.reservationIdMissing} />;
   }
 
   if (isUnauthorized) {
@@ -168,7 +169,7 @@ export function BoardingPassPage() {
 
       {boardingQuery.isError && boardingError && !resolvedErrorView && !isUnauthorized ? (
         <ErrorState
-          message={boardingError.message}
+          message={formatUserFacingError(boardingError, USER_MESSAGES.boardingLoad)}
           onRetry={() => void boardingQuery.refetch()}
         />
       ) : null}
@@ -239,7 +240,7 @@ export function BoardingPassPage() {
                   <div className="flex items-center gap-2 text-center">
                     <QrCode className="h-4 w-4 shrink-0 text-primary" aria-hidden />
                     <p className="text-sm font-medium text-foreground">
-                      Présente ce QR au chauffeur
+                      Présentez ce QR au chauffeur
                     </p>
                   </div>
                   <p className="text-center text-xs text-muted-foreground">
@@ -253,7 +254,7 @@ export function BoardingPassPage() {
             ) : (
               <BoardingErrorCard
                 title="Billet expiré"
-                message="La validité du QR est terminée. Actualisez pour vérifier auprès du serveur."
+                message="La validité du QR est terminée. Actualisez cette page pour vérifier l'état de votre billet."
                 backLabel="← Retour au détail"
                 backTo={detailPath}
               />

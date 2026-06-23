@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { createPendingReservation } from "@/api/reservations.api";
 import { ApiError } from "@/api/http";
 import { queryKeys } from "@/constants/query-keys";
+import { USER_MESSAGES } from "@/lib/user-facing-errors";
 import type { ReservationApiErrorCode } from "@/types/reservations";
 import { ROUTES } from "@/types/routes";
 
@@ -23,15 +24,15 @@ function getCreatePendingErrorMessage(error: unknown): string | null {
       case "RATE_LIMITED_RESERVATION":
         return "Trop de tentatives. Patientez un instant avant de réessayer.";
       default:
-        return error.message;
+        return USER_MESSAGES.generic;
     }
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return USER_MESSAGES.generic;
   }
 
-  return "Impossible de verrouiller votre place. Réessayez.";
+  return "Impossible de réserver votre place. Réessayez.";
 }
 
 export function useCreatePendingReservation() {

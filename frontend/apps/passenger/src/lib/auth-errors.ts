@@ -1,9 +1,10 @@
 import { ApiError } from "@/api/http";
+import { USER_MESSAGES } from "@/lib/user-facing-errors";
 
 export function formatAuthError(error: unknown, fallback = "Connexion impossible."): string {
   if (error instanceof ApiError) {
     if (error.status === 0 || error.code === "NETWORK_ERROR") {
-      return "Connexion indisponible — vérifiez votre réseau et réessayez.";
+      return USER_MESSAGES.network;
     }
     if (error.code === "INVALID_CREDENTIALS") {
       return "Identifiants invalides. Vérifiez votre email et mot de passe.";
@@ -14,13 +15,13 @@ export function formatAuthError(error: unknown, fallback = "Connexion impossible
     if (error.code === "EMAIL_ALREADY_EXISTS") {
       return "Cet email est déjà utilisé. Connectez-vous ou utilisez un autre email.";
     }
-    return error.message;
+    return fallback;
   }
   if (error instanceof TypeError && error.message.toLowerCase().includes("fetch")) {
-    return "Connexion indisponible — vérifiez votre réseau et réessayez.";
+    return USER_MESSAGES.network;
   }
   if (error instanceof Error) {
-    return error.message;
+    return fallback;
   }
   return fallback;
 }

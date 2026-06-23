@@ -22,6 +22,7 @@ export function ProfilePage() {
     return (
       <div className="flex min-h-[30vh] items-center justify-center" aria-busy="true">
         <div className="h-8 w-8 animate-pulse rounded-full bg-muted" aria-hidden />
+        <span className="sr-only">Chargement du profil…</span>
       </div>
     );
   }
@@ -36,7 +37,7 @@ export function ProfilePage() {
         <Card className="p-5 text-center">
           <p className="mb-4 text-sm text-muted-foreground">Vous n&apos;êtes pas connecté.</p>
           <Link to={ROUTES.login} state={{ from: ROUTES.profile }}>
-            <Button className="w-full">Se connecter avec Google</Button>
+            <Button className="w-full">Se connecter</Button>
           </Link>
         </Card>
       </div>

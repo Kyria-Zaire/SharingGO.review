@@ -5,7 +5,7 @@ const KNOW_ITEMS = [
   "Réservation obligatoire avant le départ",
   "Places limitées — 8 par navette",
   "Présentez-vous à l'heure au point de départ",
-  "QR personnel délivré après paiement (prochaine étape)",
+  "QR personnel délivré après paiement",
 ] as const;
 
 export function TripKnowBeforeYouGo() {

@@ -24,12 +24,12 @@ export function PaymentCancelPage() {
       <Card className="space-y-4 text-center">
         <XCircle className="mx-auto h-10 w-10 text-muted-foreground" aria-hidden />
         <p className="text-sm text-foreground">
-          Le paiement Stripe a été interrompu. Votre place reste verrouillée temporairement
+          Le paiement a été interrompu. Votre place reste réservée temporairement
           tant que le délai de 2 minutes n&apos;est pas écoulé.
         </p>
         <p className="text-xs text-muted-foreground">
           Aucun montant n&apos;a été débité. Vous pouvez reprendre le paiement ou libérer votre
-          place depuis la page de verrouillage.
+          place depuis la page de réservation temporaire.
         </p>
       </Card>
 

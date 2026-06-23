@@ -1,3 +1,4 @@
+import { USER_MESSAGES } from "@/lib/user-facing-errors";
 import { env } from "@/lib/env";
 import type { ApiErrorBody, HttpRequestOptions } from "@/types/api.types";
 
@@ -18,7 +19,7 @@ export class ApiError extends Error {
 function parseApiError(data: unknown, status: number): ApiError {
   const body = data as Partial<ApiErrorBody> | null;
   return new ApiError(
-    body?.error?.message ?? "Request failed",
+    body?.error?.message ?? USER_MESSAGES.requestFailed,
     status,
     body?.error?.code ?? "UNKNOWN",
     body?.error?.requestId ?? "unknown"
@@ -41,7 +42,7 @@ export async function http<T>(path: string, options: HttpRequestOptions = {}): P
     });
   } catch {
     throw new ApiError(
-      "Impossible de joindre le serveur. Vérifiez que l'API est démarrée et que CORS autorise cette application.",
+      USER_MESSAGES.network,
       0,
       "NETWORK_ERROR",
       "local"

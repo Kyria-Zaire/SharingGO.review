@@ -43,8 +43,7 @@ export function PricingSection() {
       </div>
 
       <p className="mt-4 text-xs text-muted-foreground">
-        Informations tarifaires — réservation et paiement disponibles prochainement dans
-        l&apos;application.
+        Réservez et payez en ligne dès maintenant — billet 8 €, paiement sécurisé.
       </p>
     </section>
   );

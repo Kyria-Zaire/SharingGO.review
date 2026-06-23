@@ -57,7 +57,7 @@ export function TripCard({ trip }: TripCardProps) {
           </dd>
         </div>
         <div className="col-span-2">
-          <dt className="text-muted-foreground">Ticket</dt>
+          <dt className="text-muted-foreground">Tarif</dt>
           <dd className="font-semibold text-primary">{TICKET_PRICE_LABEL}</dd>
         </div>
       </dl>

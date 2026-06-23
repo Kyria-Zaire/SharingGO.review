@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ApiError } from "@/api/http";
+import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -25,12 +25,7 @@ export function TripsPage() {
   const trips = tripsQuery.data?.trips ?? [];
   const primaryLine = trips[0]?.line;
 
-  const errorMessage =
-    tripsQuery.error instanceof ApiError
-      ? tripsQuery.error.message
-      : tripsQuery.error instanceof Error
-        ? tripsQuery.error.message
-        : "Impossible de charger les trajets";
+  const errorMessage = formatUserFacingError(tripsQuery.error, USER_MESSAGES.tripsLoad);
 
   return (
     <>
@@ -63,7 +58,7 @@ export function TripsPage() {
           {!tripsQuery.isLoading && !tripsQuery.isError && trips.length === 0 ? (
             <EmptyState
               badge="Aucun trajet"
-              title="Aucun trajet pour cette date"
+              title="Aucun trajet disponible"
               description="Essayez une autre date ou revenez plus tard."
               action={
                 <button

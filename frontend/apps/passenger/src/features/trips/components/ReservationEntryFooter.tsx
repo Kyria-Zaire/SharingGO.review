@@ -26,7 +26,7 @@ export function ReservationEntryFooter({
     >
       <div className="mx-auto flex w-full max-w-lg items-center gap-3 px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-muted-foreground">Ticket</p>
+          <p className="text-xs text-muted-foreground">Tarif</p>
           <p className="text-lg font-semibold text-primary">{TICKET_PRICE_LABEL}</p>
         </div>
         <Button

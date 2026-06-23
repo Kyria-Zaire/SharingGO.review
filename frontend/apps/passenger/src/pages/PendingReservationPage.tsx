@@ -13,11 +13,12 @@ import { usePendingCountdown } from "@/hooks/usePendingCountdown";
 import { usePendingReservation } from "@/hooks/usePendingReservation";
 import { usePublicTrip } from "@/hooks/usePublicTrip";
 import { formatDayLabel, formatTime } from "@/lib/format-date";
+import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import { ROUTES } from "@/types/routes";
 
 function PendingReservationSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true">
+    <div className="space-y-4" aria-busy="true" aria-label="Chargement de votre réservation">
       <div className="h-32 animate-pulse rounded-xl bg-muted" />
       <div className="h-24 animate-pulse rounded-xl bg-muted" />
       <div className="h-12 animate-pulse rounded-xl bg-muted" />
@@ -74,10 +75,8 @@ export function PendingReservationPage() {
         ? "Cette réservation temporaire est introuvable ou déjà finalisée."
         : pendingQuery.error.code === "FORBIDDEN"
           ? "Vous n'avez pas accès à cette réservation."
-          : pendingQuery.error.message
-      : pendingQuery.error instanceof Error
-        ? pendingQuery.error.message
-        : "Impossible de charger votre réservation.";
+          : formatUserFacingError(pendingQuery.error, USER_MESSAGES.pendingLoad)
+      : formatUserFacingError(pendingQuery.error, USER_MESSAGES.pendingLoad);
 
   const handleRelease = () => {
     if (!pendingReservationId || isExpired || cancelMutation.isPending) return;
@@ -95,7 +94,7 @@ export function PendingReservationPage() {
     });
   };
 
-  const payButtonLabel = isCheckoutPending ? "Redirection vers Stripe…" : "Payer maintenant";
+  const payButtonLabel = isCheckoutPending ? "Ouverture du paiement sécurisé…" : "Payer maintenant";
 
   return (
     <div
@@ -115,7 +114,7 @@ export function PendingReservationPage() {
       </header>
 
       {!pendingReservationId ? (
-        <ErrorState message="Identifiant de réservation manquant" />
+        <ErrorState message={USER_MESSAGES.reservationIdMissing} />
       ) : null}
 
       {pendingReservationId && pendingQuery.isPending && !pendingQuery.error ? (
@@ -167,7 +166,7 @@ export function PendingReservationPage() {
             <p className="mt-4 text-sm text-foreground">
               {isExpired
                 ? "Le délai de 2 minutes est écoulé. Votre place a été libérée."
-                : "Ta place est gardée pendant 2 minutes."}
+                : "Votre place est réservée pendant 2 minutes."}
             </p>
           </Card>
 
@@ -222,7 +221,7 @@ export function PendingReservationPage() {
           </Card>
 
           <Card className="p-4">
-            <p className="text-xs text-muted-foreground">Ticket</p>
+            <p className="text-xs text-muted-foreground">Tarif</p>
             <p className="text-lg font-semibold text-primary">{TICKET_PRICE_LABEL}</p>
           </Card>
 
@@ -277,9 +276,7 @@ export function PendingReservationPage() {
 
           {cancelMutation.error ? (
             <p className="text-center text-sm text-destructive" role="alert">
-              {cancelMutation.error instanceof ApiError
-                ? cancelMutation.error.message
-                : "Impossible de libérer la place. Réessayez."}
+              {formatUserFacingError(cancelMutation.error, USER_MESSAGES.releasePlace)}
             </p>
           ) : null}
         </div>

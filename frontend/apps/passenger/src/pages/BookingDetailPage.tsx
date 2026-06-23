@@ -14,31 +14,22 @@ import {
 } from "@/lib/format-date";
 import {
   formatPaymentAmount,
+  getPaymentStatusLabel,
   getReservationStatusView,
 } from "@/lib/reservation-status";
 import { passengerTwoColumnClass } from "@/lib/passenger-layout";
+import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import type { ReservationStatus } from "@/types/reservations";
 import { ROUTES } from "@/types/routes";
 
 function BookingDetailSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true">
+    <div className="space-y-4" aria-busy="true" aria-label="Chargement de la réservation">
       <div className="h-24 animate-pulse rounded-xl bg-muted" />
       <div className="h-40 animate-pulse rounded-xl bg-muted" />
       <div className="h-32 animate-pulse rounded-xl bg-muted" />
     </div>
   );
-}
-
-function formatPaymentStatusLabel(status: string | undefined): string {
-  if (!status) return "—";
-  const labels: Record<string, string> = {
-    SUCCEEDED: "Réussi",
-    PENDING: "En attente",
-    FAILED: "Échoué",
-    REFUNDED: "Remboursé",
-  };
-  return labels[status] ?? status;
 }
 
 function StatusMessage({ status }: { status: string }) {
@@ -89,12 +80,8 @@ export function BookingDetailPage() {
     reservationQuery.error.code === "RESERVATION_NOT_FOUND";
 
   const errorMessage = isNotFound
-    ? "Réservation introuvable ou inaccessible."
-    : reservationQuery.error instanceof ApiError
-      ? reservationQuery.error.message
-      : reservationQuery.error instanceof Error
-        ? reservationQuery.error.message
-        : "Impossible de charger cette réservation.";
+    ? USER_MESSAGES.reservationNotFound
+    : formatUserFacingError(reservationQuery.error, USER_MESSAGES.reservationLoad);
 
   const reservation = reservationQuery.data;
   const statusView = reservation ? getReservationStatusView(reservation.status) : null;
@@ -120,10 +107,10 @@ export function BookingDetailPage() {
         >
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </Link>
-        <h1 className="text-lg font-semibold text-foreground">Détail du billet</h1>
+        <h1 className="text-lg font-semibold text-foreground">Détail de la réservation</h1>
       </header>
 
-      {!reservationId ? <ErrorState message="Identifiant de réservation manquant" /> : null}
+      {!reservationId ? <ErrorState message={USER_MESSAGES.reservationIdMissing} /> : null}
 
       {reservationId && reservationQuery.isPending && !reservationQuery.error ? (
         <BookingDetailSkeleton />
@@ -218,7 +205,7 @@ export function BookingDetailPage() {
                   <div>
                     <dt className="text-muted-foreground">Statut</dt>
                     <dd className="font-medium text-foreground">
-                      {formatPaymentStatusLabel(payment.status)}
+                      {getPaymentStatusLabel(payment.status)}
                     </dd>
                   </div>
                   <div className="col-span-2">
@@ -259,7 +246,7 @@ export function BookingDetailPage() {
                   className="w-full"
                   onClick={() => navigate(ROUTES.boardingPass(reservation.id))}
                 >
-                  Voir mon billet
+                  Afficher le QR d&apos;embarquement
                 </Button>
               ) : null}
 

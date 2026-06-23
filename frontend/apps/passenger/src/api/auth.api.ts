@@ -1,4 +1,5 @@
 import { ApiError, http } from "@/api/http";
+import { USER_MESSAGES } from "@/lib/user-facing-errors";
 import { env } from "@/lib/env";
 import type { ApiErrorBody } from "@/types/api.types";
 import type { PassengerUser } from "@/types/auth";
@@ -6,7 +7,7 @@ import type { PassengerUser } from "@/types/auth";
 function parseApiError(data: unknown, status: number): ApiError {
   const body = data as Partial<ApiErrorBody> | null;
   return new ApiError(
-    body?.error?.message ?? "Request failed",
+    body?.error?.message ?? USER_MESSAGES.requestFailed,
     status,
     body?.error?.code ?? "UNKNOWN",
     body?.error?.requestId ?? "unknown"
@@ -22,7 +23,7 @@ export async function getCurrentPassenger(): Promise<PassengerUser | null> {
     });
   } catch {
     throw new ApiError(
-      "Impossible de joindre le serveur. Vérifiez que l'API est démarrée et que CORS autorise cette application.",
+      USER_MESSAGES.network,
       0,
       "NETWORK_ERROR",
       "local"

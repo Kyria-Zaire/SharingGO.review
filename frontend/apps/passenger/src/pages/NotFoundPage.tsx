@@ -9,7 +9,7 @@ export function NotFoundPage() {
       <EmptyState
         badge="404"
         title="Page introuvable"
-        description="Cette page n'existe pas dans l'application convoyeur."
+        description="Cette page n'existe pas sur SharingGO."
         action={
           <Link to={ROUTES.home}>
             <Button variant="secondary">Retour à l&apos;accueil</Button>

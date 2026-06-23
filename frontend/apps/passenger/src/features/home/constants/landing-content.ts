@@ -13,7 +13,7 @@ export const HOW_IT_WORKS_STEPS = [
   {
     step: 2,
     title: "Recevez votre QR personnel",
-    description: "Après confirmation, votre accès numérique est disponible dans l'application.",
+    description: "Après confirmation, votre accès numérique est disponible dans votre espace.",
   },
   {
     step: 3,
@@ -25,7 +25,7 @@ export const HOW_IT_WORKS_STEPS = [
 export const PRICING_PLANS = [
   {
     id: "ticket",
-    name: "Ticket",
+    name: "Billet",
     price: "8 €",
     period: "par trajet",
     description: "Voyage occasionnel.",
@@ -83,19 +83,19 @@ export const FAQ_ITEMS = [
     id: "qr",
     question: "Quand vais-je recevoir mon QR ?",
     answer:
-      "Dès que votre réservation est confirmée (paiement ou abonnement actif), votre QR personnel apparaît dans l'application.",
+      "Dès que votre réservation est confirmée (paiement ou abonnement actif), votre QR personnel apparaît dans Mes réservations.",
   },
   {
     id: "price",
     question: "Combien coûte un trajet ?",
     answer:
-      "8 € le ticket à l'unité, 30 €/mois en abonnement convoyeur, 40 €/mois pour les collaborateurs Mosolf éligibles.",
+      "8 € le billet à l'unité, 30 €/mois en abonnement convoyeur, 40 €/mois pour les collaborateurs Mosolf éligibles.",
   },
   {
     id: "cancel",
     question: "Que faire si je ne peux plus voyager ?",
     answer:
-      "Consultez vos réservations dans l'application. Les conditions d'annulation vous seront indiquées avant confirmation.",
+      "Consultez vos réservations depuis Mes réservations. Les conditions d'annulation vous seront indiquées avant confirmation.",
   },
 ] as const;
 
