@@ -1,4 +1,4 @@
-import { Link, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { PassengerLogo } from "@/components/layout/PassengerLogo";
 import { passengerShellWidthClass } from "@/lib/passenger-layout";
 
