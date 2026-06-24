@@ -10,7 +10,6 @@ import {
   landingContainerClass,
   landingDepartureCardClass,
   landingDeparturesGridClass,
-  landingOutlineButtonClass,
   landingPrimaryButtonClass,
   landingSectionClass,
 } from "@/features/home/lib/landing-layout";
@@ -29,22 +28,32 @@ function DeparturesSingleTripDesktopLayout({ trip }: { trip: PublicTrip }) {
       <aside
         className={cn(
           landingCardClass,
-          "hidden flex-col justify-center border-white/[0.08] bg-[#1a1d23] p-8 lg:flex"
+          "hidden flex-col justify-between border-white/[0.1] bg-[#1a1d23] p-8 lg:flex"
         )}
         aria-label="Accès au planning complet"
       >
-        <h3 className="text-lg font-semibold text-foreground">Planning complet</h3>
-        <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-          D&apos;autres horaires sont disponibles sur la ligne Châlons-en-Champagne ↔ Vatry.
-          Consultez le planning pour choisir votre créneau.
-        </p>
-        <Link
-          to={ROUTES.trips}
-          className={cn(landingOutlineButtonClass, "mt-6 inline-flex w-fit gap-2")}
-        >
-          Voir tous les trajets
-          <ArrowRight className="h-4 w-4" aria-hidden />
-        </Link>
+        <div>
+          <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-primary">
+            Plus d&apos;horaires
+          </p>
+          <h3 className="mt-2.5 text-xl font-bold tracking-tight text-foreground">
+            Planning complet
+          </h3>
+          <p className="mt-4 max-w-sm text-[0.9375rem] leading-[1.65] text-muted-foreground">
+            D&apos;autres horaires sont disponibles sur la ligne Châlons-en-Champagne ↔ Vatry.
+            Consultez le planning pour choisir votre créneau.
+          </p>
+        </div>
+
+        <div className="mt-8 border-t border-white/[0.06] pt-6">
+          <Link
+            to={ROUTES.trips}
+            className={cn(landingPrimaryButtonClass, "inline-flex w-full gap-2 sm:w-auto")}
+          >
+            Voir tous les trajets
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </div>
       </aside>
     </div>
   );

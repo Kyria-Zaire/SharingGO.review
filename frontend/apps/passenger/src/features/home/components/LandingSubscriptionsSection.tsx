@@ -94,36 +94,40 @@ export function LandingSubscriptionsSection() {
           <div className="relative min-h-[24rem]">
             <div className="flex min-h-[24rem] justify-end">
               <div className="w-full max-w-[58%] py-2 pl-8">
-                <h2
-                  id="landing-subscriptions-title"
-                  className="text-2xl font-bold tracking-tight text-foreground"
-                >
-                  Économisez avec nos abonnements
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Des formules adaptées à vos besoins
-                </p>
-
-                <div className="mt-8 grid grid-cols-[minmax(0,1.05fr)_minmax(0,0.8fr)] gap-8">
-                  <div className="grid grid-cols-2 gap-4 pt-3">
-                    {SUBSCRIPTION_PLANS.map((plan) => (
-                      <SubscriptionPlanCard key={plan.id} plan={plan} />
-                    ))}
+                <div className="flex flex-col gap-6">
+                  <div>
+                    <h2
+                      id="landing-subscriptions-title"
+                      className="text-2xl font-bold tracking-tight text-foreground"
+                    >
+                      Économisez avec nos abonnements
+                    </h2>
+                    <p className="mt-1.5 text-sm text-muted-foreground">
+                      Des formules adaptées à vos besoins
+                    </p>
                   </div>
 
-                  <ul className="space-y-5 pt-1">
-                    {SUBSCRIPTION_BENEFITS.map((benefit, index) => {
-                      const Icon = BENEFIT_ICONS[index] ?? Check;
-                      return (
-                        <li key={benefit} className="flex items-start gap-3 text-sm text-foreground">
-                          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#141414]">
-                            <Icon className="h-4 w-4 text-muted-foreground" aria-hidden />
-                          </span>
-                          {benefit}
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <div className="grid grid-cols-[minmax(0,1.05fr)_minmax(0,0.8fr)] items-start gap-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      {SUBSCRIPTION_PLANS.map((plan) => (
+                        <SubscriptionPlanCard key={plan.id} plan={plan} />
+                      ))}
+                    </div>
+
+                    <ul className="space-y-4">
+                      {SUBSCRIPTION_BENEFITS.map((benefit, index) => {
+                        const Icon = BENEFIT_ICONS[index] ?? Check;
+                        return (
+                          <li key={benefit} className="flex items-start gap-3 text-sm text-foreground">
+                            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#141414]">
+                              <Icon className="h-4 w-4 text-muted-foreground" aria-hidden />
+                            </span>
+                            {benefit}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
