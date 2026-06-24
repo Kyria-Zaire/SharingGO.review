@@ -96,7 +96,7 @@ export function TripsPage() {
       />
 
       <div className={landingContainerClass}>
-        <div className="space-y-5 pb-10 pt-6 lg:pb-12 lg:pt-8">
+        <div className="space-y-3 pb-8 pt-5 lg:space-y-5 lg:pb-12 lg:pt-8">
           <TripsQuickFilters
             value={dateFilter}
             nextDepartureDateKey={nextDepartureDateKey}
@@ -120,7 +120,7 @@ export function TripsPage() {
             aria-hidden
           />
 
-          <div ref={resultsRef} className="scroll-mt-24">
+          <div ref={resultsRef} className="scroll-mt-24 space-y-3 lg:space-y-4">
             <TripsListToolbar
               tripCount={filteredTrips.length}
               sort={clientFilters.sort}

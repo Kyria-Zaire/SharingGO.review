@@ -25,7 +25,7 @@ export function TripsReassuranceSection() {
           Pourquoi réserver avec SharingGO
         </h2>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-stretch">
           {TRIPS_REASSURANCE_ITEMS.map((item) => {
             const Icon = REASSURANCE_ICONS[item.id as keyof typeof REASSURANCE_ICONS];
             return (
@@ -33,15 +33,15 @@ export function TripsReassuranceSection() {
                 key={item.id}
                 className={cn(
                   landingCardClass,
-                  "flex gap-4 bg-[#161616] p-5 transition-colors hover:border-white/10"
+                  "flex h-full gap-4 bg-[#161616] p-5 transition-colors hover:border-white/10"
                 )}
               >
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-primary">
                   {Icon ? <Icon className="h-5 w-5" aria-hidden /> : null}
                 </span>
-                <div className="min-w-0">
+                <div className="flex min-w-0 flex-1 flex-col">
                   <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                  <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">
                     {item.description}
                   </p>
                 </div>

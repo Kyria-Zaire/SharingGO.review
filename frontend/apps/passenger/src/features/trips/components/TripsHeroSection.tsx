@@ -44,7 +44,7 @@ export function TripsHeroSection({
       />
 
       <div className={cn(landingContainerClass, "relative z-10")}>
-        <div className={heroContentShellClass}>
+        <div className={cn(heroContentShellClass, "max-lg:pb-20")}>
           <div className={heroTextBackdropClass} aria-hidden />
 
           <div className="relative">
@@ -64,7 +64,12 @@ export function TripsHeroSection({
         </div>
       </div>
 
-      <div className={cn(landingContainerClass, "relative z-20 -mt-12 sm:-mt-16 lg:-mt-20")}>
+      <div
+        className={cn(
+          landingContainerClass,
+          "relative z-20 -mt-4 sm:-mt-16 lg:-mt-20"
+        )}
+      >
         <TripsSearchBar
           direction={direction}
           dateKey={dateKey}

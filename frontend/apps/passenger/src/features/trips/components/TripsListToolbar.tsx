@@ -18,19 +18,19 @@ export function TripsListToolbar({
   onOpenFilters,
 }: TripsListToolbarProps) {
   return (
-    <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-2 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-center sm:justify-between lg:mb-5 lg:gap-4">
       <p className="text-sm text-muted-foreground">
         <span className="font-semibold text-foreground">{tripCount}</span>{" "}
         {tripCount <= 1 ? "trajet disponible" : "trajets disponibles"}
       </p>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          Trier par :
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <label className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <span className="shrink-0">Trier par :</span>
           <select
             value={sort}
             onChange={(event) => onSortChange(event.target.value as TripSortOption)}
-            className="min-h-touch rounded-lg border border-white/[0.1] bg-[#121212] px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="min-h-touch max-w-full rounded-lg border border-white/[0.1] bg-[#121212] px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             aria-label="Trier les trajets"
           >
             <option value="departure">{formatTripSortLabel("departure")}</option>
