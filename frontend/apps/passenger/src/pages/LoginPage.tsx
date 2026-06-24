@@ -103,7 +103,7 @@ export function LoginPage() {
           Connexion
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Réservez et consultez vos billets sur la navette Châlons ↔ Paris-Vatry.
+          Réservez et consultez vos billets sur la navette Châlons ↔ Vatry.
         </p>
       </div>
 

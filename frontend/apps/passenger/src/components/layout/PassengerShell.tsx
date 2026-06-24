@@ -6,7 +6,7 @@ import { PassengerFooter } from "./PassengerFooter";
 import { PassengerHeader } from "./PassengerHeader";
 
 export function PassengerShell() {
-  const { isHome, showMarketingFooter, mainBottomPadding } = usePassengerShell();
+  const { isMarketingSurface, showMarketingFooter, mainBottomPadding } = usePassengerShell();
 
   return (
     <div className="flex min-h-dvh flex-col overflow-x-hidden bg-background">
@@ -15,8 +15,8 @@ export function PassengerShell() {
       <main
         className={cn(
           "flex-1",
-          isHome ? "w-full" : passengerShellWidthClass,
-          isHome ? "py-0" : "py-5 lg:py-6"
+          isMarketingSurface ? "w-full" : passengerShellWidthClass,
+          isMarketingSurface ? "py-0" : "py-5 lg:py-6"
         )}
         style={{ paddingBottom: mainBottomPadding }}
       >

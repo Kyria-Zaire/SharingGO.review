@@ -16,7 +16,7 @@ const STATUS_LABELS = {
   past: "Passé",
 } as const;
 
-const LIST_CARD_CTA_LABEL = "Voir le trajet";
+const LIST_CARD_CTA_LABEL = "Voir les détails";
 
 const DETAIL_RESERVATION_LABELS = {
   available: "Réserver ma place",

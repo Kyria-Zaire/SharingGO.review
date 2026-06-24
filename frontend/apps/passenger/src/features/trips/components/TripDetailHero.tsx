@@ -1,5 +1,6 @@
 import { TripAvailabilityBadge } from "@/features/trips/components/TripAvailabilityBadge";
 import { deriveTripAvailability } from "@/lib/trip-availability";
+import { formatTripRouteFull } from "@/lib/trip-city-labels";
 import { formatDayLabel } from "@/lib/format-date";
 import type { PublicTrip } from "@/types/trips.types";
 
@@ -9,7 +10,7 @@ export interface TripDetailHeroProps {
 
 export function TripDetailHero({ trip }: TripDetailHeroProps) {
   const availability = deriveTripAvailability(trip);
-  const routeLabel = `${trip.line.startCity} ↔ ${trip.line.endCity}`;
+  const routeLabel = formatTripRouteFull(trip.line.startCity, trip.line.endCity);
 
   return (
     <section className="mb-4">

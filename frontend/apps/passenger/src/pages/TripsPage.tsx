@@ -1,82 +1,175 @@
-import { useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { PageHeader } from "@/components/ui/PageHeader";
-import {
-  SUBSCRIPTION_COMING_SOON,
-  TICKET_PRICE_NOTE,
-} from "@/constants/pricing";
-import { TripsDateFilter } from "@/features/trips/components/TripsDateFilter";
+import { landingContainerClass } from "@/features/home/lib/landing-layout";
+import { TripsFiltersSheet } from "@/features/trips/components/TripsFiltersSheet";
+import { TripsHeroSection } from "@/features/trips/components/TripsHeroSection";
+import { TripsHowItWorksSection } from "@/features/trips/components/TripsHowItWorksSection";
 import { TripsList, TripsListSkeleton } from "@/features/trips/components/TripsList";
-import { TripsRouteSummary } from "@/features/trips/components/TripsRouteSummary";
-import { TripsTrustBlock } from "@/features/trips/components/TripsTrustBlock";
+import { TripsListToolbar } from "@/features/trips/components/TripsListToolbar";
+import { TripsQuickFilters } from "@/features/trips/components/TripsQuickFilters";
+import { TripsReassuranceSection } from "@/features/trips/components/TripsReassuranceSection";
+import {
+  applyTripsClientFilters,
+  countActiveClientFilters,
+  DEFAULT_TRIPS_CLIENT_FILTERS,
+  swapDirection,
+  type TripsClientFilters,
+} from "@/features/trips/lib/trips-filters";
+import { nextTripDateKey, useNextAvailableTrip } from "@/hooks/useNextAvailableTrip";
 import { usePublicTrips } from "@/hooks/usePublicTrips";
 import { todayParisDateKey } from "@/lib/format-date";
 import type { TripsDateFilterValue } from "@/types/trips.types";
 
 export function TripsPage() {
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
   const [dateFilter, setDateFilter] = useState<TripsDateFilterValue>(() => ({
     preset: "today",
     dateKey: todayParisDateKey(),
   }));
 
+  const [clientFilters, setClientFilters] = useState<TripsClientFilters>(
+    DEFAULT_TRIPS_CLIENT_FILTERS
+  );
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const nextTripQuery = useNextAvailableTrip();
+  const nextDepartureDateKey = nextTripDateKey(nextTripQuery.data);
+
   const tripsQuery = usePublicTrips(dateFilter);
-  const trips = tripsQuery.data?.trips ?? [];
-  const primaryLine = trips[0]?.line;
+
+  const filteredTrips = useMemo(() => {
+    const allTrips = tripsQuery.data?.trips ?? [];
+    return applyTripsClientFilters(allTrips, clientFilters);
+  }, [tripsQuery.data?.trips, clientFilters]);
 
   const errorMessage = formatUserFacingError(tripsQuery.error, USER_MESSAGES.tripsLoad);
+  const activeFiltersCount = countActiveClientFilters(clientFilters);
+
+  const scrollToResults = useCallback(() => {
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  function handleSearch() {
+    setDateFilter((current) => ({ ...current, dateKey: current.dateKey }));
+    void tripsQuery.refetch();
+    scrollToResults();
+  }
+
+  function handleDateKeyChange(dateKey: string) {
+    setDateFilter({ preset: "custom", dateKey });
+  }
+
+  function handleDirectionChange(direction: TripsClientFilters["direction"]) {
+    setClientFilters((current) => ({ ...current, direction }));
+  }
+
+  function handleSwapDirection() {
+    setClientFilters((current) => ({
+      ...current,
+      direction: swapDirection(current.direction),
+    }));
+  }
+
+  function handleOpenDatePicker() {
+    setDateFilter((current) => ({ preset: "custom", dateKey: current.dateKey }));
+    dateInputRef.current?.showPicker?.();
+    dateInputRef.current?.focus();
+  }
+
+  function handleResetFilters() {
+    setClientFilters(DEFAULT_TRIPS_CLIENT_FILTERS);
+  }
 
   return (
-    <>
-      <PageHeader
-        title="Trajets"
-        description="Horaires et places disponibles — Châlons-en-Champagne ↔ Paris-Vatry"
+    <div className="w-full">
+      <TripsHeroSection
+        direction={clientFilters.direction}
+        dateKey={dateFilter.dateKey}
+        onDirectionChange={handleDirectionChange}
+        onDateChange={handleDateKeyChange}
+        onSwapDirection={handleSwapDirection}
+        onSearch={handleSearch}
       />
 
-      <div className="lg:grid lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-        <aside className="mb-5 space-y-5 lg:mb-0 lg:sticky lg:top-[calc(3.5rem+1.25rem)] lg:self-start">
-          <TripsRouteSummary line={primaryLine} />
+      <div className={landingContainerClass}>
+        <div className="space-y-5 pb-10 pt-6 lg:pb-12 lg:pt-8">
+          <TripsQuickFilters
+            value={dateFilter}
+            nextDepartureDateKey={nextDepartureDateKey}
+            onChange={setDateFilter}
+            onOpenDatePicker={handleOpenDatePicker}
+          />
 
-          <div className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm">
-            <p className="font-medium text-foreground">{TICKET_PRICE_NOTE}</p>
-            <p className="mt-1 text-muted-foreground">{SUBSCRIPTION_COMING_SOON}</p>
-          </div>
+          <input
+            ref={dateInputRef}
+            type="date"
+            value={dateFilter.dateKey}
+            min={todayParisDateKey()}
+            onChange={(event) =>
+              setDateFilter({
+                preset: "custom",
+                dateKey: event.target.value || todayParisDateKey(),
+              })
+            }
+            className="sr-only"
+            tabIndex={-1}
+            aria-hidden
+          />
 
-          <TripsTrustBlock />
-        </aside>
-
-        <div className="min-w-0">
-          <TripsDateFilter value={dateFilter} onChange={setDateFilter} />
-
-          {tripsQuery.isLoading ? <TripsListSkeleton /> : null}
-
-          {tripsQuery.isError ? (
-            <ErrorState message={errorMessage} onRetry={() => void tripsQuery.refetch()} />
-          ) : null}
-
-          {!tripsQuery.isLoading && !tripsQuery.isError && trips.length === 0 ? (
-            <EmptyState
-              badge="Aucun trajet"
-              title="Aucun trajet disponible"
-              description="Essayez une autre date ou revenez plus tard."
-              action={
-                <button
-                  type="button"
-                  className="text-sm font-medium text-primary"
-                  onClick={() => void tripsQuery.refetch()}
-                >
-                  Actualiser
-                </button>
-              }
+          <div ref={resultsRef} className="scroll-mt-24">
+            <TripsListToolbar
+              tripCount={filteredTrips.length}
+              sort={clientFilters.sort}
+              activeFiltersCount={activeFiltersCount}
+              onSortChange={(sort) => setClientFilters((current) => ({ ...current, sort }))}
+              onOpenFilters={() => setFiltersOpen(true)}
             />
-          ) : null}
 
-          {!tripsQuery.isLoading && !tripsQuery.isError && trips.length > 0 ? (
-            <TripsList trips={trips} />
-          ) : null}
+            {tripsQuery.isLoading ? <TripsListSkeleton /> : null}
+
+            {tripsQuery.isError ? (
+              <ErrorState message={errorMessage} onRetry={() => void tripsQuery.refetch()} />
+            ) : null}
+
+            {!tripsQuery.isLoading && !tripsQuery.isError && filteredTrips.length === 0 ? (
+              <EmptyState
+                badge="Aucun trajet"
+                title="Aucun trajet disponible"
+                description="Essayez une autre date, un autre sens ou ajustez vos filtres."
+                action={
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-primary"
+                    onClick={() => void tripsQuery.refetch()}
+                  >
+                    Actualiser
+                  </button>
+                }
+              />
+            ) : null}
+
+            {!tripsQuery.isLoading && !tripsQuery.isError && filteredTrips.length > 0 ? (
+              <TripsList trips={filteredTrips} />
+            ) : null}
+          </div>
         </div>
       </div>
-    </>
+
+      <TripsHowItWorksSection />
+      <TripsReassuranceSection />
+
+      <TripsFiltersSheet
+        open={filtersOpen}
+        filters={clientFilters}
+        onChange={setClientFilters}
+        onClose={() => setFiltersOpen(false)}
+        onApply={scrollToResults}
+        onReset={handleResetFilters}
+      />
+    </div>
   );
 }

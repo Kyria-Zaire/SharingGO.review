@@ -1,15 +1,18 @@
-import { TripCard } from "@/features/trips/components/TripCard";
-import { sortTripsByDeparture } from "@/lib/trip-availability";
+import { TripCardMobile } from "@/features/trips/components/TripCardMobile";
+import { TripListRow } from "@/features/trips/components/TripListRow";
 import type { PublicTrip } from "@/types/trips.types";
 
 export function TripsList({ trips }: { trips: PublicTrip[] }) {
-  const sorted = sortTripsByDeparture(trips);
-
   return (
-    <ul className="grid gap-3 sm:grid-cols-1 xl:grid-cols-2" aria-label="Liste des trajets">
-      {sorted.map((trip) => (
+    <ul className="space-y-3 lg:space-y-4" aria-label="Liste des trajets">
+      {trips.map((trip, index) => (
         <li key={trip.id}>
-          <TripCard trip={trip} />
+          <div className="lg:hidden">
+            <TripCardMobile trip={trip} />
+          </div>
+          <div className="hidden lg:block">
+            <TripListRow trip={trip} highlighted={index === 0} />
+          </div>
         </li>
       ))}
     </ul>
@@ -18,13 +21,12 @@ export function TripsList({ trips }: { trips: PublicTrip[] }) {
 
 export function TripsListSkeleton() {
   return (
-    <div
-      className="grid gap-3 sm:grid-cols-1 xl:grid-cols-2"
-      aria-busy="true"
-      aria-label="Chargement des trajets"
-    >
+    <div className="space-y-3 lg:space-y-4" aria-busy="true" aria-label="Chargement des trajets">
       {[1, 2, 3].map((key) => (
-        <div key={key} className="h-44 animate-pulse rounded-xl border border-border bg-muted/30" />
+        <div
+          key={key}
+          className="h-36 animate-pulse rounded-2xl border border-white/[0.06] bg-[#1a1d23]/60 lg:h-28"
+        />
       ))}
     </div>
   );

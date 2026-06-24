@@ -23,7 +23,7 @@ export function HeroSection() {
         id="landing-hero-title"
         className="text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-3xl"
       >
-        Votre navette vers Paris-Vatry
+        Votre navette vers Vatry
       </h1>
 
       <p className="mt-3 text-base leading-relaxed text-muted-foreground">

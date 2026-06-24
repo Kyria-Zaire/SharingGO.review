@@ -1,15 +1,10 @@
 import { toParisDateKey, todayParisDateKey, tomorrowParisDateKey, formatDate } from "@/lib/format-date";
+import { formatTripCityShort } from "@/lib/trip-city-labels";
 import { normalizeTripSeats } from "@/lib/trip-availability";
 import type { PublicTrip } from "@/types/trips.types";
 
 export function shortCityLabel(city: string): string {
-  if (city.toLowerCase().includes("châlons") || city.toLowerCase().includes("chalons")) {
-    return "Châlons";
-  }
-  if (city.toLowerCase().includes("vatry")) {
-    return "Vatry";
-  }
-  return city;
+  return formatTripCityShort(city);
 }
 
 export function formatTripRouteShort(trip: PublicTrip): string {

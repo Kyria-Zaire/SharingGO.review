@@ -1,11 +1,12 @@
 import { ArrowLeftRight } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { TRIPS_ROUTE_LABEL } from "@/constants/pricing";
+import { formatTripRouteFull } from "@/lib/trip-city-labels";
 import type { PublicLine } from "@/types/trips.types";
 
 export function TripsRouteSummary({ line }: { line?: PublicLine }) {
   const routeLabel = line
-    ? `${line.startCity} ↔ ${line.endCity}`
+    ? formatTripRouteFull(line.startCity, line.endCity)
     : TRIPS_ROUTE_LABEL;
 
   return (

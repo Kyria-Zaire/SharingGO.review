@@ -47,7 +47,7 @@ export interface TripAvailabilityView {
   ctaDisabled: boolean;
 }
 
-export type TripsDateFilterPreset = "today" | "tomorrow" | "custom";
+export type TripsDateFilterPreset = "today" | "tomorrow" | "next" | "custom";
 
 export interface TripsDateFilterValue {
   preset: TripsDateFilterPreset;

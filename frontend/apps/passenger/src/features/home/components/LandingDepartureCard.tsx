@@ -13,6 +13,7 @@ import {
   isTripTomorrow,
   shortCityLabel,
 } from "@/features/home/lib/landing-trip-utils";
+import { formatTripCityShort } from "@/lib/trip-city-labels";
 import {
   landingDepartureCardClass,
   landingReserveButtonClass,
@@ -80,7 +81,7 @@ export function LandingDepartureCard({ trip }: LandingDepartureCardProps) {
       </p>
 
       <div className="mt-2.5">
-        <RouteLabel from={trip.line.startCity} to={shortCityLabel(trip.line.endCity)} />
+        <RouteLabel from={formatTripCityShort(trip.line.startCity)} to={shortCityLabel(trip.line.endCity)} />
       </div>
 
       <p className="mt-1.5 text-xs text-muted-foreground">{seatsLabel}</p>

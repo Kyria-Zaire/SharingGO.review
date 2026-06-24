@@ -5,6 +5,8 @@ import { ROUTES } from "@/types/routes";
 
 export interface PassengerShellState {
   isHome: boolean;
+  isTripsDiscovery: boolean;
+  isMarketingSurface: boolean;
   isAuthenticated: boolean;
   /** Footer marketing (page d'accueil). */
   showMarketingFooter: boolean;
@@ -20,11 +22,15 @@ export function usePassengerShell(): PassengerShellState {
 
   return useMemo(() => {
     const isHome = pathname === ROUTES.home;
+    const isTripsDiscovery = pathname === ROUTES.trips;
+    const isMarketingSurface = isHome || isTripsDiscovery;
 
     return {
       isHome,
+      isTripsDiscovery,
+      isMarketingSurface,
       isAuthenticated,
-      showMarketingFooter: isHome,
+      showMarketingFooter: isMarketingSurface,
       headerVariant: isHome && !isAuthenticated ? "marketing" : "app",
       mainBottomPadding: "env(safe-area-inset-bottom, 0px)",
     };
