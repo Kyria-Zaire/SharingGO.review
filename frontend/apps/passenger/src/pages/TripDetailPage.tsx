@@ -2,20 +2,16 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "@/api/http";
 import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { landingContainerClass } from "@/features/home/lib/landing-layout";
+import { TripDetailSkeleton } from "@/features/trips/components/trip-detail/TripDetailSkeleton";
+import { TripDetailView } from "@/features/trips/components/trip-detail/TripDetailView";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreatePendingReservation } from "@/hooks/useCreatePendingReservation";
-import { ReservationEntryFooter } from "@/features/trips/components/ReservationEntryFooter";
-import { TripDetailHero } from "@/features/trips/components/TripDetailHero";
-import { TripDetailSkeleton } from "@/features/trips/components/TripDetailSkeleton";
-import { TripKnowBeforeYouGo } from "@/features/trips/components/TripKnowBeforeYouGo";
-import { TripPriceCard } from "@/features/trips/components/TripPriceCard";
-import { TripScheduleCard } from "@/features/trips/components/TripScheduleCard";
-import { TripSeatsCard } from "@/features/trips/components/TripSeatsCard";
 import { usePublicTrip } from "@/hooks/usePublicTrip";
 import { useTripIdParam } from "@/hooks/useTripIdParam";
 import { deriveTripDetailReservationCta } from "@/lib/trip-availability";
+import { isDemoTripId, isUiDemoTripsEnabled } from "@/lib/ui-demo-trips";
 import { ROUTES } from "@/types/routes";
-import { ChevronLeft } from "lucide-react";
 
 export function TripDetailPage() {
   const tripId = useTripIdParam();
@@ -49,29 +45,22 @@ export function TripDetailPage() {
     createPending(tripId);
   };
 
-  return (
-    <div
-      style={{
-        paddingBottom: "calc(7rem + env(safe-area-inset-bottom, 0px))",
-      }}
-    >
-      <header className="mb-5 flex items-center gap-3">
-        <Link
-          to={ROUTES.trips}
-          className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          aria-label="Retour aux trajets"
-        >
-          <ChevronLeft className="h-5 w-5" aria-hidden />
-        </Link>
-        <h1 className="text-lg font-semibold text-foreground">Détail du trajet</h1>
-      </header>
+  if (showSkeleton) {
+    return <TripDetailSkeleton />;
+  }
 
-      {showSkeleton ? <TripDetailSkeleton /> : null}
+  if (!tripId) {
+    return (
+      <div className={landingContainerClass}>
+        <ErrorState message={USER_MESSAGES.tripIdMissing} />
+      </div>
+    );
+  }
 
-      {!tripId ? <ErrorState message={USER_MESSAGES.tripIdMissing} /> : null}
-
-      {tripId && tripQuery.isError ? (
-        <div className="space-y-4">
+  if (tripQuery.isError) {
+    return (
+      <div className={landingContainerClass}>
+        <div className="space-y-4 py-8">
           <ErrorState
             message={errorMessageTrip}
             onRetry={isNotFound ? undefined : () => void tripQuery.refetch()}
@@ -83,26 +72,26 @@ export function TripDetailPage() {
             ← Retour aux trajets
           </Link>
         </div>
-      ) : null}
+      </div>
+    );
+  }
 
-      {tripQuery.data ? (
-        <>
-          <TripDetailHero trip={tripQuery.data} />
-          <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-            <TripScheduleCard trip={tripQuery.data} />
-            <TripSeatsCard trip={tripQuery.data} />
-            <TripPriceCard />
-            <TripKnowBeforeYouGo />
-          </div>
+  if (!tripQuery.data) {
+    return null;
+  }
 
-          <ReservationEntryFooter
-            cta={deriveTripDetailReservationCta(tripQuery.data)}
-            errorMessage={errorMessage}
-            isLoading={isPending}
-            onReserveClick={handleReserveClick}
-          />
-        </>
-      ) : null}
-    </div>
+  const isDemoTrip = isUiDemoTripsEnabled() && isDemoTripId(tripQuery.data.id);
+  const cta = isDemoTrip
+    ? { label: "Trajet démo UI", disabled: true }
+    : deriveTripDetailReservationCta(tripQuery.data);
+
+  return (
+    <TripDetailView
+      trip={tripQuery.data}
+      cta={cta}
+      errorMessage={errorMessage}
+      isLoading={isPending}
+      onReserveClick={handleReserveClick}
+    />
   );
 }

@@ -6,6 +6,7 @@ import { ROUTES } from "@/types/routes";
 export interface PassengerShellState {
   isHome: boolean;
   isTripsDiscovery: boolean;
+  isTripDetail: boolean;
   isMarketingSurface: boolean;
   isAuthenticated: boolean;
   /** Footer marketing (page d'accueil). */
@@ -23,11 +24,14 @@ export function usePassengerShell(): PassengerShellState {
   return useMemo(() => {
     const isHome = pathname === ROUTES.home;
     const isTripsDiscovery = pathname === ROUTES.trips;
-    const isMarketingSurface = isHome || isTripsDiscovery;
+    const isTripDetail =
+      pathname.startsWith(`${ROUTES.trips}/`) && pathname !== ROUTES.trips;
+    const isMarketingSurface = isHome || isTripsDiscovery || isTripDetail;
 
     return {
       isHome,
       isTripsDiscovery,
+      isTripDetail,
       isMarketingSurface,
       isAuthenticated,
       showMarketingFooter: isMarketingSurface,

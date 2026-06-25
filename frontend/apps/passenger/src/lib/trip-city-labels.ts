@@ -44,6 +44,11 @@ export function formatTripRouteShort(startCity: string, endCity: string): string
   return `${formatTripCityShort(startCity)} → ${formatTripCityShort(endCity)}`;
 }
 
+/** Cartes, timeline, petits labels — forme courte avec séparateur bidirectionnel. */
+export function formatTripRouteShortBidirectional(startCity: string, endCity: string): string {
+  return `${formatTripCityShort(startCity)} ↔ ${formatTripCityShort(endCity)}`;
+}
+
 export function formatTripRouteFull(startCity: string, endCity: string): string {
   return `${formatTripCityFull(startCity)} ↔ ${formatTripCityFull(endCity)}`;
 }

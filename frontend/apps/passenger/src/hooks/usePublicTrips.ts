@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublicTrips } from "@/api/trips.api";
+import { mergeTripsWithUiDemo } from "@/features/trips/demo/merge-demo-trips";
 import { queryKeys } from "@/constants/query-keys";
 import type { TripsDateFilterValue } from "@/types/trips.types";
 
@@ -10,7 +11,13 @@ export function usePublicTrips(dateFilter: TripsDateFilterValue) {
 
   return useQuery({
     queryKey: queryKeys.trips.list(filterKey),
-    queryFn: () => fetchPublicTrips({ date: dateFilter.dateKey, limit: 50 }),
+    queryFn: async () => {
+      const response = await fetchPublicTrips({ date: dateFilter.dateKey, limit: 50 });
+      return {
+        ...response,
+        trips: mergeTripsWithUiDemo(response.trips, { dateKey: dateFilter.dateKey }),
+      };
+    },
     staleTime: PUBLIC_TRIPS_STALE_MS,
   });
 }
