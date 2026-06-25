@@ -5,6 +5,7 @@ import {
 } from "@/lib/format-date";
 import { DEMO_BOOKING_ID_PREFIX } from "@/lib/ui-demo-trips";
 import type {
+  UserReservationDetail,
   UserReservationListItem,
   UserReservationPayment,
   UserReservationTrip,
@@ -163,9 +164,16 @@ export function getUiDemoBookingsPool(): UserReservationListItem[] {
   return DEMO_BOOKING_SPECS.map(buildDemoBooking);
 }
 
-export function findUiDemoBooking(reservationId: string): UserReservationListItem | null {
+export function findUiDemoBooking(reservationId: string): UserReservationDetail | null {
   if (!reservationId.startsWith(DEMO_BOOKING_ID_PREFIX)) {
     return null;
   }
-  return getUiDemoBookingsPool().find((booking) => booking.id === reservationId) ?? null;
+  const booking = getUiDemoBookingsPool().find((item) => item.id === reservationId);
+  if (!booking) {
+    return null;
+  }
+  return {
+    ...booking,
+    updatedAt: booking.payment?.createdAt ?? booking.createdAt,
+  };
 }
