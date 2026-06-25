@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "@/api/http";
 import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -6,7 +6,6 @@ import { landingContainerClass } from "@/features/home/lib/landing-layout";
 import { TripDetailSkeleton } from "@/features/trips/components/trip-detail/TripDetailSkeleton";
 import { TripDetailView } from "@/features/trips/components/trip-detail/TripDetailView";
 import { useAuth } from "@/hooks/useAuth";
-import { useCreatePendingReservation } from "@/hooks/useCreatePendingReservation";
 import { usePublicTrip } from "@/hooks/usePublicTrip";
 import { useTripIdParam } from "@/hooks/useTripIdParam";
 import { deriveTripDetailReservationCta } from "@/lib/trip-availability";
@@ -18,8 +17,6 @@ export function TripDetailPage() {
   const tripQuery = usePublicTrip(tripId);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { createPending, isPending, errorMessage, reset } = useCreatePendingReservation();
 
   const isNotFound =
     tripQuery.error instanceof ApiError && tripQuery.error.code === "TRIP_NOT_FOUND";
@@ -31,18 +28,17 @@ export function TripDetailPage() {
   const showSkeleton = tripQuery.isPending && !tripQuery.data;
 
   const handleReserveClick = () => {
-    if (!tripQuery.data || !tripId || authLoading || isPending) return;
+    if (!tripQuery.data || !tripId || authLoading) return;
 
     const cta = deriveTripDetailReservationCta(tripQuery.data);
     if (cta.disabled) return;
 
     if (!isAuthenticated) {
-      navigate(ROUTES.login, { state: { from: location.pathname } });
+      navigate(ROUTES.login, { state: { from: ROUTES.tripBooking(tripId) } });
       return;
     }
 
-    reset();
-    createPending(tripId);
+    navigate(ROUTES.tripBooking(tripId));
   };
 
   if (showSkeleton) {
@@ -89,8 +85,7 @@ export function TripDetailPage() {
     <TripDetailView
       trip={tripQuery.data}
       cta={cta}
-      errorMessage={errorMessage}
-      isLoading={isPending}
+      isLoading={false}
       onReserveClick={handleReserveClick}
     />
   );

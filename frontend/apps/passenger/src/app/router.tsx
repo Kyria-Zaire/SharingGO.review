@@ -11,6 +11,7 @@ import { NotFoundPage } from "@/pages/NotFoundPage";
 import { PaymentCancelPage } from "@/pages/PaymentCancelPage";
 import { PaymentSuccessPage } from "@/pages/PaymentSuccessPage";
 import { PendingReservationPage } from "@/pages/PendingReservationPage";
+import { BookingFormPage } from "@/pages/BookingFormPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { TripDetailPage } from "@/pages/TripDetailPage";
@@ -20,8 +21,16 @@ export const router = createBrowserRouter([
     element: <PassengerLayout />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: "trips/:tripId", element: <TripDetailPage /> },
       { path: "trips", element: <TripsPage /> },
+      {
+        path: "trips/:tripId/book",
+        element: (
+          <RequireAuth>
+            <BookingFormPage />
+          </RequireAuth>
+        ),
+      },
+      { path: "trips/:tripId", element: <TripDetailPage /> },
       { path: "bookings", element: <RequireAuth><BookingsPage /></RequireAuth> },
       {
         path: "bookings/payment/success",
