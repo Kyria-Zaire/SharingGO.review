@@ -50,7 +50,7 @@ export function TripDetailView({
 
           <div className="lg:hidden">{reservationCard}</div>
 
-          <div className="md:grid md:grid-cols-2 md:items-stretch md:gap-5 lg:gap-6">
+          <div className="space-y-5 md:grid md:grid-cols-2 md:items-stretch md:gap-5 md:space-y-0 lg:gap-6">
             <TripDetailSpecsSection />
             <TripDetailKnowBeforeSection />
           </div>
