@@ -2,10 +2,11 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listUserReservations } from "@/api/reservations.api";
 import { ApiError } from "@/api/http";
+import { mergeReservationsWithUiDemo } from "@/features/bookings/demo/merge-demo-bookings";
 import { queryKeys } from "@/constants/query-keys";
 import type { ListUserReservationsQuery } from "@/types/reservations";
 
-export type BookingsFilter = "upcoming" | "past" | "all";
+export type BookingsFilter = "upcoming" | "past" | "canceled";
 
 const RESERVATIONS_STALE_MS = 30_000;
 
@@ -16,7 +17,7 @@ function buildListQuery(filter: BookingsFilter): ListUserReservationsQuery {
   if (filter === "past") {
     return { past: true, limit: 50, offset: 0 };
   }
-  return { limit: 50, offset: 0 };
+  return { status: "CANCELED", limit: 50, offset: 0 };
 }
 
 export function useUserReservations(filter: BookingsFilter) {
@@ -24,7 +25,13 @@ export function useUserReservations(filter: BookingsFilter) {
 
   return useQuery({
     queryKey: queryKeys.reservations.list({ filter, ...queryParams }),
-    queryFn: () => listUserReservations(queryParams),
+    queryFn: async () => {
+      const data = await listUserReservations(queryParams);
+      return {
+        ...data,
+        reservations: mergeReservationsWithUiDemo(data.reservations, filter),
+      };
+    },
     staleTime: RESERVATIONS_STALE_MS,
     retry: (failureCount, error) => {
       if (error instanceof ApiError && error.status === 401) {

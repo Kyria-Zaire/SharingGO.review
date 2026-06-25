@@ -1,98 +1,119 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { CalendarDays } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, Ticket } from "lucide-react";
 import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { BookingCard } from "@/features/bookings/components/BookingCard";
+import { cn } from "@/lib/cn";
+import { landingContainerClass } from "@/features/home/lib/landing-layout";
+import { BookingCardDesktop } from "@/features/bookings/components/booking-card/BookingCardDesktop";
+import { BookingCardMobile } from "@/features/bookings/components/booking-card/BookingCardMobile";
+import { BookingsEmptyState } from "@/features/bookings/components/BookingsEmptyState";
 import { BookingsFilterTabs } from "@/features/bookings/components/BookingsFilterTabs";
+import { BookingsHeroSection } from "@/features/bookings/components/BookingsHeroSection";
+import { BookingsListSkeleton } from "@/features/bookings/components/BookingsListSkeleton";
+import { BookingsSectionHeader } from "@/features/bookings/components/BookingsSectionHeader";
+import { BookingsSortSheet } from "@/features/bookings/components/BookingsSortSheet";
+import {
+  defaultBookingsSort,
+  sortBookings,
+  type BookingsSortOption,
+} from "@/features/bookings/lib/bookings-sort";
+import { useBookingsTabCounts } from "@/hooks/useBookingsTabCounts";
 import { type BookingsFilter, useUserReservations } from "@/hooks/useUserReservations";
-import { ROUTES } from "@/types/routes";
 
-function BookingsListSkeleton() {
-  return (
-    <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2" aria-busy="true" aria-label="Chargement des réservations">
-      <div className="h-36 animate-pulse rounded-xl bg-muted" />
-      <div className="h-36 animate-pulse rounded-xl bg-muted" />
-    </div>
-  );
-}
-
-const EMPTY_MESSAGES: Record<BookingsFilter, { title: string; description: string }> = {
-  upcoming: {
-    title: "Vous n'avez aucune réservation à venir",
-    description: "Réservez un trajet pour le retrouver ici avant le départ.",
-  },
-  past: {
-    title: "Aucune réservation passée",
-    description: "Vos trajets terminés apparaîtront dans cet onglet.",
-  },
-  all: {
-    title: "Vous n'avez aucune réservation",
-    description: "Vos billets confirmés apparaîtront ici après paiement.",
-  },
-};
+const EMPTY_ICONS = {
+  upcoming: CalendarDays,
+  past: Ticket,
+  canceled: Ticket,
+} as const;
 
 export function BookingsPage() {
   const [filter, setFilter] = useState<BookingsFilter>("upcoming");
+  const [sort, setSort] = useState<BookingsSortOption>(() => defaultBookingsSort("upcoming"));
+  const [sortSheetOpen, setSortSheetOpen] = useState(false);
+
   const reservationsQuery = useUserReservations(filter);
+  const tabCounts = useBookingsTabCounts();
+
+  useEffect(() => {
+    setSort(defaultBookingsSort(filter));
+  }, [filter]);
 
   const errorMessage = formatUserFacingError(
     reservationsQuery.error,
     USER_MESSAGES.reservationsLoad
   );
 
-  const reservations = reservationsQuery.data?.reservations ?? [];
+  const reservations = useMemo(() => {
+    const items = reservationsQuery.data?.reservations ?? [];
+    return sortBookings(items, sort);
+  }, [reservationsQuery.data?.reservations, sort]);
+
   const isEmpty = !reservationsQuery.isPending && reservations.length === 0;
-  const emptyCopy = EMPTY_MESSAGES[filter];
+  const EmptyIcon = EMPTY_ICONS[filter];
+  const sectionCount = tabCounts[filter] ?? reservations.length;
 
   return (
-    <>
-      <PageHeader
-        title="Mes réservations"
-        description="Vos billets confirmés sur la navette SharingGO."
-      />
+    <div className="w-full">
+      <BookingsHeroSection />
 
-      <BookingsFilterTabs value={filter} onChange={setFilter} />
-
-      {reservationsQuery.isPending ? <BookingsListSkeleton /> : null}
-
-      {reservationsQuery.isError ? (
-        <ErrorState
-          message={errorMessage}
-          onRetry={() => void reservationsQuery.refetch()}
-        />
-      ) : null}
-
-      {!reservationsQuery.isPending && !reservationsQuery.isError && isEmpty ? (
-        <EmptyState
-          icon={<CalendarDays className="h-8 w-8" aria-hidden />}
-          title={emptyCopy.title}
-          description={emptyCopy.description}
-          action={
-            <Link
-              to={ROUTES.trips}
-              className="inline-flex min-h-touch items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Voir les trajets
-            </Link>
-          }
-        />
-      ) : null}
-
-      {!reservationsQuery.isPending && !reservationsQuery.isError && reservations.length > 0 ? (
-        <ul
-          className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2"
-          aria-label="Liste des réservations"
+      <div className={landingContainerClass}>
+        <div
+          className={cn(
+            "relative z-20 -mt-4 sm:-mt-10 lg:-mt-12",
+            "pb-8 pt-0 lg:pb-12"
+          )}
         >
-          {reservations.map((reservation) => (
-            <li key={reservation.id}>
-              <BookingCard reservation={reservation} />
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </>
+          <BookingsFilterTabs value={filter} onChange={setFilter} />
+
+          {!reservationsQuery.isPending && !reservationsQuery.isError && reservations.length > 0 ? (
+            <BookingsSectionHeader
+              filter={filter}
+              count={sectionCount}
+              sort={sort}
+              onSortChange={setSort}
+              onOpenMobileSort={() => setSortSheetOpen(true)}
+            />
+          ) : null}
+
+          {reservationsQuery.isPending ? <BookingsListSkeleton /> : null}
+
+          {reservationsQuery.isError ? (
+            <div className="pt-6">
+              <ErrorState
+                message={errorMessage}
+                onRetry={() => void reservationsQuery.refetch()}
+              />
+            </div>
+          ) : null}
+
+          {!reservationsQuery.isPending && !reservationsQuery.isError && isEmpty ? (
+            <div className="pt-6">
+              <BookingsEmptyState
+                filter={filter}
+                icon={<EmptyIcon className="h-7 w-7" aria-hidden />}
+              />
+            </div>
+          ) : null}
+
+          {!reservationsQuery.isPending && !reservationsQuery.isError && reservations.length > 0 ? (
+            <ul className="mt-5 space-y-4" aria-label="Liste des réservations">
+              {reservations.map((reservation) => (
+                <li key={reservation.id}>
+                  <BookingCardDesktop reservation={reservation} filter={filter} />
+                  <BookingCardMobile reservation={reservation} filter={filter} />
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      </div>
+
+      <BookingsSortSheet
+        open={sortSheetOpen}
+        sort={sort}
+        onClose={() => setSortSheetOpen(false)}
+        onSortChange={setSort}
+      />
+    </div>
   );
 }

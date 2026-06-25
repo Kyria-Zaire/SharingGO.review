@@ -54,6 +54,32 @@ Même si la variable est présente au moment du `pnpm build`, le bundle producti
    - Détail : URL stable (`/trips/demo-trip-01` … `08`) même si le créneau du jour est passé (QA UI)
 4. Réservation sur un trajet démo : CTA désactivé (« Trajet démo UI »).
 
+## Demo bookings (`/bookings`)
+
+Complète les listes de réservations **uniquement** si le flag est actif (hors PROD) et qu’un état requis pour la QA UI manque dans la réponse API.
+
+| Onglet | États couverts par le pool démo |
+|--------|----------------------------------|
+| À venir | 2 × `CONFIRMED` + paiement `SUCCEEDED` · 1 × `PENDING` + paiement `PENDING` |
+| Passées | 2 × `USED` (terminée) + paiement `SUCCEEDED` |
+| Annulées | 1 × `CANCELED` + paiement `FAILED` |
+
+- IDs : `demo-booking-*` (ex. `demo-booking-upcoming-confirmed-01`)
+- Références affichées : `#SGDEMO-*` (ex. `#SGDEMO-UPCOMING-CONFIRMED-01`)
+- Les réservations API existantes ne sont **jamais** remplacées
+- Injection **complémentaire** seulement si l’onglet ne contient pas déjà l’état cible
+- CTA QR / billet **désactivés** sur les réservations démo (pas d’appel API)
+
+Fichiers :
+
+```
+src/features/bookings/demo/demo-bookings.ts
+src/features/bookings/demo/merge-demo-bookings.ts
+src/hooks/useUserReservations.ts
+src/hooks/useBookingsTabCounts.ts
+src/features/bookings/lib/booking-card-format.ts   # #SGDEMO-*
+```
+
 ## Badge
 
 Quand le mode est actif en dev : bandeau discret **« Mode démonstration UI »** (fixe en bas de l’écran).
@@ -61,7 +87,7 @@ Quand le mode est actif en dev : bandeau discret **« Mode démonstration UI »*
 ## Fichiers concernés
 
 ```
-src/lib/ui-demo-trips.ts              # flag + garde PROD
+src/lib/ui-demo-trips.ts              # flag + garde PROD + demo-booking-*
 src/lib/format-date.ts                # buildParisIsoDateTime
 src/features/trips/demo/demo-trips.ts # pool 8 trajets
 src/features/trips/demo/merge-demo-trips.ts
@@ -79,8 +105,9 @@ src/pages/TripDetailPage.tsx
 
 | Risque | Mitigation |
 |--------|------------|
-| Confusion démo / prod | Garde `import.meta.env.PROD`, badge visible, IDs préfixés `demo-trip-` |
+| Confusion démo / prod | Garde `import.meta.env.PROD`, badge visible, IDs préfixés `demo-trip-` / `demo-booking-` |
 | Réservation sur faux trajet | CTA désactivé sur trajets démo |
+| Clic billet démo | CTA désactivé sur réservations `demo-booking-*` |
 | Données fictives en prod | Flag ignoré en build production |
 | Dette technique | Mode à supprimer ou désactiver avant pilote / prod |
 
@@ -94,10 +121,14 @@ src/pages/TripDetailPage.tsx
 - [ ] Redémarrer / rebuild après retrait du flag
 - [ ] Vérifier en **préprod** : aucun badge « Mode démonstration UI »
 - [ ] Vérifier qu’**aucun** ID `demo-trip-*` n’apparaît en liste ni en URL partagée
+- [ ] Vérifier qu’**aucun** ID `demo-booking-*` n’apparaît sur `/bookings`
 - [ ] Vérifier que les trajets affichés proviennent **uniquement** de l’API backend
-- [ ] Optionnel (fin de refonte UI) : supprimer le dossier `src/features/trips/demo/` et les hooks merge si plus nécessaire
+- [ ] Optionnel (fin de refonte UI) : supprimer les dossiers `src/features/trips/demo/` et `src/features/bookings/demo/` si plus nécessaire
 
-**URLs QA locales (à ne pas utiliser en prod) :** `/trips/demo-trip-01` … `/trips/demo-trip-08`
+**URLs QA locales (à ne pas utiliser en prod) :**
+
+- Trajets : `/trips/demo-trip-01` … `/trips/demo-trip-08`
+- Réservations : IDs `demo-booking-upcoming-confirmed-01`, etc. (liste `/bookings` uniquement)
 
 ## Tests manuels
 
