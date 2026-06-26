@@ -316,18 +316,23 @@ Priorisées pour transformer **GO CONDITIONNEL** en **GO plein**.
 ╚══════════════════════════════════════════════════════════╝
 ```
 
-**Recommandation CTO :** valider **Passenger V1 feature complete**, enchaîner sur **DEPLOY-01** avec les actions P0–P1 de la § 9, puis **PILOT-01** avec utilisateurs restreints.
+**Recommandation CTO :** valider **Passenger V1 feature complete**, enchaîner sur **DEPLOY-READY-01** (hardening § 9), puis **DEPLOY-01**, puis **PILOT-01** avec utilisateurs restreints.
 
 ---
 
 ## 11. Roadmap post-QA
 
 ```text
-✅ WEB-PASSENGER-QA-01 (ce document)
-⬜ Cleanup démo UI (optionnel avant ou pendant DEPLOY-01)
-⬜ DEPLOY-01
-⬜ PILOT-01
+✅ Passenger V1 — FEATURE COMPLETE
+✅ WEB-PASSENGER-QA-01 (ce document) — GO CONDITIONNEL
+▶ DEPLOY-READY-01 (BUILD — décisions CTO validées)
+⬜ DEPLOY-01 (VPS, HTTPS, domaine, monitoring)
+⬜ PILOT-01 (premiers utilisateurs réels)
+⬜ DRIVER-01 → PILOT-02 → B2B
 ```
+
+> Ticket d'exécution : [`docs/prd/active/DEPLOY-READY-01-passenger-deploy-readiness.md`](../prd/active/DEPLOY-READY-01-passenger-deploy-readiness.md)  
+> Feature Freeze actif jusqu'à clôture DEPLOY-READY-01.
 
 ---
 
