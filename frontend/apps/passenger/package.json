@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0 --port 5174",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0 --port 5174",
-    "lint": "eslint src --max-warnings 0"
+    "lint": "eslint src --max-warnings 0",
+    "audit:links": "node scripts/audit-internal-links.mjs"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",

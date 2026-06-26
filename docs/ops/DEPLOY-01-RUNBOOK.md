@@ -3,7 +3,7 @@
 **Status :** DRAFT (constitution en cours pendant DEPLOY-READY-01)  
 **Owner :** CTO / Ops  
 **Last updated :** 2026-06-23  
-**Version :** v0.2  
+**Version :** v0.3  
 **Prérequis :** DEPLOY-READY-01 **DONE** · validation CTO « Produit prêt pour DEPLOY-01 »
 
 > **Ce document n'est pas encore opérationnel.** Il sera complété pendant DEPLOY-READY-01 et finalisé en entrée de DEPLOY-01.  
@@ -368,6 +368,16 @@ Référence : `.cursor/rules/security-baseline.mdc` · CDC §5.2.
 | 10 | Rate limiting | 429 après seuil (spot check) |
 | 11 | CORS | Origine prod autorisée · `*` absent |
 | 12 | Pas de mode démo | Aucun `demo-trip-*` · variable démo absente |
+| 13 | Liens internes passager | `cd frontend/apps/passenger && pnpm audit:links` → exit **0** · FAIL **0** |
+
+**Commande officielle (pré-déploiement & CI) :**
+
+```bash
+cd frontend/apps/passenger
+pnpm audit:links
+```
+
+Script : `frontend/apps/passenger/scripts/audit-internal-links.mjs` — vérifie routes, ancres FAQ Contact→Help, footer légal, absence de liens démo. Introduit en DEPLOY-READY **P0-03**.
 
 ### 12.2 Observabilité
 
@@ -388,7 +398,7 @@ Référence : `.cursor/rules/security-baseline.mdc` · CDC §5.2.
 3. Git pull / deploy tag depuis CI
 4. prisma migrate deploy (si nouvelles migrations)
 5. docker compose up -d --build (ou rolling si multi-node — hors scope V1)
-6. Smoke tests § 12
+6. Smoke tests § 12 (dont `pnpm audit:links` en § 12.1 #13)
 7. Enregistrer deployments
 8. Monitorer 30 min (webhooks, erreurs)
 ```
@@ -484,7 +494,7 @@ Le produit **ne démarre pas DEPLOY-01** tant que tous les critères suivants ne
 | Lint / Build | CI ou local vert | Engineering |
 | QA PASS | Checklist parcours § 2 audit QA | QA / CTO |
 | Runbook | Ce document statut ≥ sections complétées | Ops |
-| Smoke tests | § 12 exécuté sur PREPROD/PROD | Ops |
+| Smoke tests | § 12 exécuté sur PREPROD/PROD (incl. `pnpm audit:links`) | Ops |
 
 Validation CTO explicite requise avant ouverture DEPLOY-01.
 
@@ -504,6 +514,10 @@ Validation CTO explicite requise avant ouverture DEPLOY-01.
 ---
 
 ## 19. Changelog
+
+### v0.3 — 2026-06-23
+
+- Smoke test **#13** : audit liens internes passager (`pnpm audit:links`) — outil officiel DEPLOY-READY P0-03.
 
 ### v0.2 — 2026-06-23
 

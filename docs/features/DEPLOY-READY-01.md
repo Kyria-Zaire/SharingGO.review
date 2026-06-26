@@ -42,10 +42,10 @@ Aucune nouvelle fonctionnalité Passenger jusqu'à clôture DEPLOY-READY-01.
 
 ### Sprint P0
 
-1. `/help` public
-2. Nettoyage mode démo
-3. Vérification liens
-4. Favicon
+1. `/help` public ✅
+2. Nettoyage mode démo ✅
+3. Vérification liens ✅
+4. **Branding Web** (favicon, icônes, title, theme-color, logo)
 5. Meta description
 6. `robots.txt`
 7. Juridique — placeholders + note prod publique
@@ -94,6 +94,7 @@ Runbook DEPLOY-01 v0.2 — constitution pendant DEPLOY-READY-01 (Monitoring § 8
 cd frontend/apps/passenger
 pnpm lint
 pnpm build
+pnpm audit:links
 ```
 
 Rapport clôture : `docs/audits/DEPLOY-READY-01-report.md`

@@ -149,10 +149,10 @@ Les 14 WARN ne sont pas tous dans le scope obligatoire de ce ticket — voir mat
 
 ### Sprint P0 — ordre validé CTO (2026-06-23)
 
-1. **P0-01** — `/help` route publique (changement localisé · vérifiable en premier)
-2. **P0-02** — Nettoyage mode démonstration (code · badges · env)
-3. **P0-03** — Vérification liens internes
-4. **P0-04** — Favicon
+1. **P0-01** — `/help` route publique (changement localisé · vérifiable en premier) ✅
+2. **P0-02** — Nettoyage mode démonstration (code · badges · env) ✅
+3. **P0-03** — Vérification liens internes ✅
+4. **P0-04** — **Branding Web** (favicon, icônes, title, theme-color, logo)
 5. **P0-05** — Meta description
 6. **P0-06** — `robots.txt` par environnement
 7. **P0-07** — Juridique — placeholders conservés + note prod publique
@@ -182,8 +182,8 @@ Bloquant pour clôturer DEPLOY-READY-01 et ouvrir DEPLOY-01.
 |----|------|--------------|----------|
 | P0-01 | `/help` route **publique** | § 1 · § 9 · **Décision Q1** | Retirer `RequireAuth` sur `/help` · liens Contact/FAQ cohérents |
 | P0-02 | Retrait définitif mode démonstration UI | § 6 | Supprimer code démo · badges · valider env `VITE_ENABLE_UI_DEMO_TRIPS` absent |
-| P0-03 | Vérification liens internes | § 2 · § 7 | Footer, legal, contact, help, nav — aucun lien mort |
-| P0-04 | Favicon | § 7 | `favicon.ico` + lien `index.html` |
+| P0-03 | Vérification liens internes | § 2 · § 7 | Footer, legal, contact, help, nav — aucun lien mort · `scripts/audit-internal-links.mjs` |
+| P0-04 | **Branding Web** | § 7 | Favicon (`.ico` + PNG) · Apple Touch · Android/PWA si prêt · `<title>` · `theme-color` · logo (header, auth, favicon) |
 | P0-05 | Meta description | § 7 | `<meta name="description">` dans `index.html` |
 | P0-06 | `robots.txt` par environnement | § 7 · **Décision Q3** | LOCAL/STAGING/PREPROD : `Disallow: /` · PROD : `Allow: /` + `Sitemap` |
 | P0-07 | Mentions légales — placeholders conservés | § 1 · § 7 · **Décision Q2** | Note « à compléter avant production publique » · non bloquant pilote privé |
@@ -337,7 +337,7 @@ docs/audits/DEPLOY-READY-01-report.md   ← rapport de clôture (à créer en VE
 | `src/components/auth/DevDemoAuthHint.tsx` | Supprimer |
 | Hooks merge démo | Simplifier (API seule) |
 | `src/pages/BookingDetailPlaceholderPage.tsx` | Supprimer |
-| `index.html` | Favicon, meta description |
+| `index.html` | Branding Web P0-04 : favicon, icônes, title, theme-color · P0-05 : meta description |
 | `public/robots.txt` | Créer · variante par environnement (voir Q3) |
 | `app/router.tsx` | `/help` hors `RequireAuth` |
 | `features/legal/` contenus notice | Placeholders conservés · note production publique |
