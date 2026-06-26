@@ -1,0 +1,129 @@
+# docker-compose.prod.yml
+# SharingGO — Production
+# Usage : docker compose -f docker-compose.prod.yml up -d
+# Prérequis : .env.prod présent dans le même répertoire (chmod 600)
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: sharinggo-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - sharinggo-prod
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  migrator:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: sharinggo-migrator-prod
+    restart: "no"
+    command: ["npx", "prisma", "migrate", "deploy"]
+    env_file:
+      - .env.prod
+    environment:
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sharinggo-prod
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: sharinggo-backend-prod
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      NODE_ENV: production
+      ALLOW_DEMO_SEED: "false"
+      ENABLE_API_DOCS: "false"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - sharinggo-prod
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  passenger:
+    build:
+      context: ./frontend/apps/passenger
+      dockerfile: Dockerfile
+      target: production
+      args:
+        VITE_API_URL: https://api.sharinggo.fr
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        ROBOTS_POLICY: allow
+        PUBLIC_SITE_URL: https://sharinggo.fr
+    container_name: sharinggo-passenger-prod
+    restart: unless-stopped
+    networks:
+      - sharinggo-prod
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  admin:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: sharinggo-admin-prod
+    restart: unless-stopped
+    networks:
+      - sharinggo-prod
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  postgres_data_prod:
+
+networks:
+  sharinggo-prod:
+    driver: bridge
