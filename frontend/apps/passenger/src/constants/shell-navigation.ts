@@ -14,11 +14,7 @@ export const DESKTOP_NAV_ITEMS: ShellNavItem[] = [
   { label: "Accueil", to: ROUTES.home, end: true },
   { label: "Trajets", to: ROUTES.trips },
   { label: "Réservations", to: ROUTES.bookings, authRequired: true },
-  {
-    label: "Abonnements",
-    to: ROUTES.home,
-    hash: `#${LANDING_SECTION_IDS.pricing}`,
-  },
+  { label: "Abonnements", to: ROUTES.subscriptions, authRequired: true },
 ];
 
 export interface FooterLink {
@@ -30,7 +26,7 @@ export interface FooterLink {
 
 export const FOOTER_USEFUL_LINKS: FooterLink[] = [
   { label: "Trajets", to: ROUTES.trips },
-  { label: "Abonnements", to: ROUTES.home, hash: `#${LANDING_SECTION_IDS.pricing}` },
+  { label: "Abonnements", to: ROUTES.subscriptions },
   { label: "Comment ça fonctionne", to: ROUTES.home, hash: `#${LANDING_SECTION_IDS.howItWorks}` },
   { label: "Aide & FAQ", to: ROUTES.home, hash: `#${LANDING_SECTION_IDS.faq}` },
 ];

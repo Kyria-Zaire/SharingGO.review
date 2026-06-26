@@ -15,6 +15,7 @@ export const ROUTES = {
     `/bookings/pending/${encodeURIComponent(pendingReservationId)}`,
   paymentSuccess: "/bookings/payment/success",
   paymentCancel: "/bookings/payment/cancel",
+  subscriptions: "/subscriptions",
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

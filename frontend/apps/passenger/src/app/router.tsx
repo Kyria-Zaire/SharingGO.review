@@ -16,6 +16,7 @@ import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { TripDetailPage } from "@/pages/TripDetailPage";
 import { TripsPage } from "@/pages/TripsPage";
+import { SubscriptionsPage } from "@/pages/SubscriptionsPage";
 export const router = createBrowserRouter([
   {
     element: <PassengerLayout />,
@@ -73,6 +74,14 @@ export const router = createBrowserRouter([
         ),
       },
       { path: "profile", element: <ProfilePage /> },
+      {
+        path: "subscriptions",
+        element: (
+          <RequireAuth>
+            <SubscriptionsPage />
+          </RequireAuth>
+        ),
+      },
     ],
   },
   {

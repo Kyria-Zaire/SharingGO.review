@@ -25,4 +25,10 @@ export const queryKeys = {
     qr: (reservationId: string) =>
       [...queryKeys.boarding.all, "qr", reservationId] as const,
   },
+  subscriptions: {
+    all: ["subscriptions"] as const,
+    me: () => [...queryKeys.subscriptions.all, "me"] as const,
+    checkout: () => [...queryKeys.subscriptions.all, "checkout"] as const,
+    history: () => [...queryKeys.subscriptions.all, "history"] as const,
+  },
 } as const;
