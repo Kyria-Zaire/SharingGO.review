@@ -3,7 +3,7 @@
 **Status :** DRAFT (DEPLOY-01 en cours)  
 **Owner :** CTO / Ops  
 **Last updated :** 2026-06-27  
-**Version :** v0.5  
+**Version :** v0.6  
 **Prérequis :** DEPLOY-READY-01 **DONE** · validation CTO « Produit prêt pour DEPLOY-01 »
 
 > **Ce document n'est pas encore opérationnel.** Il sera complété pendant DEPLOY-READY-01 et finalisé en entrée de DEPLOY-01.  
@@ -354,35 +354,58 @@ Référence : `.cursor/rules/security-baseline.mdc` · CDC §5.2.
 
 ## 10. Sauvegardes
 
+Référence complète : [`docs/ops/DEPLOY-01-BACKUP-RESTORE.md`](./DEPLOY-01-BACKUP-RESTORE.md)
+
 ### 10.1 Politique PROD
 
 | Fréquence | Rétention | Destination | Statut |
 |-----------|-----------|-------------|--------|
-| Quotidienne (cron soir) | 30 jours (à définir) | Autre VPS ou S3-compatible | ⬜ |
-| Avant migration | 1 snapshot nommé | Même destination | ⬜ |
-| Test restore | Mensuel | Procédure § 10.3 | ⬜ |
+| Quotidienne (02h00) | 7 jours (rotation auto) | `/opt/sharinggo/backups/` | ✅ `scripts/backup-postgres.sh` |
+| Hebdomadaire | 4 semaines | Même destination | ⬜ cron post-pilote |
+| Mensuelle | 6 mois | Même destination | ⬜ cron post-pilote |
+| Avant migration | 1 snapshot nommé | `/opt/sharinggo/backups/` | ✅ procédure obligatoire |
+| Hors VPS (chiffré) | Idem | Hetzner Object Storage / Backblaze B2 | ⬜ post-pilote |
+| Test restore | Mensuel | Environnement REC | ⬜ drill à planifier |
 
-### 10.2 Script backup
+**RPO pilote :** 24 heures · **RTO pilote :** 30 minutes
 
-```bash
-# SQUELETTE — restore-backup.sh / backup-prod.sh à créer
-# pg_dump -Fc $DATABASE_URL > backup_$(date +%Y%m%d_%H%M).dump
-```
+### 10.2 Scripts
 
 | Fichier | Rôle | Statut |
 |---------|------|--------|
-| `scripts/backup-prod.sh` | Dump Postgres compressé | ⬜ à créer |
-| `scripts/restore-backup.sh` | Restore depuis dump | ⬜ à créer |
+| `scripts/backup-postgres.sh` | Dump Postgres gzip + log + rotation 7j | ✅ créé DEPLOY-01-E |
+| `scripts/restore-postgres.sh` | Restore depuis `.sql.gz` + confirmation | ✅ créé DEPLOY-01-E |
+| `scripts/check-backup.sh` | Vérification intégrité archive | ✅ créé DEPLOY-01-E |
 
-### 10.3 Test de restore (mensuel)
+```bash
+# Backup manuel
+DATABASE_URL="$(grep DATABASE_URL /opt/sharinggo/.env.prod | cut -d= -f2-)" \
+  bash scripts/backup-postgres.sh
 
-- [ ] Restaurer dernier backup sur env isolé (REC)
-- [ ] Vérifier intégrité (`prisma db execute` / comptages tables clés)
-- [ ] Documenter date + opérateur
+# Vérifier un backup
+bash scripts/check-backup.sh /opt/sharinggo/backups/sharinggo_YYYY-MM-DD_HH-mm.sql.gz
+
+# Restaurer (demande confirmation "OUI")
+DATABASE_URL="$(grep DATABASE_URL /opt/sharinggo/.env.prod | cut -d= -f2-)" \
+  bash scripts/restore-postgres.sh /opt/sharinggo/backups/sharinggo_YYYY-MM-DD_HH-mm.sql.gz
+```
+
+### 10.3 Test de restore (mensuel — Restore Drill)
+
+Procédure complète : `docs/ops/DEPLOY-01-BACKUP-RESTORE.md` § 4
+
+- [ ] Vérifier intégrité backup (`check-backup.sh` → VALIDE)
+- [ ] Backup pré-drill de l'état actuel
+- [ ] Restaurer sur env REC
+- [ ] Compter tables clés (users, trips, reservations)
+- [ ] Smoke tests `GET /health` + `GET /ready`
+- [ ] Consigner dans journal des drills (DEPLOY-01-BACKUP-RESTORE.md § 9)
 
 ---
 
 ## 11. Rollback
+
+Référence complète : [`docs/ops/DEPLOY-01-BACKUP-RESTORE.md`](./DEPLOY-01-BACKUP-RESTORE.md) §§ 6-7
 
 ### 11.1 Quand rollback ?
 
@@ -394,18 +417,21 @@ Référence : `.cursor/rules/security-baseline.mdc` · CDC §5.2.
 
 ```text
 1. Identifier commit précédent stable (table deployments)
-2. Arrêter trafic (maintenance page Nginx — optionnel)
+2. Arrêter trafic (maintenance Caddy — optionnel selon gravité)
 3. Redéployer images / checkout tag précédent
-4. Si migration appliquée : restore backup pré-migration OU migration down (si safe)
+4. Si migration appliquée : restore backup pré-migration (scripts/restore-postgres.sh)
 5. Redémarrer services
 6. Vérifications post-déploiement (§ 12)
 7. Enregistrer rollback dans deployments + audit log admin
+8. Post-mortem planifié avant re-tentative migration
 ```
 
-| Scénario | Action | Statut doc |
-|----------|--------|------------|
-| Rollback code seul | Re-deploy tag N-1 | ⬜ |
-| Rollback code + DB | Restore backup + tag N-1 | ⬜ |
+| Scénario | Action | Référence |
+|----------|--------|-----------|
+| Rollback code seul | Re-deploy tag N-1 | § 13 runbook |
+| Rollback code + DB | Restore backup + tag N-1 | DEPLOY-01-BACKUP-RESTORE.md § 6 |
+| Migration Prisma échouée | Restore pré-migration + tag N-1 | DEPLOY-01-BACKUP-RESTORE.md § 6.2 |
+| Migration réussie + régression | Restore pré-migration + tag N-1 | DEPLOY-01-BACKUP-RESTORE.md § 7.5 |
 | Stripe webhook | Pas de suppression données · idempotence `webhook_events` | ✅ imposé |
 
 ---
@@ -600,6 +626,13 @@ Validation CTO explicite requise avant ouverture DEPLOY-01.
 ---
 
 ## 19. Changelog
+
+### v0.6 — 2026-06-27
+
+- §10 — Politique backup complète : scripts `backup-postgres.sh`, `restore-postgres.sh`, `check-backup.sh` (DEPLOY-01-E).
+  RPO 24h / RTO 30min documentés. Stratégie hors VPS post-pilote référencée.
+- §11 — Rollback enrichi : rollback migration Prisma, rollback post-régression, référence DEPLOY-01-BACKUP-RESTORE.md.
+- Nouveau document : `docs/ops/DEPLOY-01-BACKUP-RESTORE.md` — PRA complet (drill, RPO/RTO, 5 scénarios catastrophe).
 
 ### v0.5 — 2026-06-27
 
