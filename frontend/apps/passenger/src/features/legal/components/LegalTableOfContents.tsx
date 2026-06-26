@@ -2,12 +2,11 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { landingCardClass } from "@/features/home/lib/landing-layout";
 import {
-  LEGAL_TERMS_SECTIONS,
-  LEGAL_TERMS_TOC_TITLE,
-  type LegalTermsSectionId,
-} from "@/features/legal/constants/legal-terms-content";
+  LEGAL_TOC_TITLE,
+  type LegalDocumentSection,
+} from "@/features/legal/types/legal-document";
 
-function scrollToSection(id: LegalTermsSectionId) {
+function scrollToSection(id: string) {
   const element = document.getElementById(id);
   if (!element) return;
   element.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -22,9 +21,9 @@ function TocButton({
 }: {
   number: number;
   title: string;
-  sectionId: LegalTermsSectionId;
+  sectionId: string;
   isActive: boolean;
-  onNavigate: (id: LegalTermsSectionId) => void;
+  onNavigate: (id: string) => void;
 }) {
   return (
     <button
@@ -50,11 +49,15 @@ function TocButton({
 }
 
 export function LegalTableOfContents({
+  sections,
   activeSection,
+  tocTitle = LEGAL_TOC_TITLE,
 }: {
-  activeSection: LegalTermsSectionId;
+  sections: readonly LegalDocumentSection[];
+  activeSection: string;
+  tocTitle?: string;
 }) {
-  const handleNavigate = (id: LegalTermsSectionId) => {
+  const handleNavigate = (id: string) => {
     scrollToSection(id);
   };
 
@@ -62,13 +65,13 @@ export function LegalTableOfContents({
     <>
       <nav
         className={cn(landingCardClass, "hidden bg-[#121212] p-4 lg:block")}
-        aria-label={LEGAL_TERMS_TOC_TITLE}
+        aria-label={tocTitle}
       >
         <h2 className="px-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          {LEGAL_TERMS_TOC_TITLE}
+          {tocTitle}
         </h2>
         <ul className="mt-3 space-y-0.5">
-          {LEGAL_TERMS_SECTIONS.map((section) => (
+          {sections.map((section) => (
             <li key={section.id}>
               <TocButton
                 number={section.number}
@@ -89,14 +92,14 @@ export function LegalTableOfContents({
             "[&::-webkit-details-marker]:hidden"
           )}
         >
-          {LEGAL_TERMS_TOC_TITLE}
+          {tocTitle}
           <ChevronDown
             className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
             aria-hidden
           />
         </summary>
         <ul className="space-y-0.5 border-t border-white/[0.06] px-2 pb-3 pt-2">
-          {LEGAL_TERMS_SECTIONS.map((section) => (
+          {sections.map((section) => (
             <li key={section.id}>
               <TocButton
                 number={section.number}

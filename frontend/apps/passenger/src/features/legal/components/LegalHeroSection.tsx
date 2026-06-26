@@ -7,7 +7,7 @@ import {
   heroTitleClass,
 } from "@/features/home/lib/hero-visual";
 import { landingContainerClass } from "@/features/home/lib/landing-layout";
-import { LEGAL_TERMS_HERO } from "@/features/legal/constants/legal-terms-content";
+import type { LegalHeroContent } from "@/features/legal/types/legal-document";
 
 const heroShellClass =
   "relative max-w-2xl py-12 sm:py-14 lg:min-h-[16rem] lg:py-12 lg:pr-8";
@@ -18,7 +18,7 @@ const heroSubtitleClass =
 const heroMetaClass =
   "mt-3 text-sm text-foreground/80 [text-shadow:0_1px_12px_rgba(0,0,0,0.4)]";
 
-export function LegalHeroSection() {
+export function LegalHeroSection({ hero }: { hero: LegalHeroContent }) {
   const [photoFailed, setPhotoFailed] = useState(false);
 
   return (
@@ -38,15 +38,15 @@ export function LegalHeroSection() {
 
           <div className="relative">
             <p className={heroMetaClass}>
-              {LEGAL_TERMS_HERO.lastUpdatedLabel} :{" "}
-              <time dateTime="2026-06-23">{LEGAL_TERMS_HERO.lastUpdatedDate}</time>
+              {hero.lastUpdatedLabel} :{" "}
+              <time dateTime={hero.lastUpdatedIso}>{hero.lastUpdatedDate}</time>
             </p>
 
             <h1 id="legal-hero-title" className={cn(heroTitleClass, "mt-2")}>
-              <span className="text-primary">{LEGAL_TERMS_HERO.title}</span>
+              <span className="text-primary">{hero.title}</span>
             </h1>
 
-            <p className={heroSubtitleClass}>{LEGAL_TERMS_HERO.intro}</p>
+            <p className={heroSubtitleClass}>{hero.intro}</p>
           </div>
         </div>
       </div>

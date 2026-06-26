@@ -20,6 +20,7 @@ import { TripDetailPage } from "@/pages/TripDetailPage";
 import { TripsPage } from "@/pages/TripsPage";
 import { HelpPage } from "@/pages/HelpPage";
 import { LegalTermsPage } from "@/pages/LegalTermsPage";
+import { PrivacyPolicyPage } from "@/pages/PrivacyPolicyPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { SubscriptionsPage } from "@/pages/SubscriptionsPage";
 export const router = createBrowserRouter([
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "legal/terms", element: <LegalTermsPage /> },
+      { path: "legal/privacy", element: <PrivacyPolicyPage /> },
       { path: "trips", element: <TripsPage /> },
       {
         path: "trips/:tripId/book",

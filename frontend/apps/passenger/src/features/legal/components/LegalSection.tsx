@@ -1,7 +1,7 @@
 import { cn } from "@/lib/cn";
-import type { LegalTermsSection } from "@/features/legal/constants/legal-terms-content";
+import type { LegalDocumentSection } from "@/features/legal/types/legal-document";
 
-export function LegalSection({ section }: { section: LegalTermsSection }) {
+export function LegalSection({ section }: { section: LegalDocumentSection }) {
   const Icon = section.icon;
 
   return (

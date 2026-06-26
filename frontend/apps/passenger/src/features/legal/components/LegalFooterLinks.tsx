@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/cn";
 import { landingCardClass } from "@/features/home/lib/landing-layout";
-import { LEGAL_FOOTER_LINKS_TITLE } from "@/features/legal/constants/legal-terms-content";
+import { LEGAL_FOOTER_LINKS_TITLE } from "@/features/legal/types/legal-document";
 import { ROUTES } from "@/types/routes";
 
 const LEGAL_LINKS = [

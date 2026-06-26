@@ -1,4 +1,3 @@
-import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
   CreditCard,
@@ -14,40 +13,18 @@ import {
   Wallet,
 } from "lucide-react";
 
-export const LEGAL_TERMS_HERO = {
+import type { LegalDocumentSection, LegalHeroContent } from "@/features/legal/types/legal-document";
+
+export const LEGAL_TERMS_HERO: LegalHeroContent = {
   title: "Conditions Générales d'Utilisation",
   lastUpdatedLabel: "Dernière mise à jour",
   lastUpdatedDate: "23 juin 2026",
+  lastUpdatedIso: "2026-06-23",
   intro:
     "Veuillez lire attentivement les présentes Conditions Générales avant d'utiliser SharingGO.",
-} as const;
+};
 
-export const LEGAL_TERMS_TOC_TITLE = "Sommaire";
-
-export type LegalTermsSectionId =
-  | "presentation"
-  | "objet"
-  | "compte"
-  | "reservations"
-  | "paiement"
-  | "billets-qr"
-  | "abonnements"
-  | "responsabilites"
-  | "donnees"
-  | "suspension"
-  | "propriete"
-  | "modification"
-  | "contact";
-
-export interface LegalTermsSection {
-  id: LegalTermsSectionId;
-  number: number;
-  title: string;
-  icon: LucideIcon;
-  paragraphs: readonly string[];
-}
-
-export const LEGAL_TERMS_SECTIONS: LegalTermsSection[] = [
+export const LEGAL_TERMS_SECTIONS: LegalDocumentSection[] = [
   {
     id: "presentation",
     number: 1,
@@ -202,8 +179,6 @@ export const LEGAL_CONTACT_CARD = {
   phone: "07 80 90 10 20",
   cta: "Nous contacter",
 } as const;
-
-export const LEGAL_FOOTER_LINKS_TITLE = "Pages légales";
 
 export const LEGAL_ERROR = {
   title: "Impossible de charger les Conditions Générales",

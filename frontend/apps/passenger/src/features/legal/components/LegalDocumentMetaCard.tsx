@@ -26,17 +26,25 @@ export function LegalDocumentMetaCard({ meta }: { meta: LegalDocumentMeta }) {
         </div>
         <div>
           <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {LEGAL_DOCUMENT_META_LABELS.version}
+          </dt>
+          <dd className="mt-1 text-sm font-medium text-foreground">{meta.version}</dd>
+        </div>
+        <div>
+          <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {LEGAL_DOCUMENT_META_LABELS.effectiveDate}
+          </dt>
+          <dd className="mt-1 text-sm font-medium text-foreground">
+            <time dateTime={meta.effectiveDateIso}>{meta.effectiveDate}</time>
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {LEGAL_DOCUMENT_META_LABELS.lastUpdated}
           </dt>
           <dd className="mt-1 text-sm font-medium text-foreground">
             <time dateTime={meta.lastUpdatedIso}>{meta.lastUpdatedDate}</time>
           </dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {LEGAL_DOCUMENT_META_LABELS.version}
-          </dt>
-          <dd className="mt-1 text-sm font-medium text-foreground">{meta.version}</dd>
         </div>
       </dl>
     </aside>
