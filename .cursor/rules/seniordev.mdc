@@ -18,7 +18,7 @@ alwaysApply: false
 |------|--------|
 | Réserver | `pending_reservations` + `expires_at` = now + **2 min** |
 | Places | Transaction + verrou ligne trajet |
-| Ticket | 1 Checkout = 1 trajet (8 €) |
+| Ticket | 1 Checkout = 1 trajet (8,99 €) |
 | Abo actif | Skip paiement si Stripe subscription `active` |
 | Mosolf | Invalider autres abos à l’activation code |
 

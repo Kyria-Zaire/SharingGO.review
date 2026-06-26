@@ -16,7 +16,7 @@
 
 ### Convoyeur ticket
 
-- Paie **8 €** par trajet réservé (Stripe, paiement unitaire)
+- Paie **8,99 €** par trajet réservé (Stripe, paiement unitaire)
 - Pas d’abonnement ; peut **passer en abonné** plus tard (historique conservé)
 - 3 trajets = 3 paiements séparés (pas de panier)
 

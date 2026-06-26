@@ -21,7 +21,7 @@ Toute divergence → versionner le document concerné (CDC, PRD, ou ADR dans `do
 
 - Ligne **unique** : Châlons-en-Champagne ↔ Paris-Vatry
 - 8 trajets/jour, **8 places**/trajet
-- **Pas de panier** ; pending **2 min** ; ticket **8 €**/trajet
+- **Pas de panier** ; pending **2 min** ; ticket **8,99 €**/trajet
 - Mosolf : code **usage unique**, désactive les autres abos
 
 ## Périmètre V1 uniquement

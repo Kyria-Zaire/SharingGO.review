@@ -12,7 +12,7 @@ Références : CDC · `docs/methodology/BMAD.md` · PRD actif · `PRODUCT.md` ·
 
 - TypeScript strict · petits modules · types explicites sur API publique
 - Pas de `any` non justifié · pas de `catch {}` vide · pas de logs console en prod (logger structuré)
-- Pas de règles métier dupliquées · pas de magic numbers (8 places, 2 min pending, 8 € ticket)
+- Pas de règles métier dupliquées · pas de magic numbers (8 places, 2 min pending, 8,99 € ticket)
 
 ## Backend
 
