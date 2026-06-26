@@ -17,6 +17,7 @@ export function HelpFaqSection({ items }: { items: readonly HelpFaqItem[] }) {
         {items.map((item) => (
           <details
             key={item.id}
+            id={item.id}
             className="group rounded-xl border border-white/[0.08] bg-[#121212] open:border-primary/30 open:bg-primary/5"
           >
             <summary

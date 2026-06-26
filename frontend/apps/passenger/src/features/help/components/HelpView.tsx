@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/cn";
 import { landingContainerClass } from "@/features/home/lib/landing-layout";
 import { HelpCategoriesGrid } from "@/features/help/components/HelpCategoriesGrid";
@@ -19,6 +20,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 
 export function HelpView() {
+  const { hash } = useLocation();
   const { isLoading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<HelpCategoryFilter>("all");
@@ -48,6 +50,22 @@ export function HelpView() {
 
   const showSkeleton = authLoading || !contentReady;
   const hasActiveFilter = searchQuery.trim().length > 0 || selectedCategory !== "all";
+
+  useEffect(() => {
+    if (showSkeleton || !hash) return;
+
+    const anchorId = hash.replace(/^#/, "");
+    if (!anchorId) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const target = document.getElementById(anchorId);
+      if (!(target instanceof HTMLDetailsElement)) return;
+      target.open = true;
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [hash, showSkeleton]);
 
   return (
     <div className="w-full">
