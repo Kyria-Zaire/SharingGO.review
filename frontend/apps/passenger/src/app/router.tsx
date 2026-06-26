@@ -18,6 +18,7 @@ import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { TripDetailPage } from "@/pages/TripDetailPage";
 import { TripsPage } from "@/pages/TripsPage";
+import { ContactPage } from "@/pages/ContactPage";
 import { HelpPage } from "@/pages/HelpPage";
 import { LegalNoticePage } from "@/pages/LegalNoticePage";
 import { LegalTermsPage } from "@/pages/LegalTermsPage";
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "legal/terms", element: <LegalTermsPage /> },
       { path: "legal/privacy", element: <PrivacyPolicyPage /> },
       { path: "legal/notice", element: <LegalNoticePage /> },
+      { path: "contact", element: <ContactPage /> },
       { path: "trips", element: <TripsPage /> },
       {
         path: "trips/:tripId/book",
