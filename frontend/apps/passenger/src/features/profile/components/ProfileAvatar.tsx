@@ -10,13 +10,18 @@ export function ProfileAvatar({
   className,
 }: {
   user: PassengerUser;
-  size?: "md" | "lg";
+  size?: "md" | "lg" | "xl";
   className?: string;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const picture = getGoogleProfilePicture();
   const initials = profileInitials(user);
-  const sizeClass = size === "lg" ? "h-16 w-16 text-lg" : "h-12 w-12 text-sm";
+  const sizeClass =
+    size === "xl"
+      ? "h-24 w-24 text-2xl"
+      : size === "lg"
+        ? "h-16 w-16 text-lg"
+        : "h-12 w-12 text-sm";
 
   if (picture && !imageFailed) {
     return (

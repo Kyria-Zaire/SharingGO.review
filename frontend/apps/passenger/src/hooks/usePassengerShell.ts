@@ -31,7 +31,8 @@ export function usePassengerShell(): PassengerShellState {
       pathname.startsWith(`${ROUTES.trips}/`) && pathname !== ROUTES.trips;
     const isBookingsList = pathname === ROUTES.bookings;
     const isSubscriptionsList = pathname === ROUTES.subscriptions;
-    const isProfilePage = pathname === ROUTES.profile;
+    const isProfilePage =
+      pathname === ROUTES.profile || pathname === ROUTES.profileEdit;
     const isMarketingSurface =
       isHome ||
       isTripsDiscovery ||

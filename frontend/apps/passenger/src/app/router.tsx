@@ -12,6 +12,7 @@ import { PaymentCancelPage } from "@/pages/PaymentCancelPage";
 import { PaymentSuccessPage } from "@/pages/PaymentSuccessPage";
 import { PendingReservationPage } from "@/pages/PendingReservationPage";
 import { BookingFormPage } from "@/pages/BookingFormPage";
+import { ProfileEditPage } from "@/pages/ProfileEditPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { TripDetailPage } from "@/pages/TripDetailPage";
@@ -70,6 +71,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <BookingDetailPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "profile/edit",
+        element: (
+          <RequireAuth>
+            <ProfileEditPage />
           </RequireAuth>
         ),
       },

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { User } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { landingCardClass, landingOutlineButtonClass } from "@/features/home/lib/landing-layout";
@@ -5,16 +6,11 @@ import { ProfileAvatar } from "@/features/profile/components/ProfileAvatar";
 import { PROFILE_IDENTITY } from "@/features/profile/constants/profile-content";
 import { profileDisplayName } from "@/features/profile/lib/profile-format";
 import type { PassengerUser } from "@/types/auth";
+import { ROUTES } from "@/types/routes";
 
 const CARD_CLASS = cn(landingCardClass, "border-white/[0.08] bg-[#121212] p-5 sm:p-6");
 
-export function ProfileIdentityCard({
-  user,
-  onEditProfile,
-}: {
-  user: PassengerUser;
-  onEditProfile: () => void;
-}) {
+export function ProfileIdentityCard({ user }: { user: PassengerUser }) {
   const name = profileDisplayName(user);
 
   return (
@@ -31,9 +27,9 @@ export function ProfileIdentityCard({
         </div>
       </div>
 
-      <button type="button" onClick={onEditProfile} className={cn(landingOutlineButtonClass, "mt-6 w-full")}>
+      <Link to={ROUTES.profileEdit} className={cn(landingOutlineButtonClass, "mt-6 w-full")}>
         {PROFILE_IDENTITY.editCta}
-      </button>
+      </Link>
     </article>
   );
 }

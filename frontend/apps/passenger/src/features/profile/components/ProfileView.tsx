@@ -45,10 +45,6 @@ export function ProfileView() {
     void logout();
   };
 
-  const handleEditProfile = () => {
-    setTab("information");
-  };
-
   return (
     <div className="w-full">
       <ProfileHeroSection onLogout={handleLogout} />
@@ -73,7 +69,6 @@ export function ProfileView() {
                   me={meQuery.data}
                   stats={statsQuery.data}
                   recentReservations={recentQuery.data?.reservations ?? []}
-                  onEditProfile={handleEditProfile}
                 />
               ) : null}
 

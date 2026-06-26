@@ -13,20 +13,18 @@ export function ProfileOverviewTab({
   me,
   stats,
   recentReservations,
-  onEditProfile,
 }: {
   user: PassengerUser;
   me: SubscriptionMeResponse | undefined;
   stats: ProfileStats | undefined;
   recentReservations: UserReservationListItem[];
-  onEditProfile: () => void;
 }) {
   const tripsCompleted = stats?.tripsCompleted ?? 0;
 
   return (
     <div className="space-y-6 pt-6">
       <div className="grid gap-5 md:grid-cols-2">
-        <ProfileIdentityCard user={user} onEditProfile={onEditProfile} />
+        <ProfileIdentityCard user={user} />
         <ProfileSubscriptionCard me={me} />
       </div>
 
