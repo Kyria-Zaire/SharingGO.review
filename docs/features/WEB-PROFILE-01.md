@@ -1,6 +1,6 @@
 # WEB-PROFILE-01 — Refonte Mon profil (passager)
 
-**Statut :** clôturé (validation CTO)  
+**Statut :** accepté CTO  
 **Route :** `/profile` (auth requise)  
 **Dépendances :** `GET /api/auth/me`, `GET /api/subscriptions/me`, `GET /api/reservations`
 
@@ -16,10 +16,10 @@ Tableau de bord personnel premium : identité, abonnement, statistiques, informa
 | Shell | `/profile` dans `isMarketingSurface` (footer + layout premium) |
 | Onglets | Vue d'ensemble · Informations · Paiement · Préférences · Sécurité |
 | Vue d'ensemble | Cartes profil, abonnement, stats, fidélité, 3 dernières réservations |
-| Informations | Prénom, nom, email en lecture seule + message « disponible prochainement » |
+| Informations | Prénom, nom, email (lecture seule email ; save désactivé — pas d'API PATCH) |
 | Paiement | Empty state Stripe ; pas de wallet local |
-| Préférences | Carte « prochaine mise à jour » avec liste Notifications / Langue / Communication |
-| Sécurité | Intro + actions avec badge **Bientôt** |
+| Préférences | Placeholder honnête (pas d'API préférences MVP) |
+| Sécurité | MDP / appareils / suppression — actions sensibles désactivées |
 | Avatar Google | Photo JWT en `sessionStorage` après connexion Google (fallback initiales) |
 
 ## Fichiers clés
@@ -79,4 +79,5 @@ node ../../tmp-screenshot-profile.mjs   # depuis la racine repo, serveurs up
 
 - Stats basées sur les réservations API (limite 50 passées + 50 à venir)
 - « Trajets effectués » = réservations au statut `USED`
-- CTA modification remplacé par message explicite « disponible prochainement »
+- CTA « Enregistrer » remplacé par message « Modification du profil bientôt disponible »
+- Préférences et sécurité : cartes « bientôt disponible » avec badge **Bientôt**

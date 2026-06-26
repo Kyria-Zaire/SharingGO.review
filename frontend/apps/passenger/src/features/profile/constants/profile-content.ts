@@ -55,12 +55,16 @@ export const PROFILE_ACTIVITY = {
   emptyDescription: "Vos dernières réservations apparaîtront ici.",
 } as const;
 
+export const PROFILE_COMING_SOON = {
+  badge: "Bientôt",
+} as const;
+
 export const PROFILE_INFORMATION = {
   title: "Informations personnelles",
   firstName: "Prénom",
   lastName: "Nom",
   email: "Email",
-  comingSoonMessage: "La modification du profil sera disponible prochainement.",
+  editSoonMessage: "Modification du profil bientôt disponible.",
 } as const;
 
 export const PROFILE_PAYMENT = {
@@ -76,16 +80,14 @@ export const PROFILE_PAYMENT = {
 
 export const PROFILE_PREFERENCES = {
   title: "Préférences",
-  comingSoonIntro: "Cette section sera disponible dans une prochaine mise à jour.",
-  comingSoonListTitle: "Vous pourrez bientôt gérer :",
-  comingSoonItems: ["Notifications", "Langue", "Préférences de communication"] as const,
+  soonIntro: "Cette section sera disponible dans une prochaine mise à jour.",
+  soonListTitle: "Vous pourrez bientôt gérer :",
+  soonItems: ["Notifications", "Langue", "Préférences de communication"] as const,
 } as const;
-
-export const PROFILE_SOON_BADGE = "Bientôt" as const;
 
 export const PROFILE_SECURITY = {
   title: "Sécurité du compte",
-  comingSoonIntro: "Fonctionnalités de sécurité avancées bientôt disponibles.",
+  soonIntro: "Fonctionnalités de sécurité avancées bientôt disponibles.",
   changePassword: "Changer mot de passe",
   changePasswordHint:
     "Connexion Google : gérez votre mot de passe depuis votre compte Google.",
