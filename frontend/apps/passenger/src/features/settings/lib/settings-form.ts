@@ -1,8 +1,6 @@
 import { isGoogleOAuthSession } from "@/features/profile/edit/lib/profile-edit-form";
 import { SETTINGS_ACCOUNT } from "@/features/settings/constants/settings-content";
 
-export { isGoogleOAuthSession };
-
 export function resolveAccountProviderLabel(): string {
   return isGoogleOAuthSession() ? SETTINGS_ACCOUNT.providerGoogle : SETTINGS_ACCOUNT.providerEmail;
 }

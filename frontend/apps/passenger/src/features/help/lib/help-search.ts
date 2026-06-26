@@ -1,6 +1,5 @@
 import {
   HELP_CATEGORY_LABELS,
-  HELP_FAQ_ITEMS,
   type HelpFaqItem,
 } from "@/features/help/constants/help-content";
 import type { HelpCategory, HelpCategoryFilter } from "@/features/help/lib/help-categories";
@@ -49,5 +48,3 @@ export function countFaqByCategory(
   }
   return counts;
 }
-
-export { HELP_FAQ_ITEMS };

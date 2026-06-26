@@ -7,14 +7,14 @@ import type {
 const GROUP_ORDER: NotificationTimeGroup[] = ["today", "this_week", "older"];
 
 /** Tri décroissant garanti — plus récente en premier, indépendant de l'ordre source. */
-export function compareNotificationsNewestFirst(
+function compareNotificationsNewestFirst(
   a: NotificationItem,
   b: NotificationItem
 ): number {
   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 }
 
-export function sortNotificationsDescending(items: NotificationItem[]): NotificationItem[] {
+function sortNotificationsDescending(items: NotificationItem[]): NotificationItem[] {
   return [...items].sort(compareNotificationsNewestFirst);
 }
 

@@ -29,7 +29,7 @@ export function getReservationStatusView(status: string): ReservationStatusView 
   return { label, badgeVariant };
 }
 
-export { getPaymentStatusLabel, getReservationStatusLabel };
+export { getPaymentStatusLabel };
 
 export function formatPaymentAmount(amount: string, currency: string): string {
   const value = Number.parseFloat(amount);

@@ -1,10 +1,6 @@
 import { ROUTES } from "@/types/routes";
 import type { UserReservationListItem } from "@/types/reservations";
 
-export function formatBookingReference(reservationId: string): string {
-  return reservationId.slice(0, 8).toUpperCase();
-}
-
 export function canAccessBoardingPass(reservation: UserReservationListItem): boolean {
   return reservation.status === "CONFIRMED";
 }

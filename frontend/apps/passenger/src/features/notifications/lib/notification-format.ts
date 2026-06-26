@@ -1,9 +1,4 @@
 import { formatTime } from "@/lib/format-date";
-import type { NotificationItem } from "@/features/notifications/types/notifications.types";
-
-export function formatNotificationTime(iso: string): string {
-  return formatTime(iso);
-}
 
 export function formatNotificationDateTime(iso: string): string {
   const date = new Date(iso);
@@ -23,8 +18,4 @@ export function formatNotificationDateTime(iso: string): string {
     month: "short",
     timeZone: "Europe/Paris",
   }).format(date);
-}
-
-export function countUnread(notifications: NotificationItem[]): number {
-  return notifications.filter((item) => !item.read).length;
 }
