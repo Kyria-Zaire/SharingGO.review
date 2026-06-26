@@ -16,6 +16,7 @@ export const USER_MESSAGES = {
   reservationIdMissing: "Réservation introuvable.",
   boardingLoad: "Impossible de charger votre billet d'embarquement.",
   subscriptionsLoad: "Impossible de charger vos abonnements.",
+  profileLoad: "Impossible de charger votre profil.",
   pendingLoad: "Impossible de charger votre réservation temporaire.",
   releasePlace: "Impossible de libérer votre place. Veuillez réessayer.",
   paymentConfirm: "Le paiement n'a pas pu être confirmé. Consultez vos réservations.",

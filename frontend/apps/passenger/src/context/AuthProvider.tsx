@@ -6,6 +6,10 @@ import {
   logoutPassenger,
   registerPassengerEmailPassword,
 } from "@/api/auth.api";
+import {
+  clearGoogleProfilePicture,
+  persistGooglePictureFromCredential,
+} from "@/features/profile/lib/google-profile-picture";
 import { AuthContext, type AuthContextValue } from "@/context/auth-context";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -23,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser]);
 
   const loginWithGoogleCredential = useCallback(async (credential: string) => {
+    persistGooglePictureFromCredential(credential);
     const loggedIn = await googleLoginPassenger(credential);
     setUser(loggedIn);
     return loggedIn;
@@ -50,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await logoutPassenger();
+    clearGoogleProfilePicture();
     setUser(null);
   }, []);
 

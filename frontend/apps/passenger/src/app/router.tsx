@@ -73,7 +73,14 @@ export const router = createBrowserRouter([
           </RequireAuth>
         ),
       },
-      { path: "profile", element: <ProfilePage /> },
+      {
+        path: "profile",
+        element: (
+          <RequireAuth>
+            <ProfilePage />
+          </RequireAuth>
+        ),
+      },
       {
         path: "subscriptions",
         element: (

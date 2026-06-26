@@ -1,0 +1,29 @@
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/lib/cn";
+import { landingCardClass } from "@/features/home/lib/landing-layout";
+import { PROFILE_ERROR } from "@/features/profile/constants/profile-content";
+
+export function ProfileErrorCard({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div
+      className={cn(
+        landingCardClass,
+        "flex flex-col items-center border-destructive/20 bg-[#121212] px-6 py-10 text-center"
+      )}
+    >
+      <AlertCircle className="h-10 w-10 text-destructive" aria-hidden />
+      <p className="mt-4 text-base font-semibold text-foreground">{PROFILE_ERROR.title}</p>
+      <p className="mt-2 max-w-md text-sm text-muted-foreground">{message}</p>
+      <Button variant="secondary" className="mt-6" onClick={onRetry}>
+        {PROFILE_ERROR.retry}
+      </Button>
+    </div>
+  );
+}

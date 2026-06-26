@@ -9,6 +9,7 @@ export interface PassengerShellState {
   isTripDetail: boolean;
   isBookingsList: boolean;
   isSubscriptionsList: boolean;
+  isProfilePage: boolean;
   isMarketingSurface: boolean;
   isAuthenticated: boolean;
   /** Footer marketing (page d'accueil). */
@@ -30,8 +31,14 @@ export function usePassengerShell(): PassengerShellState {
       pathname.startsWith(`${ROUTES.trips}/`) && pathname !== ROUTES.trips;
     const isBookingsList = pathname === ROUTES.bookings;
     const isSubscriptionsList = pathname === ROUTES.subscriptions;
+    const isProfilePage = pathname === ROUTES.profile;
     const isMarketingSurface =
-      isHome || isTripsDiscovery || isTripDetail || isBookingsList || isSubscriptionsList;
+      isHome ||
+      isTripsDiscovery ||
+      isTripDetail ||
+      isBookingsList ||
+      isSubscriptionsList ||
+      isProfilePage;
 
     return {
       isHome,
@@ -39,6 +46,7 @@ export function usePassengerShell(): PassengerShellState {
       isTripDetail,
       isBookingsList,
       isSubscriptionsList,
+      isProfilePage,
       isMarketingSurface,
       isAuthenticated,
       showMarketingFooter: isMarketingSurface,
