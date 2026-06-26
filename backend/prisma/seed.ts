@@ -399,7 +399,7 @@ async function main(): Promise<void> {
         data: {
           userId,
           reservationId: reservation.id,
-          amount: new Prisma.Decimal("8.00"),
+          amount: new Prisma.Decimal("8.99"),
           currency: "eur",
           status: PaymentStatus.SUCCEEDED,
           type: PaymentType.TICKET,
@@ -457,7 +457,7 @@ async function main(): Promise<void> {
   await prisma.payment.create({
     data: {
       userId: passengerIds[23]!,
-      amount: new Prisma.Decimal("8.00"),
+      amount: new Prisma.Decimal("8.99"),
       currency: "eur",
       status: PaymentStatus.FAILED,
       type: PaymentType.TICKET,
@@ -468,7 +468,7 @@ async function main(): Promise<void> {
   await prisma.payment.create({
     data: {
       userId: passengerIds[0]!,
-      amount: new Prisma.Decimal("8.00"),
+      amount: new Prisma.Decimal("8.99"),
       currency: "eur",
       status: PaymentStatus.PENDING,
       type: PaymentType.TICKET,

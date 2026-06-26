@@ -4,7 +4,7 @@ Ticket : page `/trips` branchée sur les trajets publics — découverte sans r�
 
 ## Objectifs UX
 
-Permettre à un convoyeur de **voir les vrais trajets** : ligne, date, horaires, places restantes, prix ticket 8 €, statut — **sans** réserver ni payer.
+Permettre à un convoyeur de **voir les vrais trajets** : ligne, date, horaires, places restantes, prix ticket 8,99 €, statut — **sans** réserver ni payer.
 
 ## Endpoint utilisé
 
@@ -32,7 +32,7 @@ OpenAPI : `docs/api/openapi.json` → tags **Public Trips**
 PageHeader
 TripsRouteSummary      — ligne Châlons ↔ Vatry (depuis 1er trajet ou libellé statique)
 TripsDateFilter        — Aujourd'hui / Demain / Date manuelle → query API
-Pricing hint           — Ticket 8 € + abonnements bientôt
+Pricing hint           — Ticket 8,99 € + abonnements bientôt
 TripsTrustBlock        — 4 rappels confiance
 TripsList / skeleton / ErrorState / EmptyState
   └── TripCard × N
@@ -42,7 +42,7 @@ TripsList / skeleton / ErrorState / EmptyState
 
 | Composant | Rôle |
 |-----------|------|
-| `TripCard` | Départ, arrivée, places, 8 €, badge, CTA désactivé |
+| `TripCard` | Départ, arrivée, places, 8,99 €, badge, CTA désactivé |
 | `TripAvailabilityBadge` | Badge statut |
 | `TripsDateFilter` | Filtre date → `usePublicTrips` |
 | `TripsRouteSummary` | Bandeau ligne |
@@ -144,6 +144,6 @@ npm run build
 - [x] API publique `GET /api/trips`
 - [x] TripCard + TripAvailabilityBadge
 - [x] Filtre date + états loading/error/empty
-- [x] Prix 8 € + trust block
+- [x] Prix 8,99 € + trust block
 - [x] Aucune API admin
 - [x] Lint + build

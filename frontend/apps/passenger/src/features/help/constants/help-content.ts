@@ -94,7 +94,7 @@ export const HELP_FAQ_ITEMS = [
     category: "bookings" as const,
     question: "Comment réserver ?",
     answer:
-      "Choisissez un trajet sur la page Trajets, sélectionnez un créneau disponible puis suivez le paiement Stripe. Votre place est réservée après confirmation du paiement (8 € par trajet).",
+      "Choisissez un trajet sur la page Trajets, sélectionnez un créneau disponible puis suivez le paiement Stripe. Votre place est réservée après confirmation du paiement (8,99 € par trajet).",
   },
   {
     id: "how-qr",
@@ -157,7 +157,7 @@ export const HELP_FAQ_ITEMS = [
     category: "subscriptions" as const,
     question: "Comment réserver avec mon abonnement ?",
     answer:
-      "Avec un abonnement actif, réservez un trajet normalement : la confirmation se fait sans paiement unitaire de 8 € si votre abonnement couvre la période.",
+      "Avec un abonnement actif, réservez un trajet normalement : la confirmation se fait sans paiement unitaire de 8,99 € si votre abonnement couvre la période.",
   },
   {
     id: "notifications",

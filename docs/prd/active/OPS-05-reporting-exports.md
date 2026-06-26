@@ -53,7 +53,7 @@ OPS-04 exploitation-history (réutilisé, pas dupliqué)
 - Alignement CDC §3 : taux de remplissage, revenus, stats simples — **sur période**, pas seulement temps réel.
 - Base data pour pilote Mosolf sans sur-ingénierie V1.
 
-**Principe directeur :** **read-only** · réutiliser OPS-04 · stats simples (tableaux + chiffres, pas de BI) · une ligne / 8 places / 8 €.
+**Principe directeur :** **read-only** · réutiliser OPS-04 · stats simples (tableaux + chiffres, pas de BI) · une ligne / 8 places / 8,99 €.
 
 ---
 

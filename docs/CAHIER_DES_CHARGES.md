@@ -34,13 +34,13 @@
 |-------------|-------------|----------|------------|
 | Abonné Mosolf | `convoyeur` (+ code promo) | CB Stripe, code Mosolf **usage unique** | 40 €/mois |
 | Convoyeur abonné | `convoyeur` | CB Stripe | 30 €/mois |
-| Convoyeur ticket | `convoyeur` | **8 €** par réservation (unitaire) | Aucun |
+| Convoyeur ticket | `convoyeur` | **8,99 €** par réservation (unitaire) | Aucun |
 | Admin | `admin` | — | — |
 
 ### Règles métier
 
 - Un convoyeur peut passer **ticket → abonnement** (historique conservé).
-- Un ticket = **un seul trajet** ; 3 trajets = **3 × 8 €** (pas de panier multi-trajets en un paiement).
+- Un ticket = **un seul trajet** ; 3 trajets = **3 × 8,99 €** (pas de panier multi-trajets en un paiement).
 - Code Mosolf : lié à un **email ou domaine**, **usage unique**, **désactive** tout autre abonnement actif.
 
 ---

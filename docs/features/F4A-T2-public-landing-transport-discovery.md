@@ -10,7 +10,7 @@ Répondre en **moins de 10 secondes** aux questions :
 |----------|-------------------------|
 | Où va la navette ? | Hero + section Ligne (Châlons ↔ Paris-Vatry) |
 | Pour qui ? | Hero — convoyeurs et professionnels |
-| Combien ça coûte ? | Section Tarifs (8 € / 30 € / 40 €) |
+| Combien ça coûte ? | Section Tarifs (8,99 € / 30 € / 40 €) |
 | Comment ça fonctionne ? | Section 3 étapes + CTA ancre |
 | Comment réserver ? | FAQ + CTA « Voir les trajets » → `/trips` |
 
@@ -39,7 +39,7 @@ Contenu centralisé : `src/features/home/constants/landing-content.ts`.
 | Hero titre | Votre navette vers Paris-Vatry |
 | Hero sous-titre | Transport dédié aux convoyeurs et professionnels… |
 | Ligne | Trajet régulier · Places limitées · Réservation obligatoire |
-| Ticket | 8 € — voyage occasionnel |
+| Ticket | 8,99 € — voyage occasionnel |
 | Abo convoyeur | 30 €/mois — utilisateurs réguliers |
 | Abo Mosolf | 40 €/mois — collaborateurs éligibles |
 

@@ -4,7 +4,7 @@ Ticket : page `/trips/:tripId` — détail trajet public et entrée réservation
 
 ## Objectifs UX
 
-Permettre à un convoyeur de **comprendre précisément** un trajet avant de réserver : route, date, horaires, durée, places, prix 8 €, statut — avec un CTA « Réserver ma place » visible mais **non fonctionnel** (message V1).
+Permettre à un convoyeur de **comprendre précisément** un trajet avant de réserver : route, date, horaires, durée, places, prix 8,99 €, statut — avec un CTA « Réserver ma place » visible mais **non fonctionnel** (message V1).
 
 ## Endpoint utilisé
 
@@ -80,7 +80,7 @@ Header (retour + titre)
 TripDetailHero           — route, date, badge disponibilité
 TripScheduleCard         — départ, arrivée, durée
 TripSeatsCard            — places restantes / capacité
-TripPriceCard            — 8 €
+TripPriceCard            — 8,99 €
 TripKnowBeforeYouGo      — rappels convoyeur
 ReservationEntryFooter   — sticky : prix + CTA
 ```
@@ -101,7 +101,7 @@ ReservationEntryFooter   — sticky : prix + CTA
 - `deriveTripDetailReservationCta` — footer détail
 - `canNavigateToTripDetail` — navigation liste
 - `formatDayLabel`, `formatTime`, `formatTripDuration`
-- `TICKET_PRICE_LABEL` — 8 €
+- `TICKET_PRICE_LABEL` — 8,99 €
 - `TripAvailabilityBadge`
 
 ## Mobile-first

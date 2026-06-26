@@ -4,10 +4,9 @@ import { env } from "../../config/env.js";
 import { AppError } from "../../lib/errors.js";
 import { logger } from "../../lib/logger.js";
 import { prisma } from "../../lib/prisma.js";
+import { ticketAmountEur } from "../../lib/ticket-pricing.js";
 import { getStripeClient } from "./stripe.service.js";
 import type { CreateCheckoutResult } from "./payments.types.js";
-
-const TICKET_AMOUNT_EUR = new Prisma.Decimal("8.00");
 
 async function auditPayment(
   action: string,
@@ -148,7 +147,7 @@ export async function createCheckoutSession(
   await prisma.payment.create({
     data: {
       userId,
-      amount: TICKET_AMOUNT_EUR,
+      amount: ticketAmountEur(),
       currency: env.stripeCurrency,
       status: PaymentStatus.PENDING,
       type: PaymentType.TICKET,

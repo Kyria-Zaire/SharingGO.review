@@ -55,7 +55,7 @@ DemoPassword123!
 - **Trajets** : 6 jours × 8 créneaux/jour (horaires 05:30 … 21:00 Europe/Paris), `totalSeats=8`, arrivée +40 min
 - Créneaux déjà passés **le jour J** sont ignorés (trajets uniquement dans le futur)
 - **Occupancy variée** : 0/8, 2/8, 5/8, 7/8, 8/8 (complet), + autres niveaux
-- **Réservations** CONFIRMED + **paiements** SUCCEEDED 8,00 EUR
+- **Réservations** CONFIRMED + **paiements** SUCCEEDED 8,99 EUR
 - **Pending** : une active (+10 min), une expirée (−10 min), une consommée (`consumedAt` renseigné)
 - **Paiements** : un FAILED sans réservation, un PENDING (checkout abandonné)
 - **AuditLog** : `DEMO_SEED_RUN`, `DEMO_RESERVATION_CREATED`, `DEMO_PAYMENT_SUCCEEDED`

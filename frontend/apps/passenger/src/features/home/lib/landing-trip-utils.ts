@@ -1,3 +1,4 @@
+import { TICKET_PRICE_LABEL } from "@/constants/pricing";
 import { toParisDateKey, todayParisDateKey, tomorrowParisDateKey, formatDate } from "@/lib/format-date";
 import { formatTripCityShort } from "@/lib/trip-city-labels";
 import { normalizeTripSeats } from "@/lib/trip-availability";
@@ -35,4 +36,4 @@ export function formatTripDayBadgeLabel(trip: PublicTrip): string {
   });
 }
 
-export const LANDING_TICKET_PRICE_LABEL = "8,00 €";
+export const LANDING_TICKET_PRICE_LABEL = TICKET_PRICE_LABEL;

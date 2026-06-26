@@ -23,8 +23,8 @@ Ticket : paiement ticket unique (8 EUR) pour transformer une `PendingReservation
 
 | Paramètre | Valeur |
 |-----------|--------|
-| Montant | 8,00 EUR |
-| Centimes Stripe | `STRIPE_TICKET_PRICE_CENTS=800` |
+| Montant | 8,99 EUR |
+| Centimes Stripe | `STRIPE_TICKET_PRICE_CENTS=899` |
 | Devise | `eur` uniquement |
 | Type | `PaymentType.TICKET` |
 

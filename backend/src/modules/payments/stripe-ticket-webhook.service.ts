@@ -13,13 +13,12 @@ import { countOccupiedSeats, deleteExpiredPendingForTrip } from "../../lib/trip-
 import { prisma } from "../../lib/prisma.js";
 import { lockTripForUpdate } from "../reservations/reservation-locking.js";
 import type { StripeCheckoutMetadata } from "./payments.types.js";
+import { ticketAmountEur } from "../../lib/ticket-pricing.js";
 import {
   ignoreDuplicateStripeWebhook,
   recordStripeWebhookEvent,
   recordStripeWebhookEventInTx,
 } from "./stripe-webhook-idempotency.js";
-
-const TICKET_AMOUNT_EUR = new Prisma.Decimal("8.00");
 
 async function auditPaymentFlow(
   action: string,
@@ -192,7 +191,7 @@ export async function handleTicketCheckoutSessionCompleted(
             status: PaymentStatus.SUCCEEDED,
             reservationId: reservation.id,
             stripePaymentIntentId: resolvedPaymentIntentId,
-            amount: TICKET_AMOUNT_EUR,
+            amount: ticketAmountEur(),
             currency: "eur",
             type: PaymentType.TICKET,
           },
@@ -202,7 +201,7 @@ export async function handleTicketCheckoutSessionCompleted(
           data: {
             userId: metadata.userId,
             reservationId: reservation.id,
-            amount: TICKET_AMOUNT_EUR,
+            amount: ticketAmountEur(),
             currency: "eur",
             status: PaymentStatus.SUCCEEDED,
             type: PaymentType.TICKET,

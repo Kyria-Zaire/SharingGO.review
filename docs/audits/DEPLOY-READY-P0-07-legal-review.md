@@ -123,7 +123,7 @@ Settings (privacy tab) ──► CGU / Privacy            ⚠️ pas de lien (di
 
 | Affirmation légale | Produit réel | Verdict |
 |--------------------|--------------|---------|
-| 8 € / trajet | CDC V1 | ✅ |
+| 8,99 € / trajet | CDC V1 | ✅ |
 | 8 places / trajet | CDC V1 | ✅ |
 | Pending « durée limitée » | 2 min backend | ✅ (non contradictoire) |
 | QR usage unique · exp +10 min | Implémenté | ✅ |

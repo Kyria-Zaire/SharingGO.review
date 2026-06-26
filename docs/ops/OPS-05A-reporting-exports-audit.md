@@ -29,7 +29,7 @@
 | **OPS-05B** | Backend read-only — rapports agrégés période + endpoints export CSV |
 | **OPS-05C** | UI admin `/reports` — filtres date, prévisualisation, téléchargement |
 
-**Principe produit V1 :** une ligne unique, 8 places, 8 €/ticket — les rapports doivent rester **opérationnels** (par trajet / par jour) avant tout reporting entreprise Mosolf.
+**Principe produit V1 :** une ligne unique, 8 places, 8,99 €/ticket — les rapports doivent rester **opérationnels** (par trajet / par jour) avant tout reporting entreprise Mosolf.
 
 ---
 
@@ -185,7 +185,7 @@ Période filtrable `from` / `to` (défaut : jour ou semaine glissante).
 |-------------|------------------|
 | Abonné Mosolf 40 €/mois | Reporting RH / mobilité entreprise |
 | Code promo usage unique | Pas de lien `User` → entreprise en DB aujourd'hui |
-| Convoyeur ticket 8 € | Traçabilité individuelle possible via `userId` |
+| Convoyeur ticket 8,99 € | Traçabilité individuelle possible via `userId` |
 | Ligne unique | Pas de reporting multi-sites |
 
 ### 4.2 Rapports entreprise identifiés

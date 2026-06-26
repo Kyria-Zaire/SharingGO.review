@@ -262,7 +262,7 @@
           "id": { "type": "string" },
           "status": { "type": "string", "enum": ["PENDING", "SUCCEEDED", "FAILED", "REFUNDED"] },
           "type": { "type": "string", "enum": ["TICKET", "SUBSCRIPTION", "SUBSCRIPTION_ACCESS"] },
-          "amount": { "type": "string", "example": "8.00" },
+          "amount": { "type": "string", "example": "8.99" },
           "currency": { "type": "string", "example": "eur" },
           "createdAt": { "type": "string", "format": "date-time" }
         }

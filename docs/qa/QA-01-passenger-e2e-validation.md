@@ -22,7 +22,7 @@ Google OAuth → découverte trajets → pending reservation (2 min)
 → historique /bookings → détail → boarding pass QR + countdown
 ```
 
-**Conclusion :** la logique métier backend et le frontend passager sont alignés avec le CDC V1 (8 € / trajet, QR après confirmation, pas de validation optimiste côté client). Les échecs antérieurs étaient dus à l’**infrastructure webhook locale** (`stripe listen` instable), pas à un défaut fonctionnel du produit.
+**Conclusion :** la logique métier backend et le frontend passager sont alignés avec le CDC V1 (8,99 € / trajet, QR après confirmation, pas de validation optimiste côté client).
 
 ---
 
@@ -35,7 +35,7 @@ Google OAuth → découverte trajets → pending reservation (2 min)
 | **Backend URL (hôte)** | `http://localhost:3000` |
 | **Frontend passager** | Vite · `frontend/apps/passenger` · port **5174** |
 | **Frontend admin** | port 5173 (hors scope QA-01) |
-| **Stripe** | Mode **test** · Checkout Session ticket 8 € |
+| **Stripe** | Mode **test** · Checkout Session ticket 8,99 € |
 | **Google OAuth** | Client OAuth Google (convoyeur) · ID token vérifié côté backend |
 | **Webhook (tunnel)** | **ngrok** → `https://<subdomain>.ngrok-free.dev` → `localhost:3000` |
 | **Endpoint webhook Stripe** | Destination Dashboard · événement `checkout.session.completed` |
@@ -76,7 +76,7 @@ Google OAuth → découverte trajets → pending reservation (2 min)
 | 4 | **Stripe Checkout** (CTA « Payer maintenant ») | Redirect Stripe · session `cs_test_…` |
 | 5 | **Paiement test** (carte 4242) | Paiement accepté · redirect success |
 | 6 | **Webhook** `checkout.session.completed` | Reçu via ngrok · traité backend |
-| 7 | **Payment** | Statut **SUCCEEDED** · 8,00 € |
+| 7 | **Payment** | Statut **SUCCEEDED** · 8,99 € |
 | 8 | **Reservation** | Statut **CONFIRMED** · liée au payment |
 | 9 | **Booking history** (`/bookings` · onglet « À venir ») | Réservation visible |
 | 10 | **Booking detail** (`/bookings/:id`) | Montant · paiement réussi · référence |
@@ -102,7 +102,7 @@ Le webhook a traité une session avec metadata métier attendues :
 |----------|-----------------|
 | **Payment ID** | `cmqklvcv60005qo0tia72wsku` |
 | **Payment status** | `SUCCEEDED` |
-| **Montant** | 8,00 € |
+| **Montant** | 8,99 € |
 | **Stripe PaymentIntent** | `pi_3TjwpcJoKcqsGQTG1T7upvAa` |
 | **Stripe Checkout Session** | `cs_test_a10yKkBSFZiG2bvYrX2d…` (tronqué) |
 | **Reservation ID** | `cmqklvzz8000bqo0t3zxzprak` |
@@ -168,7 +168,7 @@ Boarding Pass         : PASS ✅
 QR Validation Flow    : PASS ✅ (affichage passager · génération JWT côté API)
 ```
 
-**MVP passager V1 : validé** pour le périmètre QA-01 (convoyeur · ligne Châlons ↔ Vatry · ticket 8 € · QR post-paiement).
+**MVP passager V1 : validé** pour le périmètre QA-01 (convoyeur · ligne Châlons ↔ Vatry · ticket 8,99 € · QR post-paiement).
 
 ### Hors scope QA-01 (non testé ici)
 

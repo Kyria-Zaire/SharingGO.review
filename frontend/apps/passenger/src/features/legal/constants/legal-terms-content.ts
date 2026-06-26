@@ -76,7 +76,7 @@ export const LEGAL_TERMS_SECTIONS: LegalDocumentSection[] = [
     title: "Paiement",
     icon: Wallet,
     paragraphs: [
-      "Le tarif unitaire d'un trajet est de 8 € TTC, sauf couverture par un abonnement actif.",
+      "Le tarif unitaire d'un trajet est de 8,99 € TTC, sauf couverture par un abonnement actif.",
       "Les paiements sont traités par Stripe. SharingGO ne conserve pas vos données bancaires complètes.",
       "En cas d'échec de paiement, la réservation n'est pas confirmée et la place redevient disponible.",
       "Les remboursements éventuels sont traités selon les délais bancaires habituels (5 à 10 jours ouvrés).",
