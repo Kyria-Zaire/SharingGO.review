@@ -1,9 +1,9 @@
 # DEPLOY-01 — Runbook de déploiement SharingGO
 
-**Status :** DRAFT (constitution en cours pendant DEPLOY-READY-01)  
+**Status :** DRAFT (DEPLOY-01 en cours)  
 **Owner :** CTO / Ops  
-**Last updated :** 2026-06-23  
-**Version :** v0.4  
+**Last updated :** 2026-06-27  
+**Version :** v0.5  
 **Prérequis :** DEPLOY-READY-01 **DONE** · validation CTO « Produit prêt pour DEPLOY-01 »
 
 > **Ce document n'est pas encore opérationnel.** Il sera complété pendant DEPLOY-READY-01 et finalisé en entrée de DEPLOY-01.  
@@ -173,6 +173,55 @@ Référence : `security-baseline.mdc` · Helmet backend.
 ---
 
 ## 7. Procédure de déploiement initial
+
+### 7.0 Provisionnement VPS (DEPLOY-01-D)
+
+Séquence obligatoire avant toute tentative de démarrage des services.
+
+```bash
+# Étape 1 — Se connecter au VPS
+ssh deploy@<IP_VPS>
+
+# Étape 2 — Exécuter le script de provisionnement (depuis le repo cloné)
+bash scripts/provision-vps.sh
+# Crée /opt/sharinggo/, clone le repo si absent, crée .env.prod vide chmod 600,
+# crée /opt/sharinggo/backups/
+
+# Étape 3 — Générer les secrets applicatifs (en local ou sur le VPS)
+bash scripts/generate-secrets.sh
+# Affiche SESSION_SECRET, JWT_PRIVATE_KEY, BOARDING_JWT_SECRET, POSTGRES_PASSWORD
+# Ne stocke rien — copier manuellement les valeurs dans .env.prod
+
+# Étape 4 — Remplir /opt/sharinggo/.env.prod avec toutes les valeurs
+nano /opt/sharinggo/.env.prod
+# Sources : scripts/generate-secrets.sh + Dashboard Stripe (Live) + Google Cloud Console
+
+# Étape 5 — Vérifier qu'aucun placeholder ne subsiste
+grep "CHANGEME" /opt/sharinggo/.env.prod
+# Résultat attendu : aucune ligne
+
+# Étape 6 — Appliquer les permissions
+chmod 600 /opt/sharinggo/.env.prod
+
+# Étape 7 — Valider la configuration Docker Compose
+cd /opt/sharinggo
+docker compose -f docker-compose.prod.yml --env-file .env.prod config --quiet
+# Résultat attendu : exit 0, aucune erreur bloquante
+
+# NE PAS poursuivre si une variable [R] reste CHANGEME ou si config exit ≠ 0
+```
+
+| Variable critique | Statut | Bloquant si absent |
+|-------------------|--------|--------------------|
+| `BOARDING_JWT_SECRET` | **[R]** | Oui — backend refuse au démarrage |
+| `STRIPE_SECRET_KEY` | **[R]** | Oui — doit commencer par `sk_live_` |
+| `STRIPE_WEBHOOK_SECRET` | **[R]** | Oui — doit commencer par `whsec_` |
+| `GOOGLE_CLIENT_ID` | **[R]** | Oui — doit finir par `.apps.googleusercontent.com` |
+| `DATABASE_URL` | **[R]** | Oui — connexion Postgres impossible |
+| `SESSION_SECRET` | **[NON UTILISÉ V1]** | Non — cookies opaques hashés DB, pas express-session |
+| `JWT_PRIVATE_KEY` | **[NON UTILISÉ V1]** | Non — réservé migration RS256/EdDSA boarding (S2+) |
+
+Référence complète : `docs/ops/DEPLOY-01-SECRETS.md`
 
 ### 7.1 Pré-déploiement
 
@@ -551,6 +600,11 @@ Validation CTO explicite requise avant ouverture DEPLOY-01.
 ---
 
 ## 19. Changelog
+
+### v0.5 — 2026-06-27
+
+- §7.0 — Séquence provisionnement VPS (DEPLOY-01-D) : `provision-vps.sh`, `generate-secrets.sh`,
+  validation compose, tableau variables critiques [R]/[O].
 
 ### v0.4 — 2026-06-23
 
