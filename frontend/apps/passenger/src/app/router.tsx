@@ -34,6 +34,7 @@ export const router = createBrowserRouter([
       { path: "legal/privacy", element: <PrivacyPolicyPage /> },
       { path: "legal/notice", element: <LegalNoticePage /> },
       { path: "contact", element: <ContactPage /> },
+      { path: "help", element: <HelpPage /> },
       { path: "trips", element: <TripsPage /> },
       {
         path: "trips/:tripId/book",
@@ -122,14 +123,6 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <SubscriptionsPage />
-          </RequireAuth>
-        ),
-      },
-      {
-        path: "help",
-        element: (
-          <RequireAuth>
-            <HelpPage />
           </RequireAuth>
         ),
       },
