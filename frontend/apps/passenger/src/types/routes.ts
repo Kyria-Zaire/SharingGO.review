@@ -11,6 +11,7 @@ export const ROUTES = {
   profile: "/profile",
   profileEdit: "/profile/edit",
   notifications: "/notifications",
+  settings: "/settings",
   tripDetail: (tripId: string) => `/trips/${encodeURIComponent(tripId)}`,
   tripBooking: (tripId: string) => `/trips/${encodeURIComponent(tripId)}/book`,
   pendingBooking: (pendingReservationId: string) =>

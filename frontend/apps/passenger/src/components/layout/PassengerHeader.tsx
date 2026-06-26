@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { passengerHeaderContainerClass } from "@/lib/passenger-layout";
 import { PassengerLogo } from "./PassengerLogo";
 import { PassengerNotificationsButton } from "./PassengerNotificationsButton";
+import { PassengerSettingsButton } from "./PassengerSettingsButton";
 import { PassengerUserMenu } from "./PassengerUserMenu";
 
 function navTarget(item: ShellNavItem) {
@@ -133,6 +134,7 @@ export function PassengerHeader() {
           <PassengerLogo centered className="absolute left-1/2 -translate-x-1/2" />
           <div className="flex items-center gap-1">
             <PassengerNotificationsButton />
+            <PassengerSettingsButton />
             <PassengerUserMenu compact />
           </div>
         </div>
@@ -147,6 +149,7 @@ export function PassengerHeader() {
           </nav>
           <div className="flex items-center justify-end gap-2">
             <PassengerNotificationsButton />
+            <PassengerSettingsButton />
             <PassengerUserMenu />
           </div>
         </div>

@@ -11,6 +11,7 @@ export interface PassengerShellState {
   isSubscriptionsList: boolean;
   isProfilePage: boolean;
   isNotificationsPage: boolean;
+  isSettingsPage: boolean;
   isMarketingSurface: boolean;
   isAuthenticated: boolean;
   /** Footer marketing (page d'accueil). */
@@ -35,6 +36,7 @@ export function usePassengerShell(): PassengerShellState {
     const isProfilePage =
       pathname === ROUTES.profile || pathname === ROUTES.profileEdit;
     const isNotificationsPage = pathname === ROUTES.notifications;
+    const isSettingsPage = pathname === ROUTES.settings;
     const isMarketingSurface =
       isHome ||
       isTripsDiscovery ||
@@ -42,7 +44,8 @@ export function usePassengerShell(): PassengerShellState {
       isBookingsList ||
       isSubscriptionsList ||
       isProfilePage ||
-      isNotificationsPage;
+      isNotificationsPage ||
+      isSettingsPage;
 
     return {
       isHome,
@@ -52,6 +55,7 @@ export function usePassengerShell(): PassengerShellState {
       isSubscriptionsList,
       isProfilePage,
       isNotificationsPage,
+      isSettingsPage,
       isMarketingSurface,
       isAuthenticated,
       showMarketingFooter: isMarketingSurface,
