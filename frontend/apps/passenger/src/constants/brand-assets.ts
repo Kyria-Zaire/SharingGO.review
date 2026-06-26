@@ -5,6 +5,10 @@ export const BRAND_LOGO_ALT = "SharingGO";
 /** Web icons — generated via `pnpm generate:brand-icons` (GO crop from wordmark). */
 export const BRAND_THEME_COLOR = "#22c55e";
 
+/** Meta description — mirrored in `index.html` for SEO / link previews. */
+export const BRAND_META_DESCRIPTION =
+  "SharingGO facilite vos déplacements entre Châlons-en-Champagne et l'aéroport Paris-Vatry. Réservez votre navette en ligne, payez en toute sécurité et recevez votre billet numérique.";
+
 export const BRAND_ICONS = {
   favicon: "/favicon.ico",
   favicon32: "/favicon-32x32.png",
