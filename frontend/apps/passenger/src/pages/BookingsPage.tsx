@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CalendarDays, Ticket } from "lucide-react";
 import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -34,9 +34,10 @@ export function BookingsPage() {
   const reservationsQuery = useUserReservations(filter);
   const tabCounts = useBookingsTabCounts();
 
-  useEffect(() => {
-    setSort(defaultBookingsSort(filter));
-  }, [filter]);
+  function handleFilterChange(next: BookingsFilter) {
+    setFilter(next);
+    setSort(defaultBookingsSort(next));
+  }
 
   const errorMessage = formatUserFacingError(
     reservationsQuery.error,
@@ -63,7 +64,7 @@ export function BookingsPage() {
             "pb-8 pt-0 lg:pb-12"
           )}
         >
-          <BookingsFilterTabs value={filter} onChange={setFilter} />
+          <BookingsFilterTabs value={filter} onChange={handleFilterChange} />
 
           {!reservationsQuery.isPending && !reservationsQuery.isError && reservations.length > 0 ? (
             <BookingsSectionHeader

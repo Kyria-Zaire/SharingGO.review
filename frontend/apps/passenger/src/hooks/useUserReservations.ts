@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listUserReservations } from "@/api/reservations.api";
 import { ApiError } from "@/api/http";
@@ -20,7 +19,7 @@ function buildListQuery(filter: BookingsFilter): ListUserReservationsQuery {
 }
 
 export function useUserReservations(filter: BookingsFilter) {
-  const queryParams = useMemo(() => buildListQuery(filter), [filter]);
+  const queryParams = buildListQuery(filter);
 
   return useQuery({
     queryKey: queryKeys.reservations.list({ filter, ...queryParams }),

@@ -95,10 +95,7 @@ export function TripDetailHeroMap({
     [trip.line.startCity]
   );
 
-  const showDynamicOverlay = useMemo(
-    () => shouldShowHeroMapDynamicOverlay(),
-    []
-  );
+  const showDynamicOverlay = shouldShowHeroMapDynamicOverlay();
 
   const showGrading = variant === "hero" && showDynamicOverlay;
 

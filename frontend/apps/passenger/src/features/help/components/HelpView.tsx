@@ -7,7 +7,6 @@ import { HelpEmptyState } from "@/features/help/components/HelpEmptyState";
 import { HelpFaqSection } from "@/features/help/components/HelpFaqSection";
 import { HelpHeroSection } from "@/features/help/components/HelpHeroSection";
 import { HelpSearchBar } from "@/features/help/components/HelpSearchBar";
-import { HelpSkeleton } from "@/features/help/components/HelpSkeleton";
 import { HelpSupportCard } from "@/features/help/components/HelpSupportCard";
 import { HelpTravelTips } from "@/features/help/components/HelpTravelTips";
 import { HelpUsefulLinks } from "@/features/help/components/HelpUsefulLinks";
@@ -17,26 +16,11 @@ import {
   countFaqByCategory,
   filterHelpFaqItems,
 } from "@/features/help/lib/help-search";
-import { useAuth } from "@/hooks/useAuth";
 
 export function HelpView() {
   const { hash } = useLocation();
-  const { isLoading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<HelpCategoryFilter>("all");
-  const [contentReady, setContentReady] = useState(false);
-
-  useEffect(() => {
-    if (authLoading) return;
-
-    setContentReady(false);
-
-    const timer = window.setTimeout(() => {
-      setContentReady(true);
-    }, 280);
-
-    return () => window.clearTimeout(timer);
-  }, [authLoading]);
 
   const categoryCounts = useMemo(
     () => countFaqByCategory(HELP_FAQ_ITEMS, searchQuery),
@@ -48,11 +32,10 @@ export function HelpView() {
     [searchQuery, selectedCategory]
   );
 
-  const showSkeleton = authLoading || !contentReady;
   const hasActiveFilter = searchQuery.trim().length > 0 || selectedCategory !== "all";
 
   useEffect(() => {
-    if (showSkeleton || !hash) return;
+    if (!hash) return;
 
     const anchorId = hash.replace(/^#/, "");
     if (!anchorId) return;
@@ -65,7 +48,7 @@ export function HelpView() {
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [hash, showSkeleton]);
+  }, [hash]);
 
   return (
     <div className="w-full">
@@ -73,43 +56,39 @@ export function HelpView() {
 
       <div className={landingContainerClass}>
         <div className={cn("relative z-20 -mt-4 sm:-mt-8 lg:-mt-10", "pb-8 pt-6 lg:pb-12")}>
-          {showSkeleton ? <HelpSkeleton /> : null}
+          <div className="space-y-8">
+            <HelpSearchBar value={searchQuery} onChange={setSearchQuery} />
 
-          {!showSkeleton ? (
-            <div className="space-y-8">
-              <HelpSearchBar value={searchQuery} onChange={setSearchQuery} />
+            <HelpCategoriesGrid
+              selected={selectedCategory}
+              onSelect={setSelectedCategory}
+              counts={categoryCounts}
+            />
 
-              <HelpCategoriesGrid
-                selected={selectedCategory}
-                onSelect={setSelectedCategory}
-                counts={categoryCounts}
-              />
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+              <div className="min-w-0 space-y-8">
+                {filteredItems.length > 0 ? (
+                  <HelpFaqSection items={filteredItems} />
+                ) : hasActiveFilter ? (
+                  <HelpEmptyState />
+                ) : (
+                  <HelpFaqSection items={HELP_FAQ_ITEMS} />
+                )}
 
-              <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-                <div className="min-w-0 space-y-8">
-                  {filteredItems.length > 0 ? (
-                    <HelpFaqSection items={filteredItems} />
-                  ) : hasActiveFilter ? (
-                    <HelpEmptyState />
-                  ) : (
-                    <HelpFaqSection items={HELP_FAQ_ITEMS} />
-                  )}
-
-                  <div className="lg:hidden">
-                    <HelpTravelTips />
-                  </div>
+                <div className="lg:hidden">
+                  <HelpTravelTips />
                 </div>
-
-                <aside className="space-y-6 lg:sticky lg:top-24">
-                  <HelpSupportCard />
-                  <HelpUsefulLinks />
-                  <div className="hidden lg:block">
-                    <HelpTravelTips />
-                  </div>
-                </aside>
               </div>
+
+              <aside className="space-y-6 lg:sticky lg:top-24">
+                <HelpSupportCard />
+                <HelpUsefulLinks />
+                <div className="hidden lg:block">
+                  <HelpTravelTips />
+                </div>
+              </aside>
             </div>
-          ) : null}
+          </div>
         </div>
       </div>
     </div>

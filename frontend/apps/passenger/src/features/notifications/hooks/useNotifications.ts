@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { NotificationReadFilter, NotificationTab } from "@/features/notifications/lib/notification-tabs";
 import type { NotificationItem } from "@/features/notifications/types/notifications.types";
 
@@ -22,6 +22,10 @@ export function useNotifications() {
   const [readFilter, setReadFilter] = useState<NotificationReadFilter>("all");
   const [hasError] = useState(false);
 
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [tab, readFilter]);
+
   const filtered = useMemo(() => {
     const byTab = filterByTab(items, tab);
     return filterByRead(byTab, readFilter).sort(
@@ -44,33 +48,28 @@ export function useNotifications() {
 
   const unreadCount = useMemo(() => items.filter((item) => !item.read).length, [items]);
 
-  const markAllRead = useCallback(() => {
+  function markAllRead() {
     setItems((current) => current.map((item) => ({ ...item, read: true })));
-  }, []);
+  }
 
-  const markAsRead = useCallback((id: string) => {
+  function markAsRead(id: string) {
     setItems((current) =>
       current.map((item) => (item.id === id ? { ...item, read: true } : item))
     );
-  }, []);
+  }
 
-  const loadMore = useCallback(() => {
+  function loadMore() {
     setVisibleCount((count) => count + PAGE_SIZE);
-  }, []);
+  }
 
-  const retry = useCallback(() => {
+  function retry() {
     setItems([]);
     setVisibleCount(PAGE_SIZE);
-  }, []);
-
-  const resetVisibleOnFilterChange = useCallback(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, []);
+  }
 
   return {
     items,
     visible,
-    filtered,
     tab,
     setTab,
     readFilter,
@@ -85,7 +84,6 @@ export function useNotifications() {
     markAsRead,
     loadMore,
     retry,
-    resetVisibleOnFilterChange,
     isPending: false,
   };
 }

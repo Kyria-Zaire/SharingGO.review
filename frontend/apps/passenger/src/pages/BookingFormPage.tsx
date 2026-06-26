@@ -33,14 +33,13 @@ export function BookingFormPage() {
   );
 
   useEffect(() => {
-    if (user) {
-      setForm((current) => ({
-        ...current,
-        firstName: current.firstName || user.firstName?.trim() || "",
-        lastName: current.lastName || user.lastName?.trim() || "",
-        email: current.email || user.email?.trim() || "",
-      }));
-    }
+    if (!user) return;
+    setForm((current) => ({
+      ...current,
+      firstName: current.firstName || user.firstName?.trim() || "",
+      lastName: current.lastName || user.lastName?.trim() || "",
+      email: current.email || user.email?.trim() || "",
+    }));
   }, [user]);
 
   const isNotFound =

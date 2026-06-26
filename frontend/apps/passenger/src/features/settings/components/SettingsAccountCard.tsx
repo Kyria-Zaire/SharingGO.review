@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { CheckCircle2, Mail } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { landingCardClass } from "@/features/home/lib/landing-layout";
@@ -14,7 +13,7 @@ import type { PassengerUser } from "@/types/auth";
 const CARD_CLASS = cn(landingCardClass, "border-white/[0.08] bg-[#121212] p-5 sm:p-6");
 
 export function SettingsAccountCard({ user }: { user: PassengerUser }) {
-  const lastLogin = useMemo(() => formatLastLoginLabel(new Date()), []);
+  const lastLogin = formatLastLoginLabel(new Date());
   const provider = resolveAccountProviderLabel();
   const syncLabel = resolveAccountSyncLabel();
 

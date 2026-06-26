@@ -37,7 +37,6 @@ export function NotificationsView() {
     markAsRead,
     loadMore,
     retry,
-    resetVisibleOnFilterChange,
     isPending,
   } = useNotifications();
 
@@ -45,16 +44,6 @@ export function NotificationsView() {
   const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
 
   const grouped = useMemo(() => groupNotificationsByTime(visible), [visible]);
-
-  const handleTabChange = (next: typeof tab) => {
-    setTab(next);
-    resetVisibleOnFilterChange();
-  };
-
-  const handleReadFilterChange = (next: typeof readFilter) => {
-    setReadFilter(next);
-    resetVisibleOnFilterChange();
-  };
 
   const canMarkAllRead = unreadCount > 0;
 
@@ -83,7 +72,7 @@ export function NotificationsView() {
 
           <NotificationsFilterTabs
             value={tab}
-            onChange={handleTabChange}
+            onChange={setTab}
             counts={tabCounts}
           />
 
@@ -103,7 +92,7 @@ export function NotificationsView() {
                 open={filterPopoverOpen}
                 readFilter={readFilter}
                 onClose={() => setFilterPopoverOpen(false)}
-                onReadFilterChange={handleReadFilterChange}
+                onReadFilterChange={setReadFilter}
               />
             </div>
           ) : null}
@@ -157,7 +146,7 @@ export function NotificationsView() {
         open={filterOpen}
         readFilter={readFilter}
         onClose={() => setFilterOpen(false)}
-        onReadFilterChange={handleReadFilterChange}
+        onReadFilterChange={setReadFilter}
       />
     </div>
   );

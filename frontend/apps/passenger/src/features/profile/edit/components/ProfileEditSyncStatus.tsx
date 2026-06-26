@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { PROFILE_EDIT_SYNC } from "@/features/profile/edit/constants/profile-edit-content";
@@ -7,14 +6,10 @@ import { isGoogleOAuthSession } from "@/features/profile/edit/lib/profile-edit-f
 export function ProfileEditSyncStatus() {
   const isGoogle = isGoogleOAuthSession();
 
-  const syncedTime = useMemo(
-    () =>
-      new Intl.DateTimeFormat("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(new Date()),
-    []
-  );
+  const syncedTime = new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date());
 
   return (
     <div

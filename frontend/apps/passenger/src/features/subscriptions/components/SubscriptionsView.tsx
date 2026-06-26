@@ -29,18 +29,16 @@ export function SubscriptionsView() {
   );
 
   const me = meQuery.data;
-  const payments = useMemo(
-    () => historyQuery.data?.payments ?? [],
-    [historyQuery.data?.payments]
-  );
 
-  const tabCounts = useMemo(
-    () => ({
+  const tabCounts = useMemo(() => {
+    const payments = historyQuery.data?.payments ?? [];
+    return {
       mine: me?.isActive ? 1 : 0,
       history: buildSubscriptionHistoryItems(payments, me).length,
-    }),
-    [me, payments]
-  );
+    };
+  }, [me, historyQuery.data?.payments]);
+
+  const payments = historyQuery.data?.payments ?? [];
 
   const handleRetry = () => {
     void meQuery.refetch();
