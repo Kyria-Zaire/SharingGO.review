@@ -25,7 +25,7 @@ export const BOOKING_FORM_SEATS_VALUE = "1 place";
 
 export const BOOKING_FORM_TERMS_PREFIX = "J'accepte les ";
 
-export const BOOKING_FORM_TERMS_CGV = "Conditions Générales de Vente";
+export const BOOKING_FORM_TERMS_CGU = "Conditions Générales d'Utilisation (CGU)";
 
 export const BOOKING_FORM_TERMS_AND = " et la ";
 

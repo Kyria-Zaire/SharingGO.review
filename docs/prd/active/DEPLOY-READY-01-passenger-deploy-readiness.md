@@ -1,10 +1,10 @@
 # PRD — DEPLOY-READY-01 · Passenger Deploy Readiness (Hardening)
 
-**Status :** DESIGN  
+**Status :** BUILD · **P0 COMPLETE** · P1 en cours  
 **Owner :** CTO / Engineering  
 **Last updated :** 2026-06-23  
-**Version :** v1.3  
-**Phase BMAD :** DISCOVER → DESIGN → BUILD → VERIFY → DONE  
+**Version :** v1.4  
+**Phase BMAD :** BUILD (P1) → VERIFY → DONE  
 **Prérequis :** Passenger V1 **FEATURE COMPLETE** · WEB-PASSENGER-QA-01 **GO CONDITIONNEL**
 
 > Méthodologie : [`docs/methodology/BMAD.md`](../../methodology/BMAD.md)  
@@ -155,7 +155,9 @@ Les 14 WARN ne sont pas tous dans le scope obligatoire de ce ticket — voir mat
 4. **P0-04** — **Branding Web** (favicon, icônes, title, theme-color, logo) ✅
 5. **P0-05** — Meta description ✅
 6. **P0-06** — `robots.txt` par environnement ✅
-7. **P0-07** — Juridique — placeholders conservés + note prod publique
+7. **P0-07** — Legal Review ✅ — [`DEPLOY-READY-P0-07-legal-review.md`](../../audits/DEPLOY-READY-P0-07-legal-review.md)
+
+**Sprint P0 : COMPLETE (validation CTO — 2026-06-23)**
 
 Puis seulement :
 
@@ -186,7 +188,7 @@ Bloquant pour clôturer DEPLOY-READY-01 et ouvrir DEPLOY-01.
 | P0-04 | **Branding Web** | § 7 | Favicon (`.ico` + PNG) · Apple Touch · Android/PWA si prêt · `<title>` · `theme-color` · logo (header, auth, favicon) |
 | P0-05 | Meta description | § 7 | `<meta name="description">` dans `index.html` |
 | P0-06 | `robots.txt` par environnement | § 7 · **Décision Q3** | LOCAL/STAGING/PREPROD : `Disallow: /` · PROD : `Allow: /` + `Sitemap` |
-| P0-07 | Mentions légales — placeholders conservés | § 1 · § 7 · **Décision Q2** | Note « à compléter avant production publique » · non bloquant pilote privé |
+| P0-07 | Legal Review | § 1 · § 7 · **Décision Q2** | Rapport audit · CGU booking form · GO CONDITIONNEL pilote |
 
 ## P1 — Hardening technique
 

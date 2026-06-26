@@ -1,6 +1,6 @@
 # DEPLOY-READY-01 — Hardening pré-déploiement passager
 
-**Statut :** DESIGN · **BUILD autorisé** · Phase **Release Engineering**  
+**Statut :** BUILD · **P0 COMPLETE** · **P1 en cours** · Phase **Release Engineering**  
 **PRD :** [`docs/prd/active/DEPLOY-READY-01-passenger-deploy-readiness.md`](../prd/active/DEPLOY-READY-01-passenger-deploy-readiness.md)  
 **Runbook :** [`docs/ops/DEPLOY-01-RUNBOOK.md`](../ops/DEPLOY-01-RUNBOOK.md)  
 **Gate sortie :** [Definition of Production Ready](../ops/DEPLOY-01-RUNBOOK.md#17-definition-of-production-ready)
@@ -12,8 +12,8 @@
 ```text
 PASSENGER V1     ✅ FEATURE COMPLETE
 QA               ✅ VALIDÉ
-HARDENING        🟢 READY TO BUILD
-Phase            Release Engineering
+HARDENING        🟢 P0 COMPLETE · P1 BUILD
+Phase            Release Engineering — Sprint P1
 ```
 
 ---
@@ -40,17 +40,17 @@ Aucune nouvelle fonctionnalité Passenger jusqu'à clôture DEPLOY-READY-01.
 
 ## Ordre BUILD (validé CTO)
 
-### Sprint P0
+### Sprint P0 — ✅ COMPLETE (CTO 2026-06-23)
 
 1. `/help` public ✅
 2. Nettoyage mode démo ✅
 3. Vérification liens ✅
-4. **Branding Web** (favicon, icônes, title, theme-color, logo) ✅
+4. **Branding Web** ✅
 5. Meta description ✅
 6. `robots.txt` ✅
-7. Juridique — placeholders + note prod publique
+7. Legal Review ✅ — [`DEPLOY-READY-P0-07-legal-review.md`](../audits/DEPLOY-READY-P0-07-legal-review.md)
 
-### Sprint P1
+### Sprint P1 — ▶ en cours
 
 1. Suppression orphelins
 2. Suppression imports / exports morts
@@ -82,7 +82,7 @@ Runbook DEPLOY-01 v0.2 — constitution pendant DEPLOY-READY-01 (Monitoring § 8
 ## Roadmap
 
 ```text
-▶ DEPLOY-READY-01 (BUILD) → DEPLOY-01 → PILOT-01
+▶ DEPLOY-READY-01 (P1 BUILD) → DEPLOY-01 → PILOT-01
 → DRIVER-WORKSPACE-01 → DRIVER-UX-01 → PILOT-02 → COMPANY → B2B
 ```
 

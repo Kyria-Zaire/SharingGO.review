@@ -11,6 +11,11 @@ import {
   BOOKING_FORM_PHONE_PLACEHOLDER,
   BOOKING_FORM_SEATS_LABEL,
   BOOKING_FORM_SEATS_VALUE,
+  BOOKING_FORM_TERMS_AND,
+  BOOKING_FORM_TERMS_CGU,
+  BOOKING_FORM_TERMS_PREFIX,
+  BOOKING_FORM_TERMS_PRIVACY,
+  BOOKING_FORM_TERMS_SUFFIX,
 } from "@/features/booking-form/constants/booking-form-content";
 import type { BookingPassengerFormState } from "@/features/booking-form/lib/booking-form-passenger";
 
@@ -121,21 +126,21 @@ export function BookingFormTermsSection({
           )}
         />
         <span className="text-sm leading-relaxed text-foreground">
-          J&apos;accepte les{" "}
+          {BOOKING_FORM_TERMS_PREFIX}
           <Link
             to={ROUTES.legalTerms}
             className="font-medium text-primary underline-offset-2 hover:underline"
           >
-            Conditions Générales de Vente
-          </Link>{" "}
-          et la{" "}
+            {BOOKING_FORM_TERMS_CGU}
+          </Link>
+          {BOOKING_FORM_TERMS_AND}
           <Link
             to={ROUTES.legalPrivacy}
             className="font-medium text-primary underline-offset-2 hover:underline"
           >
-            Politique de confidentialité
+            {BOOKING_FORM_TERMS_PRIVACY}
           </Link>
-          .
+          {BOOKING_FORM_TERMS_SUFFIX}
         </span>
       </label>
     </section>
