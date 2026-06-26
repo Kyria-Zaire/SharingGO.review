@@ -1,0 +1,137 @@
+# =============================================================================
+# SharingGO — Caddyfile Production
+# Caddy 2.x — TLS automatique Let's Encrypt (ACME HTTP-01)
+# Réseau Docker interne : sharinggo-prod
+# =============================================================================
+
+# Options globales
+{
+	# Logs Caddy au format JSON structuré
+	log {
+		output stdout
+		format json
+		level INFO
+	}
+
+	# Désactiver le serveur d'administration sur le réseau public
+	admin off
+}
+
+# -----------------------------------------------------------------------------
+# www.sharinggo.fr → redirection 301 vers l'apex
+# -----------------------------------------------------------------------------
+www.sharinggo.fr {
+	redir https://sharinggo.fr{uri} 301
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# -----------------------------------------------------------------------------
+# sharinggo.fr — Passenger (SPA React voyageurs)
+# -----------------------------------------------------------------------------
+sharinggo.fr {
+	reverse_proxy passenger:80
+
+	# Compression (zstd en priorité, gzip en fallback)
+	encode zstd gzip
+
+	# --- Headers sécurité frontend ---
+	header {
+		# HSTS — force HTTPS pour 1 an, incluant sous-domaines, eligible au preload
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+		# Interdit l'affichage dans une iframe (clickjacking)
+		X-Frame-Options "DENY"
+
+		# Empêche le sniffing du Content-Type
+		X-Content-Type-Options "nosniff"
+
+		# Referrer limité à l'origine lors des requêtes cross-origin
+		Referrer-Policy "strict-origin-when-cross-origin"
+
+		# Désactivation des APIs sensibles non utilisées
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+		# Content Security Policy — pilot-safe
+		# TODO(harden): renforcer la CSP après retour terrain pilote
+		# Sources documentées :
+		#   self             : assets servis par ce domaine
+		#   api.sharinggo.fr : appels API backend (fetch)
+		#   accounts.google.com + *.googleapis.com : Google One Tap OAuth
+		#
+		# Exclusions confirmées par grep sur frontend/apps/passenger/src/ :
+		#   Stripe JS (js.stripe.com) : ABSENT — Stripe Checkout = redirect backend
+		#     window.location.href vers stripe.com, aucun script ni frame Stripe chargé
+		#   Cloudflare Turnstile (challenges.cloudflare.com) : ABSENT — validé backend only
+		Content-Security-Policy "default-src 'self'; script-src 'self' https://accounts.google.com https://*.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.sharinggo.fr https://accounts.google.com https://*.googleapis.com; frame-src https://accounts.google.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+
+		# Supprimer le header Server exposé par nginx en amont
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# -----------------------------------------------------------------------------
+# admin.sharinggo.fr — Admin cockpit (SPA React convoyeurs/admin)
+# -----------------------------------------------------------------------------
+admin.sharinggo.fr {
+	reverse_proxy admin:80
+
+	# Compression
+	encode zstd gzip
+
+	# --- Headers sécurité frontend ---
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+		# CSP admin — plus restrictive que passenger (pas de Google One Tap)
+		# TODO(harden): renforcer la CSP après retour terrain pilote
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.sharinggo.fr; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# -----------------------------------------------------------------------------
+# api.sharinggo.fr — Backend Express (API REST)
+# -----------------------------------------------------------------------------
+api.sharinggo.fr {
+	reverse_proxy backend:3000
+
+	# Compression (utile pour les réponses JSON volumineuses)
+	encode zstd gzip
+
+	# --- Headers sécurité API ---
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+
+		# Pas de X-Frame-Options sur l'API (pas de contenu HTML)
+		# Pas de CSP sur l'API (JSON only)
+		# Pas de Permissions-Policy sur l'API
+
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
