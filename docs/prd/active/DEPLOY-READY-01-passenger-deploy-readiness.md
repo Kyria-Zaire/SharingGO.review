@@ -3,7 +3,7 @@
 **Status :** DESIGN  
 **Owner :** CTO / Engineering  
 **Last updated :** 2026-06-23  
-**Version :** v1.1  
+**Version :** v1.3  
 **Phase BMAD :** DISCOVER → DESIGN → BUILD → VERIFY → DONE  
 **Prérequis :** Passenger V1 **FEATURE COMPLETE** · WEB-PASSENGER-QA-01 **GO CONDITIONNEL**
 
@@ -21,6 +21,18 @@ Ce ticket **n'ajoute aucune fonctionnalité**. Il transforme un produit feature-
 
 **Sortie explicite :** *« Produit prêt pour DEPLOY-01 »* — validée par le CTO après DoD complète.
 
+**Posture Release Engineering (CTO — 2026-06-23) :** à partir de ce ticket, chaque livraison doit produire une **augmentation mesurable** de la qualité de mise en production — pas de nouvelle valeur fonctionnelle.
+
+```text
+Avant (Construction)          Maintenant (Release Engineering)
+─────────────────────         ────────────────────────────────
++ Nouvelle page               − Dette technique
++ Nouveau parcours            + Robustesse · Sécurité
++ Nouvelle fonctionnalité     + Maintenabilité · Exploitabilité
+```
+
+**Documentation parallèle :** constitution du runbook [`docs/ops/DEPLOY-01-RUNBOOK.md`](../../ops/DEPLOY-01-RUNBOOK.md) pendant DEPLOY-READY-01 (squelette v0.1 — finalisation en DEPLOY-01).
+
 ```text
 ✅ Passenger V1 Feature Complete
 ✅ Passenger QA Complete
@@ -30,9 +42,13 @@ DEPLOY-01                     (VPS, Docker, HTTPS, domaine, monitoring)
         ↓
 PILOT-01                      (premiers utilisateurs réels)
         ↓
-DRIVER-01
+DRIVER-WORKSPACE-01
+        ↓
+DRIVER-UX-01
         ↓
 PILOT-02
+        ↓
+COMPANY
         ↓
 B2B
 ```
@@ -112,9 +128,51 @@ NEXT       DEPLOY-READY-01
 
 Les 14 WARN ne sont pas tous dans le scope obligatoire de ce ticket — voir matrice P0 / P1 / P2 ci-dessous.
 
+### Baseline qualité (WEB-PASSENGER-QA-01 — référence « Avant »)
+
+| KPI | Avant (audit QA) | Cible DEPLOY-READY-01 |
+|-----|------------------|------------------------|
+| WARN | 14 | ≤ 14 → réduction mesurable par sprint |
+| FAIL | 0 | **0** (invariant) |
+| Bundle JS | 844 kB | Réduction P1 (cible < 600 kB ou justification) |
+| Routes mortes | 0 | **0** |
+| Composants orphelins | 1 | **0** |
+| Fichiers / deps démo | ~30 fichiers touchés | **0** (module supprimé) |
+
+> **Règle CTO :** chaque PR / sous-livraison DEPLOY-READY-01 se termine par un tableau KPI **Avant / Après** (voir § 13bis).
+
 ---
 
 # 4. Périmètre structuré
+
+## Ordre d'exécution BUILD (validé CTO)
+
+### Sprint P0 — ordre validé CTO (2026-06-23)
+
+1. **P0-01** — `/help` route publique (changement localisé · vérifiable en premier)
+2. **P0-02** — Nettoyage mode démonstration (code · badges · env)
+3. **P0-03** — Vérification liens internes
+4. **P0-04** — Favicon
+5. **P0-05** — Meta description
+6. **P0-06** — `robots.txt` par environnement
+7. **P0-07** — Juridique — placeholders conservés + note prod publique
+
+Puis seulement :
+
+### Sprint P1 — ordre validé CTO
+
+1. **P1-01** — Suppression composants orphelins
+2. **P1-02** — Suppression exports morts · imports inutilisés
+3. **P1-03** — Nettoyage hooks post-démo
+4. **P1-04** — Revue TypeScript strict
+5. **P1-05** — Optimisation bundle
+6. **P1-06** — Lazy loading **uniquement si** P1-05 insuffisant
+
+### P2
+
+Intégralement **BACKLOG POST-PILOT** — ne pas démarrer pendant DEPLOY-READY-01.
+
+---
 
 ## P0 — Obligatoire avant DEPLOY-01
 
@@ -122,15 +180,13 @@ Bloquant pour clôturer DEPLOY-READY-01 et ouvrir DEPLOY-01.
 
 | ID | Item | Source audit | Livrable |
 |----|------|--------------|----------|
-| P0-01 | Retrait définitif du mode démonstration UI | § 6 | Code supprimé · plus de `demo-trip-*` / `demo-booking-*` / `demo-notification-*` |
-| P0-02 | Suppression badges **DÉMO** / « Mode démonstration UI » | § 6 | `UiDemoModeBadge`, badges notifications démo retirés |
-| P0-03 | Validation environnements `VITE_ENABLE_UI_DEMO_TRIPS` | § 6 · WEB-DEMO-DATA-01 | Variable **absente** preprod/prod · checklist signée |
-| P0-04 | Mentions légales — placeholders conservés | § 1 · § 7 · **Décision Q2** | Placeholders **maintenus** · note « à compléter avant production publique » visible · **non bloquant pilote privé** |
-| P0-05 | `/help` route **publique** | § 1 · § 9 · **Décision Q1** | Retirer `RequireAuth` sur `/help` · liens Contact/FAQ cohérents · liens compte → auth si besoin |
-| P0-06 | Favicon | § 7 | `favicon.ico` ou équivalent dans `public/` + lien `index.html` |
-| P0-07 | Meta description | § 7 | `<meta name="description">` dans `index.html` |
-| P0-08 | `robots.txt` par environnement | § 7 · **Décision Q3** | LOCAL/STAGING/PREPROD : `Disallow: /` · PROD : `Allow: /` + `Sitemap` |
-| P0-09 | Vérification liens internes | § 2 · § 7 | Audit manuel ou script : footer, legal, contact, help, nav — aucun lien mort |
+| P0-01 | `/help` route **publique** | § 1 · § 9 · **Décision Q1** | Retirer `RequireAuth` sur `/help` · liens Contact/FAQ cohérents |
+| P0-02 | Retrait définitif mode démonstration UI | § 6 | Supprimer code démo · badges · valider env `VITE_ENABLE_UI_DEMO_TRIPS` absent |
+| P0-03 | Vérification liens internes | § 2 · § 7 | Footer, legal, contact, help, nav — aucun lien mort |
+| P0-04 | Favicon | § 7 | `favicon.ico` + lien `index.html` |
+| P0-05 | Meta description | § 7 | `<meta name="description">` dans `index.html` |
+| P0-06 | `robots.txt` par environnement | § 7 · **Décision Q3** | LOCAL/STAGING/PREPROD : `Disallow: /` · PROD : `Allow: /` + `Sitemap` |
+| P0-07 | Mentions légales — placeholders conservés | § 1 · § 7 · **Décision Q2** | Note « à compléter avant production publique » · non bloquant pilote privé |
 
 ## P1 — Hardening technique
 
@@ -139,12 +195,11 @@ Requis pour DoD complète. Non bloquant pour *démarrer* DEPLOY-01 si CTO accept
 | ID | Item | Source audit | Livrable |
 |----|------|--------------|----------|
 | P1-01 | Suppression composants orphelins | § 4.2 | Ex. `BookingDetailPlaceholderPage.tsx` |
-| P1-02 | Suppression exports / constantes mortes | § 4.2 | Ex. `env.ts` → `uiDemoTrips`, `BOARDING_PASS_DEMO_TITLE` |
-| P1-03 | Nettoyage imports inutilisés | § 4.2 | `pnpm lint` sans warning résiduel |
-| P1-04 | Revue hooks post-démo | § 4.2 | `usePublicTrip`, `useUserReservations`, etc. sans branches démo |
-| P1-05 | Revue warnings TypeScript | § 4.1 | `pnpm build` strict · pas de `@ts-ignore` ajouté |
-| P1-06 | Optimisation bundle | § 4.1 · § 7 | Cible : réduction mesurable du chunk principal (844 kB → objectif < 600 kB ou justification CTO) |
-| P1-07 | Lazy loading routes si pertinent | § 7 | `React.lazy` sur pages lourdes non critiques (legal, help, settings) si gain significatif |
+| P1-02 | Suppression exports morts · imports inutilisés | § 4.2 | `env.ts`, constantes démo · `pnpm lint` sans warning |
+| P1-03 | Nettoyage hooks post-démo | § 4.2 | `usePublicTrip`, `useUserReservations`, etc. |
+| P1-04 | Revue warnings TypeScript | § 4.1 | `pnpm build` strict |
+| P1-05 | Optimisation bundle | § 4.1 · § 7 | 844 kB → cible < 600 kB ou justification CTO |
+| P1-06 | Lazy loading routes | § 7 | **Dernier recours** — si P1-05 insuffisant |
 
 ## P2 — BACKLOG POST-PILOT (hors DoD)
 
@@ -338,21 +393,35 @@ Reprendre les parcours § 2 de WEB-PASSENGER-QA-01 :
 
 # 10. Definition of Done (DoD)
 
-**DEPLOY-READY-01 est DONE uniquement si :**
+**DEPLOY-READY-01 est DONE uniquement si la [Definition of Production Ready](../../ops/DEPLOY-01-RUNBOOK.md#17-definition-of-production-ready) est satisfaite.**
 
-### Obligatoire — DoD complète (P0 + P1 uniquement)
+```text
+✔ FAIL = 0
+✔ WARN P0 = 0
+✔ Aucun composant orphelin
+✔ Aucun fichier démo utilisé
+✔ Aucun secret en dépôt
+✔ Lint OK
+✔ Build OK
+✔ QA PASS
+✔ Runbook complété (sections critiques)
+✔ Smoke tests validés
+```
 
-- [ ] Tous les items **P0-01 à P0-09** : **PASS**
-- [ ] `/help` public implémenté (décision Q1)
-- [ ] Tous les items **P1-01 à P1-07** : **PASS**
-- [ ] Feature Freeze respecté (aucune nouvelle feature Passenger)
+### Obligatoire — DoD complète (P0 + P1)
+
+- [ ] Tous les items **P0-01 à P0-07** : **PASS**
+- [ ] Tous les items **P1-01 à P1-06** : **PASS** (P1-06 lazy loading si nécessaire)
+- [ ] **WARN P0 = 0** dans rapport clôture
+- [ ] Feature Freeze respecté
 - [ ] `pnpm lint` + `pnpm build` verts
-- [ ] Aucune régression sur parcours réservation (AC-P0 A6)
-- [ ] Checklist WEB-DEMO-DATA-01 § « AVANT DEPLOY-01 » cochée · module démo supprimé
-- [ ] Bundle size reporté (avant/après)
-- [ ] Rapport de clôture rédigé (`docs/audits/DEPLOY-READY-01-report.md`)
+- [ ] Aucune régression parcours réservation (AC-P0 A6)
+- [ ] Module démo supprimé · checklist WEB-DEMO-DATA-01 cochée
+- [ ] KPI tableau Avant/Après consolidé
+- [ ] Rapport `docs/audits/DEPLOY-READY-01-report.md`
+- [ ] Runbook DEPLOY-01 sections § 8–9 · § 17 complétées (draft → revue CTO)
 - [ ] PRD status → **DONE**
-- [ ] Validation CTO explicite : **« Produit prêt pour DEPLOY-01 »**
+- [ ] Validation CTO : **« Produit prêt pour DEPLOY-01 »**
 
 ### Hors DoD (reporté)
 
@@ -393,6 +462,29 @@ En cas de refus : liste de remédiation avec owner et date cible — **pas** de 
 
 ---
 
+---
+
+# 13bis. KPI obligatoire en fin de livraison
+
+**Règle CTO — à partir de DEPLOY-READY-01**
+
+Chaque PR, commit significatif ou sous-livraison se termine par :
+
+| KPI | Avant | Après |
+|-----|------:|------:|
+| WARN (audit passager) | 14 | *X* |
+| FAIL | 0 | **0** |
+| Bundle JS | 844 kB | *XXX kB* |
+| Routes mortes | 0 | **0** |
+| Composants orphelins | 1 | **0** |
+| Dépendances démo (fichiers actifs) | ~30 | **0** |
+
+Les valeurs « Avant » du premier sprint reprennent la baseline § 3. Les « Après » deviennent le « Avant » du sprint suivant.
+
+**Rapport final VERIFY :** tableau consolidé dans `docs/audits/DEPLOY-READY-01-report.md`.
+
+---
+
 # 14. Références
 
 | Document | Chemin |
@@ -401,7 +493,7 @@ En cas de refus : liste de remédiation avec owner et date cible — **pas** de 
 | Mode démo (à retirer) | `docs/features/WEB-DEMO-DATA-01.md` |
 | Ticket exécution | `docs/features/DEPLOY-READY-01.md` |
 | App passager | `frontend/apps/passenger/` |
-| Design system | `DESIGN.md` |
+| Runbook DEPLOY-01 (draft) | `docs/ops/DEPLOY-01-RUNBOOK.md` |
 
 ---
 
@@ -419,12 +511,26 @@ En cas de refus : liste de remédiation avec owner et date cible — **pas** de 
 
 # 16. Changelog
 
+## v1.3 — 2026-06-23
+
+- Ordre Sprint P0 inversé : `/help` public **avant** nettoyage démo (CTO).
+- Ordre Sprint P1 : lazy loading en **dernier recours**.
+- **Definition of Production Ready** — gate DEPLOY-READY → DEPLOY-01.
+- Runbook § 8 Monitoring · § 9 Sécurité.
+
+## v1.2 — 2026-06-23
+
+- Jalon officiel : fin Construction Passenger · début Release Engineering.
+- Règle KPI Avant/Après en fin de chaque livraison (§ 13bis).
+- Ordre BUILD Sprint P0 / P1 confirmé CTO.
+- Runbook DEPLOY-01 v0.1 (squelette) — constitution parallèle.
+
 ## v1.1 — 2026-06-23
 
 - Décisions CTO Q1–Q5 intégrées · phase DESIGN clôturée.
 - Feature Freeze formalisé (§ 2bis).
 - DoD restreinte à P0 + P1 · P2 → BACKLOG POST-PILOT.
-- Roadmap étendue (DRIVER-01 · PILOT-02 · B2B).
+- Roadmap étendue (DRIVER-WORKSPACE-01 · DRIVER-UX-01 · PILOT-02 · COMPANY · B2B).
 - Statut → **DESIGN** · prochaine phase **BUILD**.
 
 ## v1.0 — 2026-06-23

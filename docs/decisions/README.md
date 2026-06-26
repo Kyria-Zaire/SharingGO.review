@@ -9,3 +9,9 @@ Format suggéré : `ADR-NNN-titre.md`
 - **Conséquences**
 
 Toute décision majeure BMAD phase **DECIDE** est versionnée ici.
+
+## Index
+
+| ADR | Titre | Statut |
+|-----|-------|--------|
+| [ADR-001](./ADR-001-single-platform-multi-role-experiences.md) | Plateforme unique · expériences multi-rôles · stratégie Driver | **accepted** |

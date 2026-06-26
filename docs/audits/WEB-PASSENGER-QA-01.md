@@ -328,7 +328,7 @@ Priorisées pour transformer **GO CONDITIONNEL** en **GO plein**.
 ▶ DEPLOY-READY-01 (BUILD — décisions CTO validées)
 ⬜ DEPLOY-01 (VPS, HTTPS, domaine, monitoring)
 ⬜ PILOT-01 (premiers utilisateurs réels)
-⬜ DRIVER-01 → PILOT-02 → B2B
+⬜ DRIVER-WORKSPACE-01 → DRIVER-UX-01 → PILOT-02 → COMPANY → B2B
 ```
 
 > Ticket d'exécution : [`docs/prd/active/DEPLOY-READY-01-passenger-deploy-readiness.md`](../prd/active/DEPLOY-READY-01-passenger-deploy-readiness.md)  

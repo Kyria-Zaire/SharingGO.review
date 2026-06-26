@@ -1,99 +1,90 @@
 # DEPLOY-READY-01 — Hardening pré-déploiement passager
 
-**Statut :** DESIGN (décisions CTO validées — **BUILD autorisé**)  
-**Type :** phase hardening · **pas** de nouvelle feature  
+**Statut :** DESIGN · **BUILD autorisé** · Phase **Release Engineering**  
 **PRD :** [`docs/prd/active/DEPLOY-READY-01-passenger-deploy-readiness.md`](../prd/active/DEPLOY-READY-01-passenger-deploy-readiness.md)  
-**Prérequis :** Passenger V1 FEATURE COMPLETE · WEB-PASSENGER-QA-01 GO CONDITIONNEL
+**Runbook :** [`docs/ops/DEPLOY-01-RUNBOOK.md`](../ops/DEPLOY-01-RUNBOOK.md)  
+**Gate sortie :** [Definition of Production Ready](../ops/DEPLOY-01-RUNBOOK.md#17-definition-of-production-ready)
+
+---
+
+## Jalon officiel
+
+```text
+PASSENGER V1     ✅ FEATURE COMPLETE
+QA               ✅ VALIDÉ
+HARDENING        🟢 READY TO BUILD
+Phase            Release Engineering
+```
 
 ---
 
 ## 🔒 Feature Freeze (actif)
 
+Aucune nouvelle fonctionnalité Passenger jusqu'à clôture DEPLOY-READY-01.
+
+---
+
+## KPI obligatoire (fin de chaque PR / sprint)
+
+| KPI | Avant (baseline QA) | Après |
+|-----|--------------------:|------:|
+| WARN | 14 | *X* |
+| WARN P0 | *à mesurer* | **0** |
+| FAIL | 0 | **0** |
+| Bundle JS | 844 kB | *XXX kB* |
+| Routes mortes | 0 | **0** |
+| Composants orphelins | 1 | **0** |
+| Dépendances démo | ~30 fichiers | **0** |
+
+---
+
+## Ordre BUILD (validé CTO)
+
+### Sprint P0
+
+1. `/help` public
+2. Nettoyage mode démo
+3. Vérification liens
+4. Favicon
+5. Meta description
+6. `robots.txt`
+7. Juridique — placeholders + note prod publique
+
+### Sprint P1
+
+1. Suppression orphelins
+2. Suppression imports / exports morts
+3. Nettoyage hooks
+4. TypeScript strict
+5. Optimisation bundle
+6. Lazy loading — **si encore nécessaire**
+
+### P2 → BACKLOG POST-PILOT
+
+---
+
+## Definition of Production Ready (gate DEPLOY-01)
+
 ```text
-Aucune nouvelle fonctionnalité Passenger
-jusqu'à la fin de DEPLOY-READY-01
+✔ FAIL = 0          ✔ WARN P0 = 0       ✔ Aucun orphelin
+✔ Aucun fichier démo ✔ Aucun secret repo ✔ Lint / Build OK
+✔ QA PASS           ✔ Runbook complété  ✔ Smoke tests OK
 ```
 
-Uniquement : corrections · hardening · préparation déploiement.
+---
+
+## Documentation parallèle
+
+Runbook DEPLOY-01 v0.2 — constitution pendant DEPLOY-READY-01 (Monitoring § 8 · Sécurité § 9).
 
 ---
 
-## Jalon
+## Roadmap
 
 ```text
-✅ Passenger V1 Feature Complete
-✅ Passenger QA Complete
-▶ DEPLOY-READY-01 (BUILD)     ← nous sommes ici
-        ↓
-DEPLOY-01
-        ↓
-PILOT-01
-        ↓
-DRIVER-01 → PILOT-02 → B2B
+▶ DEPLOY-READY-01 (BUILD) → DEPLOY-01 → PILOT-01
+→ DRIVER-WORKSPACE-01 → DRIVER-UX-01 → PILOT-02 → COMPANY → B2B
 ```
-
-**Sortie attendue :** *Produit prêt pour DEPLOY-01* (validation CTO).
-
-**DoD :** P0 + P1 uniquement. P2 = BACKLOG POST-PILOT.
-
----
-
-## Décisions CTO (2026-06-23)
-
-| # | Décision |
-|---|----------|
-| Q1 | `/help` → **route publique** |
-| Q2 | Mentions légales → **placeholders conservés** (gate prod publique) |
-| Q3 | `robots.txt` → Disallow local/staging/preprod · Allow + Sitemap prod |
-| Q4 | P2 → **hors DoD** |
-| Q5 | **Feature Freeze** actif |
-
----
-
-## P0 — Obligatoire (DoD)
-
-| # | Tâche | Fichiers / zone |
-|---|-------|-----------------|
-| 1 | Retrait définitif mode démo UI | `src/lib/ui-demo-trips.ts`, `features/*/demo/`, merges hooks |
-| 2 | Suppression badges DÉMO | `UiDemoModeBadge.tsx`, `NotificationCard` badge démo |
-| 3 | Validation env `VITE_ENABLE_UI_DEMO_TRIPS` | Railway / VPS / `.env.example` |
-| 4 | Juridique — placeholders + note prod publique | `features/legal/` (pas de faux SIREN) |
-| 5 | `/help` public | `router.tsx` — retirer `RequireAuth` |
-| 6 | Favicon | `public/` + `index.html` |
-| 7 | Meta description | `index.html` |
-| 8 | `robots.txt` par env | `public/robots.txt` (voir Q3) |
-| 9 | Audit liens internes | footer, nav, legal, contact, help |
-
----
-
-## P1 — Hardening technique (DoD)
-
-| # | Tâche |
-|---|-------|
-| 1 | Supprimer `BookingDetailPlaceholderPage.tsx` (orphelin) |
-| 2 | Supprimer exports morts (`env.ts`, constantes boarding démo) |
-| 3 | Nettoyage imports inutilisés |
-| 4 | Simplifier hooks post-suppression démo |
-| 5 | Revue TypeScript strict |
-| 6 | Réduction bundle (844 kB → cible < 600 kB ou justification) |
-| 7 | Lazy loading routes si gain significatif |
-
----
-
-## P2 — BACKLOG POST-PILOT (hors DoD)
-
-Lighthouse · PWA · Twitter Cards · OG avancé · SEO avancé · bundle ultra-optimisé · 1920px.
-
-**Gate prod publique (hors ticket) :** SIREN / siège / capital réels.
-
----
-
-## Interdit pendant ce ticket
-
-- Driver · Company · B2B
-- Nouvelles features Passenger
-- Backend métier nouveau
-- DEPLOY-01 (infra)
 
 ---
 
@@ -103,17 +94,6 @@ Lighthouse · PWA · Twitter Cards · OG avancé · SEO avancé · bundle ultra-
 cd frontend/apps/passenger
 pnpm lint
 pnpm build
-# + régression manuelle parcours WEB-PASSENGER-QA-01 § 2
 ```
 
-**Rapport de clôture (VERIFY) :** `docs/audits/DEPLOY-READY-01-report.md`
-
----
-
-## Références
-
-| Doc | Rôle |
-|-----|------|
-| `docs/audits/WEB-PASSENGER-QA-01.md` | Audit source |
-| `docs/features/WEB-DEMO-DATA-01.md` | Module démo à retirer |
-| PRD actif | Périmètre · AC · DoD · décisions CTO |
+Rapport clôture : `docs/audits/DEPLOY-READY-01-report.md`

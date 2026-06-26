@@ -3,6 +3,13 @@
 Date: 2026-06-20
 Owner: Ops / CTO
 
+## Documents liés
+
+| Document | Rôle |
+|----------|------|
+| [`DEPLOY-01-RUNBOOK.md`](./DEPLOY-01-RUNBOOK.md) | Procédure déploiement (draft — DEPLOY-01) |
+| [`DEPLOY-READY-01` PRD](../prd/active/DEPLOY-READY-01-passenger-deploy-readiness.md) | Prérequis hardening |
+
 ## Checklist pre-pilote (bloquants)
 
 - [ ] **Politique annulation trajet tranchee avant PILOT-01 (BLOQUANT).**

@@ -36,6 +36,14 @@
 - `user_type = admin`
 - CRUD trajets (8/jour), stats, gestion ligne
 
+### Chauffeur (Driver) — post-PILOT-01
+
+- Rôle `DRIVER` · **même backend et RBAC** que l'admin
+- Interface dédiée = sous-ensemble du back-office (scanner QR, départs, passagers du trajet)
+- Stratégie : extraction admin → `DRIVER-WORKSPACE-01` → `DRIVER-UX-01` (cf. [`docs/decisions/ADR-001`](docs/decisions/ADR-001-single-platform-multi-role-experiences.md))
+
+> **Principe plateforme :** une logique métier, plusieurs expériences par rôle.
+
 ## Jobs to be done (V1)
 
 1. **Réserver une place** sur un créneau précis, vite, sans friction
