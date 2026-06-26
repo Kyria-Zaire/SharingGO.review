@@ -1,0 +1,499 @@
+{
+  "runAt": "2026-06-26T16:12:18.001Z",
+  "apiOk": true,
+  "tripId": "qa-web-booking-form-01",
+  "reservationId": "cmqtrserq000nof0txwoigvv6",
+  "total": 44,
+  "pass": 42,
+  "fail": 2,
+  "results": [
+    {
+      "id": "landing",
+      "path": "/",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "trips",
+      "path": "/trips",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "help",
+      "path": "/help",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "contact",
+      "path": "/contact",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "legal-terms",
+      "path": "/legal/terms",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "legal-privacy",
+      "path": "/legal/privacy",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "legal-notice",
+      "path": "/legal/notice",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "login",
+      "path": "/login",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "[GSI_LOGGER]: The given origin is not allowed for the given client ID."
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "register",
+      "path": "/register",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "not-found",
+      "path": "/page-inexistante-qa",
+      "status": "FAIL",
+      "note": "page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator('main h1') to be visible\n",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "bookings",
+      "path": "/bookings",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "profile",
+      "path": "/profile",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "profile-edit",
+      "path": "/profile/edit",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "settings",
+      "path": "/settings",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "notifications",
+      "path": "/notifications",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "subscriptions",
+      "path": "/subscriptions",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "payment-success",
+      "path": "/bookings/payment/success",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "payment-cancel",
+      "path": "/bookings/payment/cancel",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "landing",
+      "path": "/",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "trips",
+      "path": "/trips",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "help",
+      "path": "/help",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "contact",
+      "path": "/contact",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "legal-terms",
+      "path": "/legal/terms",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "legal-privacy",
+      "path": "/legal/privacy",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "legal-notice",
+      "path": "/legal/notice",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "login",
+      "path": "/login",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 403 ()",
+        "[GSI_LOGGER]: The given origin is not allowed for the given client ID."
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "register",
+      "path": "/register",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "not-found",
+      "path": "/page-inexistante-qa",
+      "status": "FAIL",
+      "note": "page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator('main h1') to be visible\n",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "bookings",
+      "path": "/bookings",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "profile",
+      "path": "/profile",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "profile-edit",
+      "path": "/profile/edit",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "settings",
+      "path": "/settings",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "notifications",
+      "path": "/notifications",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "subscriptions",
+      "path": "/subscriptions",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "payment-success",
+      "path": "/bookings/payment/success",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "payment-cancel",
+      "path": "/bookings/payment/cancel",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "trip-detail",
+      "path": "/trips/qa-web-booking-form-01",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "booking-form",
+      "path": "/trips/qa-web-booking-form-01/book",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "booking-detail",
+      "path": "/bookings/cmqtrserq000nof0txwoigvv6",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "boarding-pass",
+      "path": "/bookings/cmqtrserq000nof0txwoigvv6/boarding-pass",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "desktop"
+    },
+    {
+      "id": "trip-detail",
+      "path": "/trips/qa-web-booking-form-01",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "booking-form",
+      "path": "/trips/qa-web-booking-form-01/book",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "booking-detail",
+      "path": "/bookings/cmqtrserq000nof0txwoigvv6",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    },
+    {
+      "id": "boarding-pass",
+      "path": "/bookings/cmqtrserq000nof0txwoigvv6/boarding-pass",
+      "status": "PASS",
+      "note": "",
+      "consoleErrors": [],
+      "networkIssues": [],
+      "reactErrors": [],
+      "viewport": "mobile"
+    }
+  ]
+}

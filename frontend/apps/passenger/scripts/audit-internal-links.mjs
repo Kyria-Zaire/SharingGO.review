@@ -197,7 +197,7 @@ if (warnings.length) {
 }
 
 console.log("\nOrphan files (not routed, informational):");
-const orphanCandidates = ["components/auth/DevDemoAuthHint.tsx"];
+const orphanCandidates = [];
 for (const f of orphanCandidates) {
   const full = join(SRC, f);
   try {

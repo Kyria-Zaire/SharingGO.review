@@ -264,6 +264,17 @@ Insérer dans table `deployments` :
 
 Référence dev : [`docs/runbooks/ops-health-monitoring.md`](../runbooks/ops-health-monitoring.md) · S1-5-T8.
 
+### Bundle passenger — monitoring (baseline P1-04)
+
+| Métrique | Baseline 2026-06-26 | Seuil alerte |
+|----------|---------------------|--------------|
+| JS brut (`index-*.js`) | **827.63 kB** | Investigation si **> 900 kB** |
+| JS gzip | **228.47 kB** | Investigation P1-05 code splitting si **> 300 kB** sans gain fonctionnel |
+
+- Non bloquant pour pilote contrôlé DEPLOY-READY.
+- Mesurer dès **J+1 pilote** sur réseau mobile réel (Lighthouse / WebPageTest ou équivalent).
+- Source : [`DEPLOY-READY-P1-04-regression-qa.md`](../audits/DEPLOY-READY-P1-04-regression-qa.md) § 9.
+
 ---
 
 ## 9. Vérifications sécurité

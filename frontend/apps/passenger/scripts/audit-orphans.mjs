@@ -100,11 +100,8 @@ for (const path of filePaths) {
   }
 }
 
-// Also flag known paths with zero refs explicitly
-for (const rel of [
-  "pages/BookingDetailPlaceholderPage.tsx",
-  "components/auth/DevDemoAuthHint.tsx",
-]) {
+// Known orphan paths removed in P1-04-FINALIZE (ANO-M03 / ANO-M04).
+for (const rel of [] as const) {
   const full = join(SRC, rel);
   if (!existsSync(full)) {
     candidates.push({
