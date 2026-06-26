@@ -10,6 +10,7 @@ export const ROUTES = {
     `/bookings/${encodeURIComponent(reservationId)}/boarding-pass`,
   profile: "/profile",
   profileEdit: "/profile/edit",
+  notifications: "/notifications",
   tripDetail: (tripId: string) => `/trips/${encodeURIComponent(tripId)}`,
   tripBooking: (tripId: string) => `/trips/${encodeURIComponent(tripId)}/book`,
   pendingBooking: (pendingReservationId: string) =>

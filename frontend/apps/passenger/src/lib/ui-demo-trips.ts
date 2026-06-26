@@ -9,6 +9,7 @@
 
 export const DEMO_TRIP_ID_PREFIX = "demo-trip-";
 export const DEMO_BOOKING_ID_PREFIX = "demo-booking-";
+export const DEMO_NOTIFICATION_ID_PREFIX = "demo-notification-";
 
 export function isDemoTripId(tripId: string): boolean {
   return tripId.startsWith(DEMO_TRIP_ID_PREFIX);
@@ -16,6 +17,10 @@ export function isDemoTripId(tripId: string): boolean {
 
 export function isDemoBookingId(reservationId: string): boolean {
   return reservationId.startsWith(DEMO_BOOKING_ID_PREFIX);
+}
+
+export function isDemoNotificationId(notificationId: string): boolean {
+  return notificationId.startsWith(DEMO_NOTIFICATION_ID_PREFIX);
 }
 
 /** Flag lu uniquement hors build production. */
