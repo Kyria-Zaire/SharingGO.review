@@ -9,6 +9,9 @@ export const BRAND_THEME_COLOR = "#22c55e";
 export const BRAND_META_DESCRIPTION =
   "SharingGO facilite vos déplacements entre Châlons-en-Champagne et l'aéroport Paris-Vatry. Réservez votre navette en ligne, payez en toute sécurité et recevez votre billet numérique.";
 
+/** Canonical public site URL — Sitemap in prod robots.txt (`pnpm generate:robots`). */
+export const BRAND_SITE_URL = "https://sharinggo.fr";
+
 export const BRAND_ICONS = {
   favicon: "/favicon.ico",
   favicon32: "/favicon-32x32.png",

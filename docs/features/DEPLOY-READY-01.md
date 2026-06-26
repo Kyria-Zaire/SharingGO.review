@@ -45,9 +45,9 @@ Aucune nouvelle fonctionnalité Passenger jusqu'à clôture DEPLOY-READY-01.
 1. `/help` public ✅
 2. Nettoyage mode démo ✅
 3. Vérification liens ✅
-4. **Branding Web** (favicon, icônes, title, theme-color, logo)
-5. Meta description
-6. `robots.txt`
+4. **Branding Web** (favicon, icônes, title, theme-color, logo) ✅
+5. Meta description ✅
+6. `robots.txt` ✅
 7. Juridique — placeholders + note prod publique
 
 ### Sprint P1
@@ -95,6 +95,7 @@ cd frontend/apps/passenger
 pnpm lint
 pnpm build
 pnpm audit:links
+pnpm generate:robots
 ```
 
 Rapport clôture : `docs/audits/DEPLOY-READY-01-report.md`

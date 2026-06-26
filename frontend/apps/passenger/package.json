@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5174",
+    "prebuild": "node scripts/generate-robots.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0 --port 5174",
     "lint": "eslint src --max-warnings 0",
     "audit:links": "node scripts/audit-internal-links.mjs",
-    "generate:brand-icons": "python scripts/generate-brand-icons.py"
+    "generate:brand-icons": "python scripts/generate-brand-icons.py",
+    "generate:robots": "node scripts/generate-robots.mjs"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",

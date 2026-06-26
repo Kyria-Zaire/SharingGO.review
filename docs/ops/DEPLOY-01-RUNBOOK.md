@@ -3,7 +3,7 @@
 **Status :** DRAFT (constitution en cours pendant DEPLOY-READY-01)  
 **Owner :** CTO / Ops  
 **Last updated :** 2026-06-23  
-**Version :** v0.3  
+**Version :** v0.4  
 **Prérequis :** DEPLOY-READY-01 **DONE** · validation CTO « Produit prêt pour DEPLOY-01 »
 
 > **Ce document n'est pas encore opérationnel.** Il sera complété pendant DEPLOY-READY-01 et finalisé en entrée de DEPLOY-01.  
@@ -79,7 +79,7 @@ Internet
 
 | Hostname | Env | Usage | Statut |
 |----------|-----|-------|--------|
-| `app.sharinggo.fr` (exemple) | PROD | Passager | ⬜ à définir |
+| `app.sharinggo.fr` (exemple) | PROD | Passager | ⬜ à définir — **canonique produit : `sharinggo.fr`** |
 | `admin.sharinggo.fr` (exemple) | PROD | Admin | ⬜ à définir |
 | `api.sharinggo.fr` (exemple) | PROD | API | ⬜ à définir |
 | `staging.*` | STAGING/PREPROD | QA · `robots.txt` Disallow | ⬜ |
@@ -358,19 +358,43 @@ Référence : `.cursor/rules/security-baseline.mdc` · CDC §5.2.
 |---|--------------|---------|
 | 1 | `GET /health` | `200` · `{"status":"ok"}` |
 | 2 | `GET /ready` | `200` · DB connectée |
-| 3 | Frontend passager | Page d'accueil · pas d'erreur console |
-| 4 | `robots.txt` PROD | `Allow: /` + Sitemap |
-| 5 | TLS | Certificat valide · pas de mixed content |
-| 6 | OAuth Google | Login convoyeur OK |
-| 7 | Stripe webhook | Event test Dashboard → `200` |
-| 8 | Réservation test | Pending → checkout → CONFIRMED (compte pilote) |
-| 9 | QR boarding | JWT généré · expiration cohérente |
-| 10 | Rate limiting | 429 après seuil (spot check) |
-| 11 | CORS | Origine prod autorisée · `*` absent |
-| 12 | Pas de mode démo | Aucun `demo-trip-*` · variable démo absente |
-| 13 | Liens internes passager | `cd frontend/apps/passenger && pnpm audit:links` → exit **0** · FAIL **0** |
+| 3 | `GET /` (passager) | **200** · page d'accueil · pas d'erreur console |
+| 4 | `GET /robots.txt` | **200** · PREPROD/STAGING : `Disallow: /` · PROD : `Allow: /` + `Sitemap: https://sharinggo.fr/sitemap.xml` |
+| 5 | `GET /favicon.ico` | **200** |
+| 6 | `GET /apple-touch-icon.png` | **200** |
+| 7 | `GET /icon-192.png` | **200** |
+| 8 | `GET /icon-512.png` | **200** |
+| 9 | TLS | Certificat valide · pas de mixed content |
+| 10 | OAuth Google | Login convoyeur OK |
+| 11 | Stripe webhook | Event test Dashboard → `200` |
+| 12 | Réservation test | Pending → checkout → CONFIRMED (compte pilote) |
+| 13 | QR boarding | JWT généré · expiration cohérente |
+| 14 | Rate limiting | 429 après seuil (spot check) |
+| 15 | CORS | Origine prod autorisée · `*` absent |
+| 16 | Pas de mode démo | Aucun `demo-trip-*` · variable démo absente |
+| 17 | Liens internes passager | `cd frontend/apps/passenger && pnpm audit:links` → exit **0** · FAIL **0** |
 
-**Commande officielle (pré-déploiement & CI) :**
+**Assets racine passager (smoke HTTP — tous `200`) :**
+
+```text
+GET /
+GET /robots.txt
+GET /favicon.ico
+GET /apple-touch-icon.png
+GET /icon-192.png
+GET /icon-512.png
+```
+
+**robots.txt — build PROD (DEPLOY-READY P0-06) :**
+
+```bash
+cd frontend/apps/passenger
+ROBOTS_POLICY=allow PUBLIC_SITE_URL=https://sharinggo.fr pnpm build
+```
+
+Hors PROD : `ROBOTS_POLICY=disallow` (défaut · `prebuild` automatique).
+
+**Commande officielle audit liens (pré-déploiement & CI) :**
 
 ```bash
 cd frontend/apps/passenger
@@ -378,6 +402,8 @@ pnpm audit:links
 ```
 
 Script : `frontend/apps/passenger/scripts/audit-internal-links.mjs` — vérifie routes, ancres FAQ Contact→Help, footer légal, absence de liens démo. Introduit en DEPLOY-READY **P0-03**.
+
+Script : `frontend/apps/passenger/scripts/generate-robots.mjs` — `pnpm generate:robots` · politique Q3 (disallow hors prod). Introduit en DEPLOY-READY **P0-06**.
 
 ### 12.2 Observabilité
 
@@ -514,6 +540,11 @@ Validation CTO explicite requise avant ouverture DEPLOY-01.
 ---
 
 ## 19. Changelog
+
+### v0.4 — 2026-06-23
+
+- Smoke tests **assets racine passager** : `GET /`, `/robots.txt`, favicon, icônes PWA (§ 12.1).
+- Procédure build PROD `ROBOTS_POLICY=allow` — DEPLOY-READY **P0-06**.
 
 ### v0.3 — 2026-06-23
 

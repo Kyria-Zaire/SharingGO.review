@@ -152,9 +152,9 @@ Les 14 WARN ne sont pas tous dans le scope obligatoire de ce ticket — voir mat
 1. **P0-01** — `/help` route publique (changement localisé · vérifiable en premier) ✅
 2. **P0-02** — Nettoyage mode démonstration (code · badges · env) ✅
 3. **P0-03** — Vérification liens internes ✅
-4. **P0-04** — **Branding Web** (favicon, icônes, title, theme-color, logo)
-5. **P0-05** — Meta description
-6. **P0-06** — `robots.txt` par environnement
+4. **P0-04** — **Branding Web** (favicon, icônes, title, theme-color, logo) ✅
+5. **P0-05** — Meta description ✅
+6. **P0-06** — `robots.txt` par environnement ✅
 7. **P0-07** — Juridique — placeholders conservés + note prod publique
 
 Puis seulement :
