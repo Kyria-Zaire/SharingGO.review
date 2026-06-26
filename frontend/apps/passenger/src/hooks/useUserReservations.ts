@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listUserReservations } from "@/api/reservations.api";
 import { ApiError } from "@/api/http";
-import { mergeReservationsWithUiDemo } from "@/features/bookings/demo/merge-demo-bookings";
 import { queryKeys } from "@/constants/query-keys";
 import type { ListUserReservationsQuery } from "@/types/reservations";
 
@@ -25,13 +24,7 @@ export function useUserReservations(filter: BookingsFilter) {
 
   return useQuery({
     queryKey: queryKeys.reservations.list({ filter, ...queryParams }),
-    queryFn: async () => {
-      const data = await listUserReservations(queryParams);
-      return {
-        ...data,
-        reservations: mergeReservationsWithUiDemo(data.reservations, filter),
-      };
-    },
+    queryFn: () => listUserReservations(queryParams),
     staleTime: RESERVATIONS_STALE_MS,
     retry: (failureCount, error) => {
       if (error instanceof ApiError && error.status === 401) {

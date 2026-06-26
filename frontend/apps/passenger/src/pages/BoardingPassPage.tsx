@@ -15,7 +15,6 @@ import { useBoardingCountdown } from "@/hooks/useBoardingCountdown";
 import { useBoardingQr } from "@/hooks/useBoardingQr";
 import { useUserReservation } from "@/hooks/useUserReservation";
 import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
-import { isDemoBookingId } from "@/lib/ui-demo-trips";
 import type { BoardingApiErrorCode } from "@/types/boarding";
 import { ROUTES } from "@/types/routes";
 import { RefreshCw } from "lucide-react";
@@ -45,28 +44,19 @@ export function BoardingPassPage() {
   }, [isUnauthorized, navigate, location.pathname]);
 
   const reservation = reservationQuery.data;
-  const isDemoBooking = Boolean(reservationId && isDemoBookingId(reservationId));
   const detailPath = reservationId ? ROUTES.bookingDetail(reservationId) : ROUTES.bookings;
 
   const apiExpired = boardingError?.code === "BOARDING_EXPIRED";
   const isLocallyExpired = Boolean(boardingData) && countdown.isExpired;
   const showQr =
-    !isDemoBooking &&
-    Boolean(boardingData?.qr.payload) &&
-    !apiExpired &&
-    !isLocallyExpired;
+    Boolean(boardingData?.qr.payload) && !apiExpired && !isLocallyExpired;
 
   const errorView =
-    !isDemoBooking && boardingError && !isUnauthorized
+    boardingError && !isUnauthorized
       ? getBoardingErrorView(boardingError.code as BoardingApiErrorCode, detailPath)
       : null;
 
-  const isLoading =
-    !isDemoBooking &&
-    boardingQuery.isPending &&
-    !boardingError &&
-    !reservationQuery.data;
-
+  const isLoading = boardingQuery.isPending && !boardingError && !reservationQuery.data;
   const isReservationLoading = reservationQuery.isPending && !reservation;
 
   const handleRefresh = () => {
@@ -115,7 +105,7 @@ export function BoardingPassPage() {
     );
   }
 
-  if (boardingQuery.isError && boardingError && !isDemoBooking && !errorView) {
+  if (boardingQuery.isError && boardingError && !errorView) {
     return (
       <div className={landingContainerClass}>
         <ErrorState
@@ -149,7 +139,6 @@ export function BoardingPassPage() {
         user={user}
         qrPayload={boardingData?.qr.payload ?? null}
         showQr={showQr}
-        isDemoBooking={isDemoBooking}
         countdownDisplay={countdown.display}
         showCountdown={Boolean(boardingData?.expiresAt) && showQr}
         isQrExpired={apiExpired || isLocallyExpired}

@@ -3,14 +3,12 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { landingCardClass } from "@/features/home/lib/landing-layout";
 import {
-  NOTIFICATIONS_DEMO_BADGE,
   NOTIFICATIONS_UNREAD_BADGE,
 } from "@/features/notifications/constants/notifications-content";
 import { formatNotificationDateTime } from "@/features/notifications/lib/notification-format";
 import { resolveNotificationHref } from "@/features/notifications/lib/notification-routing";
 import { NOTIFICATION_VISUAL_STYLES } from "@/features/notifications/lib/notification-visual";
 import type { NotificationItem } from "@/features/notifications/types/notifications.types";
-import { isDemoNotificationId } from "@/lib/ui-demo-trips";
 
 const CARD_CLASS = cn(
   landingCardClass,
@@ -20,7 +18,6 @@ const CARD_CLASS = cn(
 function NotificationCardInner({ notification }: { notification: NotificationItem }) {
   const visual = NOTIFICATION_VISUAL_STYLES[notification.visualKind];
   const Icon = visual.icon;
-  const isDemo = isDemoNotificationId(notification.id);
   const timeLabel = formatNotificationDateTime(notification.createdAt);
 
   return (
@@ -42,11 +39,6 @@ function NotificationCardInner({ notification }: { notification: NotificationIte
               {!notification.read ? (
                 <span className="inline-flex items-center rounded-md border border-primary/35 bg-primary/10 px-1.5 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-primary">
                   {NOTIFICATIONS_UNREAD_BADGE}
-                </span>
-              ) : null}
-              {isDemo ? (
-                <span className="rounded-md border border-amber-500/35 bg-amber-500/10 px-1.5 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-amber-200/90">
-                  {NOTIFICATIONS_DEMO_BADGE}
                 </span>
               ) : null}
             </div>

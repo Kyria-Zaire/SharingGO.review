@@ -9,7 +9,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePublicTrip } from "@/hooks/usePublicTrip";
 import { useTripIdParam } from "@/hooks/useTripIdParam";
 import { deriveTripDetailReservationCta } from "@/lib/trip-availability";
-import { isDemoTripId, isUiDemoTripsEnabled } from "@/lib/ui-demo-trips";
 import { ROUTES } from "@/types/routes";
 
 export function TripDetailPage() {
@@ -76,10 +75,7 @@ export function TripDetailPage() {
     return null;
   }
 
-  const isDemoTrip = isUiDemoTripsEnabled() && isDemoTripId(tripQuery.data.id);
-  const cta = isDemoTrip
-    ? { label: "Trajet démo UI", disabled: true }
-    : deriveTripDetailReservationCta(tripQuery.data);
+  const cta = deriveTripDetailReservationCta(tripQuery.data);
 
   return (
     <TripDetailView

@@ -1,8 +1,6 @@
 import { ROUTES } from "@/types/routes";
 import type { UserReservationListItem } from "@/types/reservations";
 
-export const UI_DEMO_BOOKING_ACTION_TITLE = "Réservation démo UI — pas d'accès API";
-
 export function formatBookingReference(reservationId: string): string {
   return reservationId.slice(0, 8).toUpperCase();
 }

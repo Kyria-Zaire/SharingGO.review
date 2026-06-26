@@ -3,10 +3,8 @@ import { CheckCircle2, Clock3, QrCode } from "lucide-react";
 import { cn } from "@/lib/cn";
 import {
   getBookingActionButtonClass,
-  UI_DEMO_BOOKING_ACTION_TITLE,
   type BookingPrimaryAction,
 } from "@/features/bookings/lib/booking-actions";
-import { isDemoBookingId } from "@/lib/ui-demo-trips";
 import { ROUTES } from "@/types/routes";
 import type { UserReservationListItem } from "@/types/reservations";
 import type { BookingsFilter } from "@/hooks/useUserReservations";
@@ -46,9 +44,6 @@ export function BookingCardActionZone({
 }: BookingCardActionZoneProps) {
   const { status } = reservation;
   const showPendingIcon = !showQr && !isCompletedPast && status === "PENDING";
-  const isDemoBooking = isDemoBookingId(reservation.id);
-  const demoActionClass =
-    "cursor-not-allowed opacity-60 hover:bg-transparent hover:border-inherit";
 
   return (
     <div
@@ -70,27 +65,14 @@ export function BookingCardActionZone({
         )}
       >
         {showQr ? (
-          isDemoBooking ? (
-            <span
-              className={cn(
-                "inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary/25 bg-primary/10 text-primary",
-                demoActionClass
-              )}
-              title={UI_DEMO_BOOKING_ACTION_TITLE}
-            >
-              <QrCode className="h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden />
-              <span className="text-xs font-semibold">QR billet</span>
-            </span>
-          ) : (
-            <Link
-              to={ROUTES.boardingPass(reservation.id)}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary/25 bg-primary/10 text-primary transition-colors hover:border-primary/45 hover:bg-primary/15"
-              aria-label="Voir le QR billet"
-            >
-              <QrCode className="h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden />
-              <span className="text-xs font-semibold">QR billet</span>
-            </Link>
-          )
+          <Link
+            to={ROUTES.boardingPass(reservation.id)}
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary/25 bg-primary/10 text-primary transition-colors hover:border-primary/45 hover:bg-primary/15"
+            aria-label="Voir le QR billet"
+          >
+            <QrCode className="h-5 w-5 shrink-0" strokeWidth={1.5} aria-hidden />
+            <span className="text-xs font-semibold">QR billet</span>
+          </Link>
         ) : null}
 
         {isCompletedPast ? (
@@ -111,28 +93,15 @@ export function BookingCardActionZone({
           </span>
         ) : null}
 
-        {isDemoBooking ? (
-          <span
-            className={cn(
-              "inline-flex min-h-[2.125rem] w-full items-center justify-center rounded-lg border px-2.5 text-sm font-semibold",
-              getBookingActionButtonClass(action.variant),
-              demoActionClass
-            )}
-            title={UI_DEMO_BOOKING_ACTION_TITLE}
-          >
-            {action.label}
-          </span>
-        ) : (
-          <Link
-            to={action.href}
-            className={cn(
-              "inline-flex min-h-[2.125rem] w-full items-center justify-center rounded-lg border px-2.5 text-sm font-semibold transition-colors",
-              getBookingActionButtonClass(action.variant)
-            )}
-          >
-            {action.label}
-          </Link>
-        )}
+        <Link
+          to={action.href}
+          className={cn(
+            "inline-flex min-h-[2.125rem] w-full items-center justify-center rounded-lg border px-2.5 text-sm font-semibold transition-colors",
+            getBookingActionButtonClass(action.variant)
+          )}
+        >
+          {action.label}
+        </Link>
       </div>
     </div>
   );

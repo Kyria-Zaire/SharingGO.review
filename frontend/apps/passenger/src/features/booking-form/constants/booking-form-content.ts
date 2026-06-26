@@ -68,9 +68,6 @@ export const BOOKING_FORM_UNAVAILABLE_TITLE = "Trajet indisponible";
 export const BOOKING_FORM_UNAVAILABLE_MESSAGE =
   "Ce trajet n'est plus réservable. Consultez les autres départs disponibles.";
 
-export const BOOKING_FORM_DEMO_MESSAGE =
-  "La réservation n'est pas disponible pour les trajets démo UI.";
-
 export const BOOKING_FORM_PHONE_LABEL = "Téléphone optionnel";
 
 export const BOOKING_FORM_PHONE_PLACEHOLDER = "06 12 34 56 78";

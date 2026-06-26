@@ -1,4 +1,3 @@
-import { DEMO_BOOKING_ID_PREFIX } from "@/lib/ui-demo-trips";
 import { TRIP_DETAIL_STOP_POINTS } from "@/features/trips/constants/trip-detail-content";
 import { formatTime } from "@/lib/format-date";
 import { isChalonsCity, isVatryCity } from "@/lib/trip-city-labels";
@@ -44,12 +43,8 @@ export function formatBookingCardDateParts(departureTime: string): BookingCardDa
   };
 }
 
-/** Référence affichée type maquette (#SG254812) — démo : #SGDEMO-*. */
+/** Référence affichée type maquette (#SG254812). */
 export function formatBookingPublicReference(reservationId: string): string {
-  if (reservationId.startsWith(DEMO_BOOKING_ID_PREFIX)) {
-    const suffix = reservationId.slice(DEMO_BOOKING_ID_PREFIX.length).toUpperCase();
-    return `#SGDEMO-${suffix}`;
-  }
   const compact = reservationId.replace(/-/g, "").toUpperCase();
   return `#SG${compact.slice(0, 6)}`;
 }

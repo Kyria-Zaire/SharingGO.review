@@ -7,7 +7,6 @@ import { landingContainerClass } from "@/features/home/lib/landing-layout";
 import { BookingFormSkeleton } from "@/features/booking-form/components/BookingFormSkeleton";
 import { BookingFormView } from "@/features/booking-form/components/BookingFormView";
 import {
-  BOOKING_FORM_DEMO_MESSAGE,
   BOOKING_FORM_UNAVAILABLE_MESSAGE,
   BOOKING_FORM_UNAVAILABLE_TITLE,
 } from "@/features/booking-form/constants/booking-form-content";
@@ -21,7 +20,6 @@ import { usePublicTrip } from "@/hooks/usePublicTrip";
 import { useTripIdParam } from "@/hooks/useTripIdParam";
 import { deriveTripDetailReservationCta } from "@/lib/trip-availability";
 import { formatUserFacingError, USER_MESSAGES } from "@/lib/user-facing-errors";
-import { isDemoTripId, isUiDemoTripsEnabled } from "@/lib/ui-demo-trips";
 import { ROUTES } from "@/types/routes";
 
 export function BookingFormPage() {
@@ -55,9 +53,8 @@ export function BookingFormPage() {
   const showSkeleton = tripQuery.isPending && !tripQuery.data;
   const trip = tripQuery.data;
 
-  const isDemoTrip = Boolean(trip && isUiDemoTripsEnabled() && isDemoTripId(trip.id));
   const reservationCta = trip ? deriveTripDetailReservationCta(trip) : null;
-  const isUnavailable = Boolean(trip && (isDemoTrip || reservationCta?.disabled));
+  const isUnavailable = Boolean(trip && reservationCta?.disabled);
 
   const handleSubmit = () => {
     if (!tripId || !trip || isUnavailable || isPending) return;
@@ -113,11 +110,7 @@ export function BookingFormPage() {
       <div className={landingContainerClass}>
         <div className="space-y-4 py-6">
           <ErrorState
-            message={
-              isDemoTrip
-                ? BOOKING_FORM_DEMO_MESSAGE
-                : `${BOOKING_FORM_UNAVAILABLE_TITLE}. ${BOOKING_FORM_UNAVAILABLE_MESSAGE}`
-            }
+            message={`${BOOKING_FORM_UNAVAILABLE_TITLE}. ${BOOKING_FORM_UNAVAILABLE_MESSAGE}`}
           />
           <div className="flex flex-wrap gap-3">
             <Button variant="primary" onClick={() => window.history.back()}>

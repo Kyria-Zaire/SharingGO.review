@@ -54,6 +54,4 @@ export const NOTIFICATIONS_ERROR = {
 
 export const NOTIFICATIONS_LOAD_MORE = "Charger plus";
 
-export const NOTIFICATIONS_DEMO_BADGE = "Démo";
-
 export const NOTIFICATIONS_UNREAD_BADGE = "Non lu";

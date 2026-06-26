@@ -4,7 +4,6 @@ import QRCode from "react-qr-code";
 import { cn } from "@/lib/cn";
 import {
   BOARDING_PASS_COUNTDOWN_PREFIX,
-  BOARDING_PASS_DEMO_MESSAGE,
   BOARDING_PASS_QR_FOOTER,
   BOARDING_PASS_REFERENCE_LABEL,
   BOARDING_PASS_SEATS_LABEL,
@@ -24,7 +23,6 @@ export function BoardingPassMainCard({
   readiness,
   qrPayload,
   showQr,
-  isDemoBooking,
   countdownDisplay,
   showCountdown,
 }: {
@@ -33,7 +31,6 @@ export function BoardingPassMainCard({
   readiness: BoardingPassReadinessView;
   qrPayload: string | null;
   showQr: boolean;
-  isDemoBooking: boolean;
   countdownDisplay: string;
   showCountdown: boolean;
 }) {
@@ -84,12 +81,7 @@ export function BoardingPassMainCard({
         </div>
 
         <div className="order-2 flex flex-col items-center lg:order-2">
-          {isDemoBooking ? (
-            <div className="flex w-full max-w-[17.5rem] flex-col items-center gap-3 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] px-6 py-10 text-center">
-              <div className="h-40 w-40 rounded-xl bg-white/5" aria-hidden />
-              <p className="text-sm text-muted-foreground">{BOARDING_PASS_DEMO_MESSAGE}</p>
-            </div>
-          ) : showQr && qrPayload ? (
+          {showQr && qrPayload ? (
             <div className="relative w-full max-w-[11rem] sm:max-w-[13rem] lg:max-w-[17.5rem]">
               <div
                 className={cn(
@@ -119,7 +111,7 @@ export function BoardingPassMainCard({
             {BOARDING_PASS_QR_FOOTER}
           </p>
 
-          {showCountdown && showQr && !isDemoBooking ? (
+          {showCountdown && showQr ? (
             <p className="mt-2 text-center text-xs text-muted-foreground">
               {BOARDING_PASS_COUNTDOWN_PREFIX}{" "}
               <span className="font-mono font-semibold text-foreground">{countdownDisplay}</span>

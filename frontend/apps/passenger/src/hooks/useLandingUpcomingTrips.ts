@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublicTrips } from "@/api/trips.api";
-import { mergeTripsWithUiDemo } from "@/features/trips/demo/merge-demo-trips";
 import { queryKeys } from "@/constants/query-keys";
 import { deriveTripAvailability, sortTripsByDeparture } from "@/lib/trip-availability";
 
@@ -16,22 +15,17 @@ export const LANDING_DEPARTURES_LIMIT = 4;
 export function useLandingUpcomingTrips(limit = LANDING_DEPARTURES_LIMIT) {
   const query = useQuery({
     queryKey: queryKeys.trips.list({ landingUpcoming: true, limit }),
-    queryFn: async () => {
-      const response = await fetchPublicTrips({
+    queryFn: () =>
+      fetchPublicTrips({
         from: new Date().toISOString(),
         limit: 50,
-      });
-      return {
-        ...response,
-        trips: mergeTripsWithUiDemo(response.trips),
-      };
-    },
+      }),
     staleTime: PUBLIC_TRIPS_STALE_MS,
   });
 
   const trips = useMemo(() => {
-    const merged = query.data?.trips ?? [];
-    return sortTripsByDeparture(merged)
+    const apiTrips = query.data?.trips ?? [];
+    return sortTripsByDeparture(apiTrips)
       .filter((trip) => deriveTripAvailability(trip).status !== "past")
       .slice(0, limit);
   }, [query.data, limit]);

@@ -5,10 +5,8 @@ import {
   canAccessBoardingPass,
   getBookingActionButtonClass,
   getBookingPrimaryAction,
-  UI_DEMO_BOOKING_ACTION_TITLE,
 } from "@/features/bookings/lib/booking-actions";
 import { formatPaymentAmount } from "@/lib/reservation-status";
-import { isDemoBookingId } from "@/lib/ui-demo-trips";
 import { ROUTES } from "@/types/routes";
 import type { UserReservationListItem } from "@/types/reservations";
 import type { BookingsFilter } from "@/hooks/useUserReservations";
@@ -23,24 +21,7 @@ function BookingCardTrailingIcon({
   reservation: UserReservationListItem;
   filter: BookingsFilter;
 }) {
-  const isDemoBooking = isDemoBookingId(reservation.id);
-  const demoQrClass = isDemoBooking ? "cursor-not-allowed opacity-60" : "";
-
   if (canAccessBoardingPass(reservation)) {
-    if (isDemoBooking) {
-      return (
-        <span
-          className={cn(
-            "flex h-[4.25rem] w-[4.25rem] shrink-0 items-center justify-center rounded-xl border border-primary/35 bg-primary/10 shadow-[0_0_20px_rgba(34,197,94,0.15)]",
-            demoQrClass
-          )}
-          title={UI_DEMO_BOOKING_ACTION_TITLE}
-        >
-          <QrCode className="h-8 w-8 text-primary" strokeWidth={1.5} aria-hidden />
-        </span>
-      );
-    }
-
     return (
       <Link
         to={ROUTES.boardingPass(reservation.id)}
@@ -90,7 +71,6 @@ export function BookingCardMobile({ reservation, filter }: BookingCardMobileProp
   const action = getBookingPrimaryAction(reservation);
   const paymentLabel = payment ? formatPaymentAmount(payment.amount, payment.currency) : "—";
   const highlightTime = filter === "upcoming";
-  const isDemoBooking = isDemoBookingId(reservation.id);
 
   return (
     <article className={cn(CARD_SHELL_CLASS, "lg:hidden")} data-reservation-id={reservation.id}>
@@ -135,28 +115,15 @@ export function BookingCardMobile({ reservation, filter }: BookingCardMobileProp
 
       {action.label ? (
         <div className="border-t border-white/[0.06] px-4 py-3">
-          {isDemoBooking ? (
-            <span
-              className={cn(
-                "inline-flex min-h-touch w-full items-center justify-center rounded-lg border px-4 text-sm font-semibold",
-                getBookingActionButtonClass(action.variant),
-                "cursor-not-allowed opacity-60"
-              )}
-              title={UI_DEMO_BOOKING_ACTION_TITLE}
-            >
-              {action.label}
-            </span>
-          ) : (
-            <Link
-              to={action.href}
-              className={cn(
-                "inline-flex min-h-touch w-full items-center justify-center rounded-lg border px-4 text-sm font-semibold transition-colors",
-                getBookingActionButtonClass(action.variant)
-              )}
-            >
-              {action.label}
-            </Link>
-          )}
+          <Link
+            to={action.href}
+            className={cn(
+              "inline-flex min-h-touch w-full items-center justify-center rounded-lg border px-4 text-sm font-semibold transition-colors",
+              getBookingActionButtonClass(action.variant)
+            )}
+          >
+            {action.label}
+          </Link>
         </div>
       ) : null}
     </article>

@@ -56,6 +56,3 @@ export const BOOKING_DETAIL_PAYMENT_METHOD = "Paiement par carte";
 export const BOOKING_DETAIL_CAR_SEAT_LABEL = "Siège auto";
 
 export const BOOKING_DETAIL_CAR_SEAT_VALUE = "Non";
-
-export const BOOKING_DETAIL_UNAVAILABLE_ACTION =
-  "Action non disponible pour cette réservation démo UI";

@@ -4,7 +4,6 @@ import { usePassengerShell } from "@/hooks/usePassengerShell";
 import { passengerShellWidthClass } from "@/lib/passenger-layout";
 import { PassengerFooter } from "./PassengerFooter";
 import { PassengerHeader } from "./PassengerHeader";
-import { UiDemoModeBadge } from "./UiDemoModeBadge";
 
 export function PassengerShell() {
   const { isMarketingSurface, showMarketingFooter, mainBottomPadding } = usePassengerShell();
@@ -25,7 +24,6 @@ export function PassengerShell() {
       </main>
 
       {showMarketingFooter ? <PassengerFooter /> : null}
-      <UiDemoModeBadge />
     </div>
   );
 }

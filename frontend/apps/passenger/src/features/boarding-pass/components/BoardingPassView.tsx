@@ -23,7 +23,6 @@ export function BoardingPassView({
   user,
   qrPayload,
   showQr,
-  isDemoBooking,
   countdownDisplay,
   showCountdown,
   isQrExpired,
@@ -35,7 +34,6 @@ export function BoardingPassView({
   user: PassengerUser | null;
   qrPayload: string | null;
   showQr: boolean;
-  isDemoBooking: boolean;
   countdownDisplay: string;
   showCountdown: boolean;
   isQrExpired: boolean;
@@ -69,7 +67,6 @@ export function BoardingPassView({
             readiness={readiness}
             qrPayload={qrPayload}
             showQr={showQr}
-            isDemoBooking={isDemoBooking}
             countdownDisplay={countdownDisplay}
             showCountdown={showCountdown}
           />
@@ -83,7 +80,7 @@ export function BoardingPassView({
           <BoardingPassInfoSection />
           <BoardingPassSupportSection />
 
-          {!isDemoBooking && showQr ? (
+          {showQr ? (
             <div className="flex justify-center lg:justify-start">
               <Button
                 variant="secondary"

@@ -5,7 +5,6 @@ import {
   BOOKING_DETAIL_BACK_LABEL,
   BOOKING_DETAIL_DOWNLOAD_PDF,
   BOOKING_DETAIL_TITLE,
-  BOOKING_DETAIL_UNAVAILABLE_ACTION,
   BOOKING_DETAIL_VIEW_QR,
 } from "@/features/bookings/constants/booking-detail-content";
 import { formatBookingReservedAt } from "@/features/bookings/lib/booking-detail-format";
@@ -24,13 +23,11 @@ const actionSecondaryClass =
 export function BookingDetailHeader({
   reservation,
   isPastTrip,
-  isDemoBooking,
   showQrAction,
   onViewQr,
 }: {
   reservation: UserReservationDetail;
   isPastTrip: boolean;
-  isDemoBooking: boolean;
   showQrAction: boolean;
   onViewQr: () => void;
 }) {
@@ -65,24 +62,14 @@ export function BookingDetailHeader({
 
         <div className="flex flex-col gap-2 sm:flex-row lg:shrink-0">
           {showQrAction ? (
-            isDemoBooking ? (
-              <span
-                className={cn(actionBaseClass, actionPrimaryClass, "cursor-not-allowed opacity-60")}
-                title={BOOKING_DETAIL_UNAVAILABLE_ACTION}
-              >
-                <QrCode className="h-4 w-4" aria-hidden />
-                {BOOKING_DETAIL_VIEW_QR}
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={onViewQr}
-                className={cn(actionBaseClass, actionPrimaryClass)}
-              >
-                <QrCode className="h-4 w-4" aria-hidden />
-                {BOOKING_DETAIL_VIEW_QR}
-              </button>
-            )
+            <button
+              type="button"
+              onClick={onViewQr}
+              className={cn(actionBaseClass, actionPrimaryClass)}
+            >
+              <QrCode className="h-4 w-4" aria-hidden />
+              {BOOKING_DETAIL_VIEW_QR}
+            </button>
           ) : null}
           <span
             className={cn(

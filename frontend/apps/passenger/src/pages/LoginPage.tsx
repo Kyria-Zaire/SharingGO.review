@@ -4,7 +4,6 @@ import { Loader2 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { AuthFormAlert } from "@/components/auth/AuthFormAlert";
-import { DevDemoAuthHint } from "@/components/auth/DevDemoAuthHint";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -84,13 +83,6 @@ export function LoginPage() {
     void completeLogin(() =>
       loginWithEmailPassword(parsed.data.email, parsed.data.password)
     );
-  }
-
-  function fillDemoCredentials(demoEmail: string, demoPassword: string) {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setFieldErrors({});
-    setErrorMessage(null);
   }
 
   return (
@@ -183,8 +175,6 @@ export function LoginPage() {
                 Se connecter
               </Button>
             </form>
-
-            <DevDemoAuthHint onUseDemo={fillDemoCredentials} />
           </>
         ) : null}
 

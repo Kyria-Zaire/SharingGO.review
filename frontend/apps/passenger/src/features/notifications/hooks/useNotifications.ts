@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from "react";
-import { getNotificationsForUi } from "@/features/notifications/demo/merge-demo-notifications";
 import type { NotificationReadFilter, NotificationTab } from "@/features/notifications/lib/notification-tabs";
 import type { NotificationItem } from "@/features/notifications/types/notifications.types";
 
@@ -17,8 +16,7 @@ function filterByRead(items: NotificationItem[], readFilter: NotificationReadFil
 }
 
 export function useNotifications() {
-  const initialItems = useMemo(() => getNotificationsForUi(), []);
-  const [items, setItems] = useState<NotificationItem[]>(initialItems);
+  const [items, setItems] = useState<NotificationItem[]>([]);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [tab, setTab] = useState<NotificationTab>("all");
   const [readFilter, setReadFilter] = useState<NotificationReadFilter>("all");
@@ -61,7 +59,7 @@ export function useNotifications() {
   }, []);
 
   const retry = useCallback(() => {
-    setItems(getNotificationsForUi());
+    setItems([]);
     setVisibleCount(PAGE_SIZE);
   }, []);
 

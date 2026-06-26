@@ -67,11 +67,6 @@ export const BOARDING_PASS_TRUST_ITEMS = [
   "Support réactif",
 ] as const;
 
-export const BOARDING_PASS_DEMO_MESSAGE =
-  "QR code non disponible pour cette réservation démo UI.";
-
-export const BOARDING_PASS_DEMO_TITLE = "Billet démo";
-
 export const BOARDING_PASS_REFRESH_CTA = "Actualiser le QR";
 
 export const BOARDING_PASS_VALID_UNTIL_PREFIX = "Valide le";

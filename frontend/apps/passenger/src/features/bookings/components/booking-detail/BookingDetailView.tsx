@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { isDemoBookingId } from "@/lib/ui-demo-trips";
 import { ROUTES } from "@/types/routes";
 import type { UserReservationDetail } from "@/types/reservations";
 import { BookingDetailHeader } from "./BookingDetailHeader";
@@ -12,7 +11,6 @@ import { BookingDetailTripCard } from "./BookingDetailTripCard";
 export function BookingDetailView({ reservation }: { reservation: UserReservationDetail }) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const isDemoBooking = isDemoBookingId(reservation.id);
   const isPastTrip = new Date(reservation.trip.departureTime).getTime() < Date.now();
   const isUpcoming =
     !isPastTrip &&
@@ -25,7 +23,6 @@ export function BookingDetailView({ reservation }: { reservation: UserReservatio
       <BookingDetailHeader
         reservation={reservation}
         isPastTrip={isPastTrip}
-        isDemoBooking={isDemoBooking}
         showQrAction={showQrAction}
         onViewQr={() => navigate(ROUTES.boardingPass(reservation.id))}
       />

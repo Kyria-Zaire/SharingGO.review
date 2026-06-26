@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchPublicTrips } from "@/api/trips.api";
-import { mergeTripsWithUiDemo } from "@/features/trips/demo/merge-demo-trips";
 import { queryKeys } from "@/constants/query-keys";
 import { toParisDateKey } from "@/lib/format-date";
 import { sortTripsByDeparture } from "@/lib/trip-availability";
@@ -17,8 +16,7 @@ export function useNextAvailableTrip() {
         from: new Date().toISOString(),
         limit: 50,
       });
-      const merged = mergeTripsWithUiDemo(response.trips);
-      const sorted = sortTripsByDeparture(merged);
+      const sorted = sortTripsByDeparture(response.trips);
       return sorted[0] ?? null;
     },
     staleTime: NEXT_TRIP_STALE_MS,

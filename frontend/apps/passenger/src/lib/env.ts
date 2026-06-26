@@ -16,15 +16,7 @@ function readGoogleClientId(): string | null {
   return value.trim();
 }
 
-function readUiDemoTripsFlag(): boolean {
-  if (import.meta.env.PROD) {
-    return false;
-  }
-  return import.meta.env.VITE_ENABLE_UI_DEMO_TRIPS === "true";
-}
-
 export const env = {
   apiUrl: readApiUrl(),
   googleClientId: readGoogleClientId(),
-  uiDemoTrips: readUiDemoTripsFlag(),
 } as const;
