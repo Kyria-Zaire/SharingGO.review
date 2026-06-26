@@ -32,10 +32,10 @@ export const FOOTER_USEFUL_LINKS: FooterLink[] = [
 ];
 
 export const FOOTER_INFO_LINKS: FooterLink[] = [
-  { label: "Conditions générales", to: ROUTES.home, hash: "#legal" },
-  { label: "Politique de confidentialité", to: ROUTES.home, hash: "#privacy" },
-  { label: "Mentions légales", to: ROUTES.home, hash: "#legal" },
-  { label: "Contact", to: ROUTES.home, hash: "#contact" },
+  { label: "CGU", to: ROUTES.legalTerms },
+  { label: "Politique de confidentialité", to: ROUTES.legalPrivacy },
+  { label: "Mentions légales", to: ROUTES.legalNotice },
+  { label: "Contact", to: ROUTES.contact },
 ];
 
 export const FOOTER_CONTACT = {

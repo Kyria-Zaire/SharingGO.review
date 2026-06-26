@@ -1,6 +1,8 @@
+import { Link } from "react-router-dom";
 import { Luggage, User } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/cn";
+import { ROUTES } from "@/types/routes";
 import {
   BOOKING_FORM_LUGGAGE_OPTION,
   BOOKING_FORM_OPTIONS_SECTION_TITLE,
@@ -120,19 +122,19 @@ export function BookingFormTermsSection({
         />
         <span className="text-sm leading-relaxed text-foreground">
           J&apos;accepte les{" "}
-          <a
-            href="/#legal"
+          <Link
+            to={ROUTES.legalTerms}
             className="font-medium text-primary underline-offset-2 hover:underline"
           >
             Conditions Générales de Vente
-          </a>{" "}
+          </Link>{" "}
           et la{" "}
-          <a
-            href="/#privacy"
+          <Link
+            to={ROUTES.legalPrivacy}
             className="font-medium text-primary underline-offset-2 hover:underline"
           >
             Politique de confidentialité
-          </a>
+          </Link>
           .
         </span>
       </label>

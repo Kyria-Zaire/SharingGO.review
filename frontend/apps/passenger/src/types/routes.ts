@@ -20,6 +20,10 @@ export const ROUTES = {
   paymentCancel: "/bookings/payment/cancel",
   subscriptions: "/subscriptions",
   help: "/help",
+  legalTerms: "/legal/terms",
+  legalPrivacy: "/legal/privacy",
+  legalNotice: "/legal/notice",
+  contact: "/contact",
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

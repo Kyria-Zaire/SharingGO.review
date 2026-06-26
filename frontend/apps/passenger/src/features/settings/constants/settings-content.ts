@@ -48,7 +48,7 @@ export const SETTINGS_NOTIFICATIONS = {
 export const SETTINGS_PRIVACY = {
   title: "Confidentialité",
   privacyPolicy: "Politique de confidentialité",
-  terms: "Conditions générales",
+  terms: "CGU",
   downloadData: "Télécharger mes données",
   downloadSoon: "Bientôt disponible",
 } as const;

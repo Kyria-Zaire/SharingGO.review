@@ -10,6 +10,7 @@ import {
 } from "@/constants/shell-navigation";
 import { cn } from "@/lib/cn";
 import { passengerHeaderContainerClass } from "@/lib/passenger-layout";
+import { ROUTES } from "@/types/routes";
 import { PassengerLogo } from "./PassengerLogo";
 import { Button } from "@/components/ui/Button";
 
@@ -77,7 +78,7 @@ function FooterHelpContent() {
           </a>
         </li>
       </ul>
-      <Link to={{ pathname: "/", hash: "#contact" }} className="mt-4 inline-block">
+      <Link to={ROUTES.contact} className="mt-4 inline-block">
         <Button variant="primary" size="md" className="w-full sm:w-auto">
           Nous contacter
         </Button>

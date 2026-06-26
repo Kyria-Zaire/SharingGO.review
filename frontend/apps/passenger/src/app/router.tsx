@@ -19,6 +19,7 @@ import { RegisterPage } from "@/pages/RegisterPage";
 import { TripDetailPage } from "@/pages/TripDetailPage";
 import { TripsPage } from "@/pages/TripsPage";
 import { HelpPage } from "@/pages/HelpPage";
+import { LegalTermsPage } from "@/pages/LegalTermsPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { SubscriptionsPage } from "@/pages/SubscriptionsPage";
 export const router = createBrowserRouter([
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
     element: <PassengerLayout />,
     children: [
       { index: true, element: <HomePage /> },
+      { path: "legal/terms", element: <LegalTermsPage /> },
       { path: "trips", element: <TripsPage /> },
       {
         path: "trips/:tripId/book",
