@@ -28,7 +28,7 @@ export const FOOTER_USEFUL_LINKS: FooterLink[] = [
   { label: "Trajets", to: ROUTES.trips },
   { label: "Abonnements", to: ROUTES.subscriptions },
   { label: "Comment ça fonctionne", to: ROUTES.home, hash: `#${LANDING_SECTION_IDS.howItWorks}` },
-  { label: "Aide & FAQ", to: ROUTES.home, hash: `#${LANDING_SECTION_IDS.faq}` },
+  { label: "Aide & FAQ", to: ROUTES.help },
 ];
 
 export const FOOTER_INFO_LINKS: FooterLink[] = [

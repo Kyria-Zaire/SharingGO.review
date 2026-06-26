@@ -18,6 +18,7 @@ import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { TripDetailPage } from "@/pages/TripDetailPage";
 import { TripsPage } from "@/pages/TripsPage";
+import { HelpPage } from "@/pages/HelpPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { SubscriptionsPage } from "@/pages/SubscriptionsPage";
 export const router = createBrowserRouter([
@@ -113,6 +114,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <SubscriptionsPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "help",
+        element: (
+          <RequireAuth>
+            <HelpPage />
           </RequireAuth>
         ),
       },

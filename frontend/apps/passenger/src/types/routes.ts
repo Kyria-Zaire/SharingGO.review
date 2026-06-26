@@ -19,6 +19,7 @@ export const ROUTES = {
   paymentSuccess: "/bookings/payment/success",
   paymentCancel: "/bookings/payment/cancel",
   subscriptions: "/subscriptions",
+  help: "/help",
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];
