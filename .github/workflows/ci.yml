@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+# Ce workflow ne déclenche JAMAIS un déploiement.
+# Le déploiement est exclusivement géré par deploy.yml, sur tag v*.*.* uniquement.
+
+jobs:
+  lint-build-backend:
+    name: Backend — lint & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (tsc)
+        run: npm run build
+
+  lint-build-passenger:
+    name: Passenger — lint & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/apps/passenger
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2  # v4.0.0
+        with:
+          version: "9"
+          run_install: false
+
+      - name: Get pnpm store path
+        id: pnpm-cache
+        run: echo "store=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.store }}
+          key: pnpm-passenger-${{ hashFiles('frontend/apps/passenger/pnpm-lock.yaml') }}
+          restore-keys: pnpm-passenger-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+        env:
+          # Variables build-time Vite — valeurs CI neutres (pas de secrets prod).
+          VITE_API_URL: https://api.sharinggo.fr
+          VITE_GOOGLE_CLIENT_ID: ci-placeholder.apps.googleusercontent.com
+          ROBOTS_POLICY: disallow
+          PUBLIC_SITE_URL: https://sharinggo.fr
+
+      - name: Audit internal links
+        run: pnpm audit:links
+
+  lint-build-admin:
+    name: Admin — lint & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build

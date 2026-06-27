@@ -3,7 +3,7 @@
 **Status :** DRAFT (DEPLOY-01 en cours)  
 **Owner :** CTO / Ops  
 **Last updated :** 2026-06-27  
-**Version :** v0.7  
+**Version :** v0.8  
 **Prérequis :** DEPLOY-READY-01 **DONE** · validation CTO « Produit prêt pour DEPLOY-01 »
 
 > **Ce document n'est pas encore opérationnel.** Il sera complété pendant DEPLOY-READY-01 et finalisé en entrée de DEPLOY-01.  
@@ -537,6 +537,67 @@ Script : `frontend/apps/passenger/scripts/generate-robots.mjs` — `pnpm generat
 
 ---
 
+## 12b. CI/CD GitHub Actions (DEPLOY-01-G)
+
+Référence complète : [`docs/ops/DEPLOY-01-G-cicd.md`](./DEPLOY-01-G-cicd.md)
+
+### Déploiement standard
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+# → GitHub Actions déclenché automatiquement (deploy.yml)
+# → Suivre : GitHub → Actions → Deploy Production
+```
+
+### Workflow échoue au gate (lint/build)
+
+```
+Corriger le problème → commit → nouveau tag
+(Les tags Git sont immuables — ne pas pousser le même tag)
+```
+
+### Workflow échoue avec "repo sale"
+
+```bash
+ssh deploy@<IP_VPS>
+git -C /opt/sharinggo status
+git -C /opt/sharinggo checkout -- <fichier>   # si modification involontaire
+git -C /opt/sharinggo stash                   # si modification à conserver
+# Puis "Re-run failed jobs" depuis GitHub Actions
+```
+
+### Workflow échoue au backup
+
+```bash
+ssh deploy@<IP_VPS>
+docker compose -f docker-compose.prod.yml ps postgres
+bash scripts/check-disk.sh /opt/sharinggo
+```
+
+### Workflow échoue au healthcheck post-deploy
+
+```bash
+ssh deploy@<IP_VPS> 'cd /opt/sharinggo && docker compose -f docker-compose.prod.yml logs --tail=50 backend'
+ssh deploy@<IP_VPS> 'cd /opt/sharinggo && docker compose -f docker-compose.prod.yml logs migrator'
+# → Si migration échouée : restore backup pré-deploy + rollback tag N-1
+# → Voir DEPLOY-01-BACKUP-RESTORE.md § 6 + DEPLOY-01-G-cicd.md § 5
+```
+
+### Rollback manuel
+
+```bash
+ssh deploy@<IP_VPS>
+cd /opt/sharinggo
+./scripts/backup-postgres.sh
+git checkout vX.Y.Z
+SENTRY_RELEASE="vX.Y.Z" docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+curl --fail https://api.sharinggo.fr/health
+curl --fail https://api.sharinggo.fr/ready
+```
+
+---
+
 ## 13. Procédure de mise à jour (deploy courant)
 
 ```text
@@ -661,6 +722,11 @@ Validation CTO explicite requise avant ouverture DEPLOY-01.
 ---
 
 ## 19. Changelog
+
+### v0.8 — 2026-06-27
+
+- §CI/CD ajouté (DEPLOY-01-G) : workflows ci.yml + deploy.yml, procédures rollback,
+  repo sale, diagnostic post-déploiement. Référence DEPLOY-01-G-cicd.md.
 
 ### v0.7 — 2026-06-27
 
