@@ -111,6 +111,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: production
+      args:
+        VITE_API_URL: https://api.sharinggo.fr
     container_name: sharinggo-admin-prod
     restart: unless-stopped
     networks:

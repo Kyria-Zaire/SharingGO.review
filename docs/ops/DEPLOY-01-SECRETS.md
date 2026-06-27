@@ -74,8 +74,8 @@
 | Variable | Type | Valeur prod | Source |
 |----------|------|-------------|--------|
 | `GOOGLE_CLIENT_ID` | **[R]** | `xxxxxxxxx.apps.googleusercontent.com` | Google Cloud Console — `auth.google.service.ts:16` (`new OAuth2Client`) et `:69` (`audience` dans `verifyIdToken`) |
-| `GOOGLE_CLIENT_SECRET` | **[NON UTILISÉ V1]** | — | Non consommé dans `backend/src/`. Flow ID token ne nécessite pas le client secret. Prévu si migration Authorization Code Flow (S2+). |
-| `GOOGLE_CALLBACK_URL` | **[NON UTILISÉ V1]** | — | Non consommé dans `backend/src/`. Pas de redirect OAuth en V1. Prévu S2+. |
+
+Flow V1 : Google One Tap côté passenger → ID token → `POST /api/auth/google`. Pas de redirect OAuth serveur — **pas de `GOOGLE_CLIENT_SECRET` requis**.
 
 ### Stripe Live
 
@@ -89,8 +89,8 @@
 | `STRIPE_CANCEL_URL` | **[R]** | `https://sharinggo.fr/bookings/payment/cancel` | `.env.prod` |
 | `STRIPE_PRICE_MOSOLF_MONTHLY` | **[R]** | `price_live_…` | Dashboard Stripe → Produits (mode Live) |
 | `STRIPE_PRICE_CONVOYEUR_MONTHLY` | **[R]** | `price_live_…` | Dashboard Stripe → Produits (mode Live) |
-| `STRIPE_SUBSCRIPTION_SUCCESS_URL` | **[R]** | `https://admin.sharinggo.fr/subscription/success` | `.env.prod` |
-| `STRIPE_SUBSCRIPTION_CANCEL_URL` | **[R]** | `https://admin.sharinggo.fr/subscription/cancel` | `.env.prod` |
+| `STRIPE_SUBSCRIPTION_SUCCESS_URL` | **[R]** | `https://sharinggo.fr/subscriptions` | `.env.prod` |
+| `STRIPE_SUBSCRIPTION_CANCEL_URL` | **[R]** | `https://sharinggo.fr/subscriptions` | `.env.prod` |
 
 ### Cloudflare Turnstile
 
@@ -238,8 +238,7 @@ Ce montant est codé dans `.env.prod` et vérifié par `requireEnv` au démarrag
   ```
   https://api.sharinggo.fr/api/auth/google/callback
   ```
-- [ ] Copier le **Client ID** → `GOOGLE_CLIENT_ID` dans `.env.prod`
-- [ ] Copier le **Client Secret** → `GOOGLE_CLIENT_SECRET` dans `.env.prod`
+- [ ] Copier le **Client ID** → `GOOGLE_CLIENT_ID` et `VITE_GOOGLE_CLIENT_ID` dans `.env.prod` (même valeur)
 
 ### Relation GOOGLE_CLIENT_ID / VITE_GOOGLE_CLIENT_ID
 
@@ -302,8 +301,8 @@ STRIPE_TICKET_PRICE_CENTS=899
 STRIPE_CURRENCY=eur
 STRIPE_PRICE_MOSOLF_MONTHLY=price_fakeforfake
 STRIPE_PRICE_CONVOYEUR_MONTHLY=price_fakeforfake
-STRIPE_SUBSCRIPTION_SUCCESS_URL=https://admin.sharinggo.fr/subscription/success
-STRIPE_SUBSCRIPTION_CANCEL_URL=https://admin.sharinggo.fr/subscription/cancel
+STRIPE_SUBSCRIPTION_SUCCESS_URL=https://sharinggo.fr/subscriptions
+STRIPE_SUBSCRIPTION_CANCEL_URL=https://sharinggo.fr/subscriptions
 VITE_GOOGLE_CLIENT_ID=fake.apps.googleusercontent.com
 EOF
 

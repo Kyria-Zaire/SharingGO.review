@@ -31,3 +31,8 @@ backend/prisma/*.db
 
 # Test
 coverage/
+
+# QA / ops scratch (secrets, cookies de session)
+*-cookies.txt
+admin-cookies.txt
+tmp-used-jwt.txt
