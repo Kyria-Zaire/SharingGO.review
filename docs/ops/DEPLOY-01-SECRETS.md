@@ -112,7 +112,11 @@ Note : Turnstile est validé backend uniquement. Le frontend passenger ne charge
 
 | Variable | Type | Valeur prod | Source |
 |----------|------|-------------|--------|
-| `SENTRY_DSN` | **[O]** | `https://…@….ingest.sentry.io/…` | Dashboard Sentry → Settings → SDK Setup |
+| `SENTRY_DSN` | **[O]** | `https://…@….ingest.sentry.io/…` | Dashboard Sentry → Settings → Projects → sharinggo-backend → SDK Setup. Si absent → Sentry désactivé silencieusement. |
+| `SENTRY_RELEASE` | **[O]** | `v1.2.3` ou SHA court | Injecté par GitHub Actions (DEPLOY-01-G). Lie les événements Sentry à un commit précis. Ne pas renseigner manuellement en prod. |
+| `SENTRY_TRACES_SAMPLE_RATE` | **[O]** | `0.1` | Taux Performance Monitoring (10%). Pilotable sans redéploiement. |
+
+Tester la configuration : `SENTRY_DSN=<dsn> node scripts/test-sentry.mjs`
 
 ---
 

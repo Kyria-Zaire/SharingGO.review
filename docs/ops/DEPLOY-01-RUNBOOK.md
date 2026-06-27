@@ -3,7 +3,7 @@
 **Status :** DRAFT (DEPLOY-01 en cours)  
 **Owner :** CTO / Ops  
 **Last updated :** 2026-06-27  
-**Version :** v0.6  
+**Version :** v0.7  
 **Prérequis :** DEPLOY-READY-01 **DONE** · validation CTO « Produit prêt pour DEPLOY-01 »
 
 > **Ce document n'est pas encore opérationnel.** Il sera complété pendant DEPLOY-READY-01 et finalisé en entrée de DEPLOY-01.  
@@ -291,25 +291,60 @@ Insérer dans table `deployments` :
 
 ## 8. Monitoring
 
-> À compléter en DEPLOY-01 · constitution démarrée pendant DEPLOY-READY-01.
+Référence complète : [`docs/ops/DEPLOY-01-F-monitoring.md`](./DEPLOY-01-F-monitoring.md)
 
-| Signal | Source | Action / seuil | Statut |
-|--------|--------|----------------|--------|
-| **Health checks** | `GET /health` · `GET /ready` | Uptime monitor · alerte si 2 échecs consécutifs | ⬜ |
-| **Logs Docker** | `docker compose logs` · rotation | Rétention 7–30 j · pas de secrets en clair | ⬜ |
-| **Logs Backend** | stdout structuré (pino/winston) | Erreurs 5xx · webhooks Stripe failed | ⬜ |
-| **Logs Nginx** | access + error | 4xx/5xx anormaux · scan patterns | ⬜ |
-| **Logs PostgreSQL** | slow query log (optionnel V1) | Requêtes > 1 s | ⬜ |
-| **Redis** | — | **Hors scope V1** (rate limit in-memory) | N/A |
-| **Alertes** | Email / Slack / UptimeRobot | CPU · disque · `/ready` down · webhook Stripe | ⬜ |
+### 8.1 Stack monitoring pilote
 
-### Checklist monitoring (DEPLOY-01)
+| Outil | Rôle | Statut |
+|-------|------|--------|
+| **UptimeRobot** | Healthchecks HTTP externes (4 monitors) | ⬜ à configurer DEPLOY-01-H |
+| **Sentry** | Erreurs backend 5xx + exceptions non catchées | ✅ intégré DEPLOY-01-F (`backend/src/lib/sentry.ts`) |
+| **Logs Docker** | Rotation json-file 10 MB × 5 par service | ✅ `docker-compose.prod.yml` |
+| **check-disk.sh** | Alerte disque (seuil 80%/90%) | ✅ `scripts/check-disk.sh` |
+| Grafana / Loki / Prometheus | Observabilité avancée | ⬜ backlog DEPLOY-02 |
 
-- [ ] Healthcheck externe sur `/health` ou `/ready`
-- [ ] Rotation logs Docker configurée
-- [ ] Procédure consultation logs documentée (qui · où · quand)
-- [ ] Alerte disque > 80 %
-- [ ] Dashboard Stripe webhooks (failed events)
+### 8.2 Dashboards (à compléter après DEPLOY-01-H)
+
+| Dashboard | URL | Statut |
+|-----------|-----|--------|
+| UptimeRobot | `https://uptimerobot.com/dashboard` | ⬜ à configurer |
+| Sentry | `https://sentry.io/organizations/<org>/projects/sharinggo-backend/` | ⬜ à configurer |
+| Stripe Webhooks | `https://dashboard.stripe.com/webhooks` | Manuel |
+
+### 8.3 Checklist de vérification quotidienne (pilote)
+
+```
+Matin (< 5 min) :
+  □ UptimeRobot dashboard : tous les monitors verts ?
+  □ Sentry : nouvelles issues depuis hier ?
+  □ Stripe Dashboard → Webhooks : évenements failed ?
+  □ Logs disque : /var/log/sharinggo-disk.log → WARNING ou CRITICAL ?
+
+En cas d'alerte :
+  → Consulter matrice incidents DEPLOY-01-F-monitoring.md § 5.1
+  → Suivre l'arbre de décision correspondant
+  → Corrélation : requestId Sentry → logs Docker
+```
+
+### 8.4 Corrélation logs ↔ Sentry (requestId)
+
+Chaque erreur Sentry est taguée `requestId`. Pour retrouver la requête :
+
+```bash
+# 1. Copier le requestId depuis l'événement Sentry (tag "requestId")
+# 2. Chercher dans les logs Docker :
+docker compose -f docker-compose.prod.yml logs backend | grep "<requestId>"
+```
+
+### 8.5 Checklist monitoring (pré-pilote)
+
+- [ ] Compte UptimeRobot créé · 4 monitors configurés (§ 1 DEPLOY-01-F)
+- [ ] `SENTRY_DSN` renseigné dans `.env.prod` · `test-sentry.mjs` → succès
+- [ ] Logs Docker rotation vérifiée (`docker system df`)
+- [ ] cron `check-disk.sh` installé sur le VPS
+- [ ] Alerte email UptimeRobot testée (passer un monitor en pause → vérifier alerte)
+- [ ] Alerte email Sentry configurée (premier événement par issue)
+- [ ] Dashboard Stripe Webhooks accessible
 
 Référence dev : [`docs/runbooks/ops-health-monitoring.md`](../runbooks/ops-health-monitoring.md) · S1-5-T8.
 
@@ -626,6 +661,12 @@ Validation CTO explicite requise avant ouverture DEPLOY-01.
 ---
 
 ## 19. Changelog
+
+### v0.7 — 2026-06-27
+
+- §8 — Monitoring complet (DEPLOY-01-F) : UptimeRobot (4 monitors), Sentry backend
+  (`backend/src/lib/sentry.ts`), logs Docker, check-disk.sh, checklist quotidienne pilote,
+  corrélation logs ↔ Sentry via requestId. Référence DEPLOY-01-F-monitoring.md.
 
 ### v0.6 — 2026-06-27
 

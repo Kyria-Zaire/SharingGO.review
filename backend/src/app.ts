@@ -1,9 +1,10 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import helmet from "helmet";
 import { env } from "./config/env.js";
 import { asyncHandler } from "./lib/async-handler.js";
+import { attachRequestContext, sentryErrorHandler } from "./lib/sentry.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 import { notFoundMiddleware } from "./middleware/not-found.middleware.js";
 import { requestIdMiddleware } from "./middleware/request-id.middleware.js";
@@ -25,6 +26,12 @@ export function createApp(): Express {
 
   app.use(helmet());
   app.use(requestIdMiddleware);
+  // Attache requestId + tags module/env/release au scope Sentry de chaque requête.
+  // Doit être après requestIdMiddleware (qui génère req.requestId) et avant les routes.
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    attachRequestContext(req);
+    next();
+  });
   app.use(
     cors({
       origin: env.corsOrigins.length === 1 ? env.corsOrigins[0] : env.corsOrigins,
@@ -57,6 +64,9 @@ export function createApp(): Express {
   app.use("/api/subscriptions", subscriptionsRouter);
 
   app.use(notFoundMiddleware);
+  // sentryErrorHandler doit être AVANT errorMiddleware pour capturer les erreurs 5xx
+  // avant qu'elles soient formatées et que la stack trace soit perdue.
+  app.use(sentryErrorHandler());
   app.use(errorMiddleware);
 
   return app;

@@ -3,6 +3,13 @@ import { createApp } from "./app.js";
 import { env } from "./config/env.js";
 import { logger } from "./lib/logger.js";
 import { connectPrisma, disconnectPrisma } from "./lib/prisma.js";
+// Sentry doit s'initialiser avant tout autre import applicatif pour instrumenter
+// automatiquement les modules Node (http, express, prisma). L'import de sentry.ts
+// est placé ici — le plus tôt possible dans le bootstrap — avant createApp() et
+// connectPrisma(), de façon à capturer aussi les erreurs de démarrage.
+import { initSentry } from "./lib/sentry.js";
+
+initSentry();
 
 let server: Server | null = null;
 let isShuttingDown = false;
