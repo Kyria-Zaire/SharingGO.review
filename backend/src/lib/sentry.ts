@@ -48,10 +48,6 @@ function isSensitiveHeader(name: string): boolean {
   return false;
 }
 
-function isSensitiveKey(key: string): boolean {
-  return SENSITIVE_KEY_PATTERNS.some((p) => p.test(key));
-}
-
 function sanitizeHeaders(
   headers: Record<string, string | string[] | undefined> | undefined,
 ): Record<string, string | string[]> {
@@ -59,18 +55,6 @@ function sanitizeHeaders(
   return Object.fromEntries(
     Object.entries(headers).filter(([k]) => !isSensitiveHeader(k)),
   ) as Record<string, string | string[]>;
-}
-
-function sanitizeObject(
-  obj: Record<string, unknown> | undefined,
-): Record<string, unknown> {
-  if (!obj) return {};
-  return Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => [
-      k,
-      isSensitiveKey(k) ? "[Filtered]" : v,
-    ]),
-  );
 }
 
 // Status codes ignorés par Sentry — erreurs métier normales, pas des bugs.
