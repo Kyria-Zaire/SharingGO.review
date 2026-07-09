@@ -13,10 +13,17 @@
 set -euo pipefail
 
 # --- Seuil taille minimale (octets) ---
-# Un dump PostgreSQL vide (schema seul, sans données) pèse ~10 kB.
-# Un dump avec données de pilote devrait dépasser 50 kB.
-# Ce seuil détecte les fichiers tronqués ou les dumps vides anormaux.
-MIN_SIZE_BYTES=10240   # 10 kB
+# Taille réelle observée en prod (VPS OVH, schéma seul sans données pilote,
+# base fraîchement migrée) : 5544 octets gzippés. L'estimation initiale de
+# ~10 kB était fausse — même un dump complet et valide échouait le check.
+# Seuil fixé à 3 kB : ~55% sous la taille réelle (absorbe la variance des
+# migrations futures) tout en restant très au-dessus d'un fichier tronqué
+# ou corrompu (quelques centaines d'octets ou 0).
+# TODO(debt): remonter ce seuil une fois des données pilote réelles en base
+#   (trajets/réservations). En l'état, un dump anormalement petit APRÈS
+#   remplissage de la base ne serait pas détecté — seuil pensé pour la
+#   phase pré-pilote uniquement.
+MIN_SIZE_BYTES=3072    # 3 kB — voir note ci-dessus (pré-pilote)
 
 # --- Argument ---
 if [[ $# -lt 1 ]]; then
