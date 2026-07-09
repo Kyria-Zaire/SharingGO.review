@@ -1,4 +1,4 @@
-import { PaymentStatus, RefundStatus, ReservationStatus, type Prisma } from "@prisma/client";
+import { CreditStatus, PaymentStatus, RefundStatus, ReservationStatus, type Prisma } from "@prisma/client";
 import { AppError } from "../../lib/errors.js";
 import { writeAuditLog } from "../../lib/audit-log.js";
 import { writeCascadeAuditLog } from "../../lib/cascade-audit-log.js";
@@ -166,5 +166,54 @@ export async function refundReservation(reservationId: string, actorUserId: stri
     where: { id: reservationId },
     include: reservationInclude,
   });
+  return serializeAdminReservation(updated);
+}
+
+export async function creditReservation(reservationId: string, actorUserId: string) {
+  const updated = await prisma.$transaction(async (tx) => {
+    const rows = await tx.$queryRaw<Array<{ id: string; refundStatus: RefundStatus }>>`
+      SELECT id, "refundStatus" FROM "Reservation" WHERE id = ${reservationId} FOR UPDATE
+    `;
+    const row = rows[0];
+    if (!row) throw new AppError("Reservation not found", 404, "RESERVATION_NOT_FOUND");
+    if (row.refundStatus !== RefundStatus.PENDING) {
+      throw new AppError("Reservation is not pending refund", 409, "REFUND_NOT_PENDING");
+    }
+
+    const payment = await tx.payment.findUnique({ where: { reservationId } });
+    if (!payment) throw new AppError("No payment to credit", 422, "NO_PAYMENT_INTENT");
+
+    const reservation = await tx.reservation.findUniqueOrThrow({ where: { id: reservationId } });
+
+    const credit = await tx.credit.create({
+      data: {
+        userId: reservation.userId,
+        sourceReservationId: reservationId,
+        amount: payment.amount,
+        status: CreditStatus.AVAILABLE,
+        // expiresAt laissé null (décision V1)
+      },
+    });
+
+    await tx.reservation.update({
+      where: { id: reservationId },
+      data: {
+        refundStatus: RefundStatus.CREDITED,
+        refundProcessedAt: new Date(),
+        refundProcessedByUserId: actorUserId,
+      },
+    });
+
+    await writeCascadeAuditLog(tx, {
+      actorUserId,
+      action: "RESERVATION_CREDITED",
+      targetType: "Reservation",
+      targetId: reservationId,
+      metadata: { creditId: credit.id, amount: payment.amount.toString() },
+    });
+
+    return tx.reservation.findUniqueOrThrow({ where: { id: reservationId }, include: reservationInclude });
+  });
+
   return serializeAdminReservation(updated);
 }
