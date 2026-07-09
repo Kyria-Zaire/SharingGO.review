@@ -29,3 +29,9 @@ export async function cancelAdminReservationHandler(req: Request, res: Response)
   );
   res.status(200).json(reservation);
 }
+
+export async function refundAdminReservationHandler(req: Request, res: Response): Promise<void> {
+  const { id } = parseQuery(adminIdParamSchema, { id: req.params.id });
+  const reservation = await adminReservationsService.refundReservation(id, req.user!.id);
+  res.status(200).json(reservation);
+}

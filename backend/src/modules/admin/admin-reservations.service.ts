@@ -1,7 +1,9 @@
-import { ReservationStatus, type Prisma } from "@prisma/client";
+import { PaymentStatus, RefundStatus, ReservationStatus, type Prisma } from "@prisma/client";
 import { AppError } from "../../lib/errors.js";
 import { writeAuditLog } from "../../lib/audit-log.js";
+import { writeCascadeAuditLog } from "../../lib/cascade-audit-log.js";
 import { prisma } from "../../lib/prisma.js";
+import { getStripeClient } from "../payments/stripe.service.js";
 import { serializeAdminReservation } from "./admin.serializers.js";
 import type { ListAdminReservationsQuery } from "./admin.schemas.js";
 import type { ListAdminReservationsResult } from "./admin.types.js";
@@ -105,5 +107,64 @@ export async function cancelAdminReservation(
     metadata: reason ? { reason } : undefined,
   });
 
+  return serializeAdminReservation(updated);
+}
+
+export async function refundReservation(reservationId: string, actorUserId: string) {
+  // Étape A — tx courte : verrou pessimiste + garde d'état.
+  const guard = await prisma.$transaction(async (tx) => {
+    // FOR UPDATE sérialise les requêtes concurrentes sur cette ligne.
+    const rows = await tx.$queryRaw<Array<{ id: string; refundStatus: RefundStatus }>>`
+      SELECT id, "refundStatus" FROM "Reservation" WHERE id = ${reservationId} FOR UPDATE
+    `;
+    const row = rows[0];
+    if (!row) throw new AppError("Reservation not found", 404, "RESERVATION_NOT_FOUND");
+    if (row.refundStatus !== RefundStatus.PENDING) {
+      throw new AppError("Reservation is not pending refund", 409, "REFUND_NOT_PENDING");
+    }
+    const payment = await tx.payment.findUnique({ where: { reservationId } });
+    if (!payment?.stripePaymentIntentId) {
+      throw new AppError("No payment intent to refund", 422, "NO_PAYMENT_INTENT");
+    }
+    return { paymentIntentId: payment.stripePaymentIntentId };
+  });
+
+  // Étape B — HORS transaction : appel Stripe idempotent.
+  try {
+    await getStripeClient().refunds.create(
+      { payment_intent: guard.paymentIntentId },
+      { idempotencyKey: `refund_${reservationId}` }
+    );
+  } catch {
+    throw new AppError("Stripe refund failed", 502, "STRIPE_REFUND_FAILED");
+  }
+
+  // Étape C — tx courte : commit REFUNDED + payment + audit.
+  await prisma.$transaction(async (tx) => {
+    await tx.reservation.update({
+      where: { id: reservationId },
+      data: {
+        refundStatus: RefundStatus.REFUNDED,
+        refundProcessedAt: new Date(),
+        refundProcessedByUserId: actorUserId,
+      },
+    });
+    await tx.payment.updateMany({
+      where: { reservationId },
+      data: { status: PaymentStatus.REFUNDED },
+    });
+    await writeCascadeAuditLog(tx, {
+      actorUserId,
+      action: "RESERVATION_REFUNDED",
+      targetType: "Reservation",
+      targetId: reservationId,
+      metadata: { paymentIntentId: guard.paymentIntentId },
+    });
+  });
+
+  const updated = await prisma.reservation.findUniqueOrThrow({
+    where: { id: reservationId },
+    include: reservationInclude,
+  });
   return serializeAdminReservation(updated);
 }

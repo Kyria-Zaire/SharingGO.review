@@ -26,6 +26,7 @@ import {
   cancelAdminReservationHandler,
   getAdminReservationHandler,
   listAdminReservationsHandler,
+  refundAdminReservationHandler,
 } from "./admin-reservations.controller.js";
 import {
   createAdminUserHandler,
@@ -52,6 +53,12 @@ adminOperationsRouter.post(
   "/reservations/:id/cancel",
   ...adminMiddleware,
   asyncHandler(cancelAdminReservationHandler)
+);
+
+adminOperationsRouter.post(
+  "/reservations/:id/refund",
+  ...adminMiddleware,
+  asyncHandler(refundAdminReservationHandler)
 );
 
 adminOperationsRouter.get(
