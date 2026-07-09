@@ -1,39 +1,54 @@
 #!/usr/bin/env bash
 # backup-postgres.sh — Sauvegarde PostgreSQL SharingGO production.
 #
-# Usage (sur le VPS, depuis /opt/sharinggo) :
-#   DATABASE_URL="postgresql://..." bash scripts/backup-postgres.sh
+# Usage (sur le VPS ou via cron, cwd indifférent) :
+#   bash scripts/backup-postgres.sh
 #
-# Ou via docker exec :
-#   docker compose -f docker-compose.prod.yml exec -T postgres \
-#     pg_dump -U sharinggo -d sharinggo | gzip > /opt/sharinggo/backups/sharinggo_$(date +%Y-%m-%d_%H-%M).sql.gz
+# Le dump est réalisé via `docker compose exec` sur le service "postgres",
+# résolvable uniquement depuis le réseau Docker interne. Le port 5432 n'est
+# PAS exposé sur l'hôte et pg_dump n'est PAS installé sur l'hôte — c'est
+# volontaire (décision : pas de port Postgres public).
 #
-# Le script ne contient aucun credential — DATABASE_URL est lu depuis l'environnement
-# ou depuis .env.prod (sourcé automatiquement si présent et non déjà défini).
+# Le script ne contient aucun credential — POSTGRES_USER et POSTGRES_DB sont
+# lus depuis .env.prod (sourcé automatiquement si présent). Le mot de passe
+# n'est jamais manipulé : docker compose exec s'authentifie via le socket local
+# du conteneur (trust/peer), sans transiter par la ligne de commande.
 
 set -euo pipefail
 
 # --- Configuration ---
-BACKUP_DIR="${BACKUP_DIR:-/opt/sharinggo/backups}"
+# Chemins absolus : le script doit fonctionner quel que soit le cwd (cron).
+PROJECT_DIR="${PROJECT_DIR:-/opt/sharinggo}"
+COMPOSE_FILE="${COMPOSE_FILE:-${PROJECT_DIR}/docker-compose.prod.yml}"
+COMPOSE_SERVICE="postgres"
+BACKUP_DIR="${BACKUP_DIR:-${PROJECT_DIR}/backups}"
 LOG_FILE="${BACKUP_DIR}/backup.log"
 RETENTION_DAILY=7      # jours — rotation documentée dans docs/ops/DEPLOY-01-BACKUP-RESTORE.md
 RETENTION_WEEKLY=4     # semaines (non appliquée ici — voir rotation manuelle)
 RETENTION_MONTHLY=6    # mois    (non appliquée ici — voir rotation manuelle)
 
-# --- Sourcer .env.prod si DATABASE_URL non défini ---
-ENV_FILE="${ENV_FILE:-/opt/sharinggo/.env.prod}"
-if [[ -z "${DATABASE_URL:-}" ]] && [[ -f "${ENV_FILE}" ]]; then
+# --- Sourcer .env.prod pour obtenir POSTGRES_USER / POSTGRES_DB ---
+ENV_FILE="${ENV_FILE:-${PROJECT_DIR}/.env.prod}"
+if [[ -f "${ENV_FILE}" ]]; then
   # shellcheck source=/dev/null
   set -a; source "${ENV_FILE}"; set +a
 fi
 
 # --- Vérifications prérequis ---
-if [[ -z "${DATABASE_URL:-}" ]]; then
-  echo "[ERROR] DATABASE_URL non défini. Sourcer .env.prod ou exporter la variable." >&2
+# Le dump passe par `docker compose exec` : on a besoin du user et de la base,
+# pas de DATABASE_URL (le port Postgres n'est pas exposé sur l'hôte).
+if [[ -z "${POSTGRES_USER:-}" ]] || [[ -z "${POSTGRES_DB:-}" ]]; then
+  echo "[ERROR] POSTGRES_USER et/ou POSTGRES_DB non définis." >&2
+  echo "        Renseigner ${ENV_FILE} ou exporter les variables." >&2
   exit 1
 fi
 
-for cmd in pg_dump gzip date du; do
+if [[ ! -f "${COMPOSE_FILE}" ]]; then
+  echo "[ERROR] Fichier compose introuvable : ${COMPOSE_FILE}" >&2
+  exit 1
+fi
+
+for cmd in docker gzip date du; do
   if ! command -v "${cmd}" &>/dev/null; then
     echo "[ERROR] Commande requise introuvable : ${cmd}" >&2
     exit 1
@@ -65,11 +80,16 @@ log "INFO" "Destination : ${BACKUP_FILE}"
 
 START_TS="$(date +%s)"
 
-# pg_dump via DATABASE_URL (format postgresql://user:pass@host:port/dbname)
-# -Fc = format custom PostgreSQL (binaire compressé) — plus rapide, restore via pg_restore
-# Ici on utilise le format SQL plain + gzip pour un restore simple via psql
-if ! pg_dump --no-password "${DATABASE_URL}" | gzip -9 > "${BACKUP_FILE}"; then
-  log "ERROR" "pg_dump a échoué — fichier partiel supprimé"
+# pg_dump exécuté DANS le conteneur postgres via docker compose exec.
+# -T : pas de pseudo-TTY (obligatoire pour rediriger le flux, notamment sous cron).
+# Format SQL plain + gzip -9 pour un restore simple via psql (voir restore-postgres.sh).
+# set -o pipefail (activé plus haut) garantit qu'un échec de pg_dump propage
+# un exit != 0 même si gzip réussit sur un flux tronqué.
+if ! docker compose -f "${COMPOSE_FILE}" --env-file "${ENV_FILE}" \
+      exec -T "${COMPOSE_SERVICE}" \
+      pg_dump -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" \
+      | gzip -9 > "${BACKUP_FILE}"; then
+  log "ERROR" "pg_dump (docker compose exec) a échoué — fichier partiel supprimé"
   rm -f "${BACKUP_FILE}"
   exit 1
 fi
