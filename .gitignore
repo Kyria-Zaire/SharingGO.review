@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Superpowers brainstorm/scratch (mockups, session state)
+.superpowers/
+
 # Build
 dist/
 build/
