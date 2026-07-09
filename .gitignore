@@ -36,3 +36,4 @@ coverage/
 *-cookies.txt
 admin-cookies.txt
 tmp-used-jwt.txt
+backups/
