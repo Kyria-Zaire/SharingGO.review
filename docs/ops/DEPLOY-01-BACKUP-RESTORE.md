@@ -19,14 +19,14 @@
 ### Usage rapide
 
 ```bash
-# Backup manuel
-DATABASE_URL="$(grep DATABASE_URL /opt/sharinggo/.env.prod | cut -d= -f2-)" \
-  bash scripts/backup-postgres.sh
+# Backup manuel — le dump passe par `docker compose exec postgres`,
+# POSTGRES_USER / POSTGRES_DB sont lus depuis /opt/sharinggo/.env.prod.
+bash /opt/sharinggo/scripts/backup-postgres.sh
 
 # Vérifier un backup
 bash scripts/check-backup.sh /opt/sharinggo/backups/sharinggo_2026-06-27_02-00.sql.gz
 
-# Restaurer (demande confirmation "OUI")
+# Restaurer (demande confirmation "RESTORE")
 DATABASE_URL="$(grep DATABASE_URL /opt/sharinggo/.env.prod | cut -d= -f2-)" \
   bash scripts/restore-postgres.sh /opt/sharinggo/backups/sharinggo_2026-06-27_02-00.sql.gz
 ```
@@ -141,10 +141,10 @@ echo "DRILL START: $(date '+%Y-%m-%d %H:%M:%S')"
 ### 4.2 Backup pré-drill (snapshot état actuel)
 
 ```bash
-# Sauvegarder l'état actuel avant le drill pour pouvoir annuler
-DATABASE_URL="$(grep DATABASE_URL /opt/sharinggo/.env.prod | cut -d= -f2-)" \
-  BACKUP_DIR=/opt/sharinggo/backups \
-  bash scripts/backup-postgres.sh
+# Sauvegarder l'état actuel avant le drill pour pouvoir annuler.
+# Le dump passe par docker compose exec — POSTGRES_USER / POSTGRES_DB
+# sont lus depuis .env.prod par le script.
+bash /opt/sharinggo/scripts/backup-postgres.sh
 # Résultat : sharinggo_YYYY-MM-DD_HH-mm.sql.gz
 ```
 
@@ -153,7 +153,7 @@ DATABASE_URL="$(grep DATABASE_URL /opt/sharinggo/.env.prod | cut -d= -f2-)" \
 ```bash
 DATABASE_URL="$(grep DATABASE_URL /opt/sharinggo/.env.prod | cut -d= -f2-)" \
   bash scripts/restore-postgres.sh /opt/sharinggo/backups/sharinggo_YYYY-MM-DD_HH-mm.sql.gz
-# Entrer 'OUI' à la confirmation
+# Entrer 'RESTORE' à la confirmation
 ```
 
 ### 4.4 Validation post-restore
@@ -250,8 +250,8 @@ Ce scénario est distinct d'un restore classique : la migration peut avoir parti
 
 ```bash
 # Étape 1 — Backup AVANT migration (obligatoire, non négociable)
-DATABASE_URL="$(grep DATABASE_URL /opt/sharinggo/.env.prod | cut -d= -f2-)" \
-  bash scripts/backup-postgres.sh
+# Dump via docker compose exec — POSTGRES_USER / POSTGRES_DB lus depuis .env.prod.
+bash /opt/sharinggo/scripts/backup-postgres.sh
 # Noter le nom du fichier généré : sharinggo_YYYY-MM-DD_HH-mm.sql.gz
 
 # Étape 2 — Vérifier le backup immédiatement
