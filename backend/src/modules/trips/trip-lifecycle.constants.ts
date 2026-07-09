@@ -7,6 +7,9 @@ export const TRIP_LIFECYCLE_AUDIT_ACTIONS = {
   CANCELLED: "TRIP_CANCELLED",
 } as const;
 
+// Action émise pour chaque réservation impactée par l'annulation d'un trajet (CASCADE-01).
+export const RESERVATION_CANCELLED_BY_TRIP = "RESERVATION_CANCELLED_BY_TRIP";
+
 /** Allowed manual transitions (OPS-03B / CTO). */
 export const ALLOWED_LIFECYCLE_TRANSITIONS: Record<
   TripLifecycleStatus,
