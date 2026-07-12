@@ -1,7 +1,9 @@
-import { ReservationStatus, type Prisma } from "@prisma/client";
+import { CreditStatus, PaymentStatus, RefundStatus, ReservationStatus, type Prisma } from "@prisma/client";
 import { AppError } from "../../lib/errors.js";
 import { writeAuditLog } from "../../lib/audit-log.js";
+import { writeCascadeAuditLog } from "../../lib/cascade-audit-log.js";
 import { prisma } from "../../lib/prisma.js";
+import { getStripeClient } from "../payments/stripe.service.js";
 import { serializeAdminReservation } from "./admin.serializers.js";
 import type { ListAdminReservationsQuery } from "./admin.schemas.js";
 import type { ListAdminReservationsResult } from "./admin.types.js";
@@ -10,6 +12,7 @@ const reservationInclude = {
   user: true,
   trip: { include: { line: true } },
   payment: true,
+  refundProcessedBy: true,
 } as const;
 
 function buildWhere(query: ListAdminReservationsQuery): Prisma.ReservationWhereInput {
@@ -23,6 +26,9 @@ function buildWhere(query: ListAdminReservationsQuery): Prisma.ReservationWhereI
   }
   if (query.tripId) {
     where.tripId = query.tripId;
+  }
+  if (query.refundStatus) {
+    where.refundStatus = query.refundStatus;
   }
 
   const tripFilter: Prisma.TripWhereInput = {};
@@ -103,6 +109,127 @@ export async function cancelAdminReservation(
     targetType: "Reservation",
     targetId: reservationId,
     metadata: reason ? { reason } : undefined,
+  });
+
+  return serializeAdminReservation(updated);
+}
+
+export async function refundReservation(reservationId: string, actorUserId: string) {
+  // Étape A — tx courte : verrou pessimiste + garde d'état.
+  const guard = await prisma.$transaction(async (tx) => {
+    // FOR UPDATE sérialise les requêtes concurrentes sur cette ligne.
+    const rows = await tx.$queryRaw<Array<{ id: string; refundStatus: RefundStatus }>>`
+      SELECT id, "refundStatus" FROM "Reservation" WHERE id = ${reservationId} FOR UPDATE
+    `;
+    const row = rows[0];
+    if (!row) throw new AppError("Reservation not found", 404, "RESERVATION_NOT_FOUND");
+    if (row.refundStatus !== RefundStatus.PENDING) {
+      throw new AppError("Reservation is not pending refund", 409, "REFUND_NOT_PENDING");
+    }
+    const payment = await tx.payment.findUnique({ where: { reservationId } });
+    if (!payment?.stripePaymentIntentId) {
+      throw new AppError("No payment intent to refund", 422, "NO_PAYMENT_INTENT");
+    }
+    return { paymentIntentId: payment.stripePaymentIntentId };
+  });
+
+  // Étape B — HORS transaction : appel Stripe idempotent.
+  try {
+    await getStripeClient().refunds.create(
+      { payment_intent: guard.paymentIntentId },
+      { idempotencyKey: `refund_${reservationId}` }
+    );
+  } catch {
+    throw new AppError("Stripe refund failed", 502, "STRIPE_REFUND_FAILED");
+  }
+
+  // Étape C — tx courte : commit REFUNDED conditionné à refundStatus toujours PENDING.
+  // C'est le vrai point de sérialisation : la garde FOR UPDATE de l'étape A est relâchée
+  // avant l'appel Stripe (étape B), donc deux requêtes concurrentes peuvent toutes deux
+  // passer la garde et appeler Stripe (sans risque argent grâce à l'Idempotency-Key). Le
+  // updateMany conditionnel garantit qu'une seule des deux commite REFUNDED + écrit l'audit ;
+  // l'autre reçoit 409 REFUND_NOT_PENDING sans écriture.
+  await prisma.$transaction(async (tx) => {
+    const updated = await tx.reservation.updateMany({
+      where: { id: reservationId, refundStatus: RefundStatus.PENDING },
+      data: {
+        refundStatus: RefundStatus.REFUNDED,
+        refundProcessedAt: new Date(),
+        refundProcessedByUserId: actorUserId,
+      },
+    });
+
+    if (updated.count === 0) {
+      // Une requête concurrente a déjà commité ce remboursement entre notre étape A et ici.
+      // Stripe a dédupliqué le vrai refund via l'Idempotency-Key (aucun argent double-mouvementé) ;
+      // on refuse simplement d'écrire l'état/l'audit une seconde fois.
+      throw new AppError("Reservation is not pending refund", 409, "REFUND_NOT_PENDING");
+    }
+
+    await tx.payment.updateMany({
+      where: { reservationId },
+      data: { status: PaymentStatus.REFUNDED },
+    });
+    await writeCascadeAuditLog(tx, {
+      actorUserId,
+      action: "RESERVATION_REFUNDED",
+      targetType: "Reservation",
+      targetId: reservationId,
+      metadata: { paymentIntentId: guard.paymentIntentId },
+    });
+  });
+
+  const updated = await prisma.reservation.findUniqueOrThrow({
+    where: { id: reservationId },
+    include: reservationInclude,
+  });
+  return serializeAdminReservation(updated);
+}
+
+export async function creditReservation(reservationId: string, actorUserId: string) {
+  const updated = await prisma.$transaction(async (tx) => {
+    const rows = await tx.$queryRaw<Array<{ id: string; refundStatus: RefundStatus }>>`
+      SELECT id, "refundStatus" FROM "Reservation" WHERE id = ${reservationId} FOR UPDATE
+    `;
+    const row = rows[0];
+    if (!row) throw new AppError("Reservation not found", 404, "RESERVATION_NOT_FOUND");
+    if (row.refundStatus !== RefundStatus.PENDING) {
+      throw new AppError("Reservation is not pending refund", 409, "REFUND_NOT_PENDING");
+    }
+
+    const payment = await tx.payment.findUnique({ where: { reservationId } });
+    if (!payment) throw new AppError("No payment to credit", 422, "NO_PAYMENT_INTENT");
+
+    const reservation = await tx.reservation.findUniqueOrThrow({ where: { id: reservationId } });
+
+    const credit = await tx.credit.create({
+      data: {
+        userId: reservation.userId,
+        sourceReservationId: reservationId,
+        amount: payment.amount,
+        status: CreditStatus.AVAILABLE,
+        // expiresAt laissé null (décision V1)
+      },
+    });
+
+    await tx.reservation.update({
+      where: { id: reservationId },
+      data: {
+        refundStatus: RefundStatus.CREDITED,
+        refundProcessedAt: new Date(),
+        refundProcessedByUserId: actorUserId,
+      },
+    });
+
+    await writeCascadeAuditLog(tx, {
+      actorUserId,
+      action: "RESERVATION_CREDITED",
+      targetType: "Reservation",
+      targetId: reservationId,
+      metadata: { creditId: credit.id, amount: payment.amount.toString() },
+    });
+
+    return tx.reservation.findUniqueOrThrow({ where: { id: reservationId }, include: reservationInclude });
   });
 
   return serializeAdminReservation(updated);

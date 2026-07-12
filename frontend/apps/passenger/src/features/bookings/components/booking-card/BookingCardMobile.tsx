@@ -89,10 +89,12 @@ export function BookingCardMobile({ reservation, filter }: BookingCardMobileProp
               showReference={false}
               compact
             />
-            {filter === "past" && reservation.status === "USED" ? (
+            {(filter === "past" && reservation.status === "USED") ||
+            reservation.status === "CANCELED" ? (
               <BookingCardStatusBadge
                 status={reservation.status}
                 filter={filter}
+                refundStatus={reservation.refundStatus}
                 className="shrink-0"
               />
             ) : null}

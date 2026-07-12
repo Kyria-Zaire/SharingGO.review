@@ -24,8 +24,10 @@ import { listAdminPaymentsHandler } from "./admin-payments.controller.js";
 import { listAdminPendingHandler } from "./admin-pending.controller.js";
 import {
   cancelAdminReservationHandler,
+  creditAdminReservationHandler,
   getAdminReservationHandler,
   listAdminReservationsHandler,
+  refundAdminReservationHandler,
 } from "./admin-reservations.controller.js";
 import {
   createAdminUserHandler,
@@ -52,6 +54,18 @@ adminOperationsRouter.post(
   "/reservations/:id/cancel",
   ...adminMiddleware,
   asyncHandler(cancelAdminReservationHandler)
+);
+
+adminOperationsRouter.post(
+  "/reservations/:id/refund",
+  ...adminMiddleware,
+  asyncHandler(refundAdminReservationHandler)
+);
+
+adminOperationsRouter.post(
+  "/reservations/:id/credit",
+  ...adminMiddleware,
+  asyncHandler(creditAdminReservationHandler)
 );
 
 adminOperationsRouter.get(

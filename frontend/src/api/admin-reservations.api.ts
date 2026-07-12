@@ -3,6 +3,7 @@ import type {
   AdminReservation,
   AdminReservationFilters,
   AdminReservationListResponse,
+  RefundStatus,
   ReservationStatus,
 } from "@/types/reservations.types";
 import { http } from "./http";
@@ -14,6 +15,8 @@ const VALID_STATUSES: ReservationStatus[] = [
   "USED",
   "EXPIRED",
 ];
+
+const VALID_REFUND_STATUSES: RefundStatus[] = ["NONE", "PENDING", "REFUNDED", "CREDITED"];
 
 function normalizeString(value?: string): string | undefined {
   const normalized = value?.trim();
@@ -49,10 +52,19 @@ function normalizeStatus(value?: string): ReservationStatus | undefined {
     : undefined;
 }
 
+function normalizeRefundStatus(value?: string): RefundStatus | undefined {
+  if (!value) return undefined;
+  const upper = value.trim().toUpperCase();
+  return VALID_REFUND_STATUSES.includes(upper as RefundStatus)
+    ? (upper as RefundStatus)
+    : undefined;
+}
+
 export async function listAdminReservations(
   filters: AdminReservationFilters = {}
 ): Promise<AdminReservationListResponse> {
   const status = normalizeStatus(filters.status);
+  const refundStatus = normalizeRefundStatus(filters.refundStatus);
   const userId = normalizeString(filters.userId);
   const tripId = normalizeString(filters.tripId);
   const lineId = normalizeString(filters.lineId);
@@ -63,6 +75,7 @@ export async function listAdminReservations(
 
   const query = buildQuery({
     status,
+    refundStatus,
     userId,
     tripId,
     lineId,
@@ -85,5 +98,28 @@ export async function cancelAdminReservation(
   return http<AdminReservation>(`/api/admin/reservations/${reservationId}/cancel`, {
     method: "POST",
     body: reason ? { reason } : {},
+  });
+}
+
+/**
+ * Triggers the Stripe refund for a reservation pending refund. Backend guards the
+ * transition with `FOR UPDATE` + `refundStatus === PENDING`; a 409 (`REFUND_NOT_PENDING`)
+ * means another action already processed it — the caller must handle `ApiError.status === 409`.
+ */
+export async function refundAdminReservation(reservationId: string): Promise<AdminReservation> {
+  return http<AdminReservation>(`/api/admin/reservations/${reservationId}/refund`, {
+    method: "POST",
+    body: {},
+  });
+}
+
+/**
+ * Creates a store credit for a reservation pending refund instead of a Stripe refund.
+ * Same 409 (`REFUND_NOT_PENDING`) semantics as `refundAdminReservation`.
+ */
+export async function creditAdminReservation(reservationId: string): Promise<AdminReservation> {
+  return http<AdminReservation>(`/api/admin/reservations/${reservationId}/credit`, {
+    method: "POST",
+    body: {},
   });
 }

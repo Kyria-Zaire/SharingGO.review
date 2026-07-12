@@ -1,10 +1,18 @@
-import { TripLifecycleStatus, type Prisma } from "@prisma/client";
+import {
+  PaymentStatus,
+  RefundStatus,
+  ReservationStatus,
+  TripLifecycleStatus,
+  type Prisma,
+} from "@prisma/client";
 import { writeAuditLog } from "../../lib/audit-log.js";
+import { writeCascadeAuditLog } from "../../lib/cascade-audit-log.js";
 import { AppError } from "../../lib/errors.js";
 import { prisma } from "../../lib/prisma.js";
 import type { TripWithRelations } from "../transport/transport.types.js";
 import {
   ALLOWED_LIFECYCLE_TRANSITIONS,
+  RESERVATION_CANCELLED_BY_TRIP,
   TRIP_LIFECYCLE_AUDIT_ACTIONS,
 } from "./trip-lifecycle.constants.js";
 import type { CancelTripInput } from "./trip-lifecycle.schemas.js";
@@ -167,21 +175,74 @@ export async function cancelTrip(
   assertTransitionAllowed(trip.lifecycleStatus, TripLifecycleStatus.CANCELLED);
 
   const now = new Date();
-  return applyLifecycleUpdate(
-    tripId,
-    actorUserId,
-    {
-      lifecycleStatus: TripLifecycleStatus.CANCELLED,
-      cancelledAt: now,
-      cancellationReason: input.reason,
-    },
-    {
+
+  await prisma.$transaction(async (tx) => {
+    // Conditional update: the WHERE clause pins the expected pre-cancellation status so that,
+    // under concurrent cancelTrip calls on the same trip, only the first transaction to commit
+    // actually flips the row. The loser sees count === 0 and rolls back instead of re-cascading
+    // or writing a duplicate trip audit log (same TOCTOU class as the refund path fix).
+    const result = await tx.trip.updateMany({
+      where: { id: tripId, lifecycleStatus: trip.lifecycleStatus },
+      data: {
+        lifecycleStatus: TripLifecycleStatus.CANCELLED,
+        cancelledAt: now,
+        cancellationReason: input.reason,
+        lifecycleUpdatedByUserId: actorUserId,
+      },
+    });
+    if (result.count === 0) {
+      // A concurrent cancelTrip already transitioned this trip. Roll back so the
+      // loser does not re-cascade or write a duplicate trip audit log.
+      throw new AppError("Trip state changed concurrently", 409, "INVALID_LIFECYCLE_TRANSITION");
+    }
+
+    const reservations = await tx.reservation.findMany({
+      where: {
+        tripId,
+        status: { in: [ReservationStatus.PENDING, ReservationStatus.CONFIRMED] },
+      },
+      include: { payment: true },
+    });
+
+    for (const reservation of reservations) {
+      const hasCapturedPayment =
+        reservation.payment?.status === PaymentStatus.SUCCEEDED &&
+        reservation.payment.stripePaymentIntentId != null;
+
+      await tx.reservation.update({
+        where: { id: reservation.id },
+        data: {
+          status: ReservationStatus.CANCELED,
+          refundStatus: hasCapturedPayment ? RefundStatus.PENDING : RefundStatus.NONE,
+        },
+      });
+
+      await writeCascadeAuditLog(tx, {
+        actorUserId,
+        action: RESERVATION_CANCELLED_BY_TRIP,
+        targetType: "Reservation",
+        targetId: reservation.id,
+        metadata: {
+          tripId,
+          refundStatus: hasCapturedPayment ? "PENDING" : "NONE",
+          hadPayment: hasCapturedPayment,
+        },
+      });
+    }
+
+    await writeCascadeAuditLog(tx, {
+      actorUserId,
       action: TRIP_LIFECYCLE_AUDIT_ACTIONS.CANCELLED,
+      targetType: "Trip",
+      targetId: tripId,
       metadata: {
         previousStatus: trip.lifecycleStatus,
         cancelledAt: now.toISOString(),
         reason: input.reason,
+        impactedReservations: reservations.length,
       },
-    }
-  );
+    });
+  });
+
+  return getTripOrThrow(tripId);
 }

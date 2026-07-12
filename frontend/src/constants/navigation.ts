@@ -13,6 +13,7 @@ import {
   ScrollText,
   Settings,
   Ticket,
+  Undo2,
   type LucideIcon,
 } from "lucide-react";
 import { ROUTES } from "./routes";
@@ -37,6 +38,7 @@ export const ADMIN_NAV_SECTIONS: NavSection[] = [
       { label: "Dashboard", href: ROUTES.dashboard, icon: LayoutDashboard, end: true },
       { label: "Trips", href: ROUTES.trips, icon: Bus },
       { label: "Reservations", href: ROUTES.reservations, icon: Ticket },
+      { label: "Annulations à traiter", href: ROUTES.refunds, icon: Undo2 },
       { label: "Payments", href: ROUTES.payments, icon: CreditCard },
       { label: "Subscriptions", href: ROUTES.subscriptions, icon: Repeat },
       { label: "Boarding", href: ROUTES.boarding, icon: QrCode },

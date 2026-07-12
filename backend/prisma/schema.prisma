@@ -35,6 +35,18 @@ enum PaymentType {
   SUBSCRIPTION_ACCESS
 }
 
+enum RefundStatus {
+  NONE
+  PENDING
+  REFUNDED
+  CREDITED
+}
+
+enum CreditStatus {
+  AVAILABLE
+  USED
+}
+
 enum PromoCodeType {
   MOSOLF
 }
@@ -132,6 +144,8 @@ model User {
   incidentsAssigned   Incident[]    @relation("IncidentAssignee")
   incidentsResolved   Incident[]    @relation("IncidentResolver")
   tripsLifecycleUpdated Trip[]      @relation("TripLifecycleUpdatedBy")
+  refundedReservations Reservation[] @relation("RefundProcessedBy")
+  credits              Credit[]
 
   @@index([email])
   @@index([createdByUserId])
@@ -261,6 +275,12 @@ model Reservation {
 
   payment Payment?
 
+  refundStatus            RefundStatus @default(NONE)
+  refundProcessedAt       DateTime?
+  refundProcessedByUserId String?
+  refundProcessedBy       User?        @relation("RefundProcessedBy", fields: [refundProcessedByUserId], references: [id], onDelete: SetNull)
+  credit                  Credit?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -268,6 +288,7 @@ model Reservation {
   @@index([userId])
   @@index([status])
   @@index([usedByUserId])
+  @@index([refundStatus])
 }
 
 model Subscription {
@@ -317,6 +338,22 @@ model Payment {
   type   PaymentType
 
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Credit {
+  id                  String       @id @default(cuid())
+  userId              String
+  user                User         @relation(fields: [userId], references: [id])
+  sourceReservationId String       @unique
+  sourceReservation   Reservation  @relation(fields: [sourceReservationId], references: [id])
+  amount              Decimal      @db.Decimal(10, 2)
+  status              CreditStatus @default(AVAILABLE)
+  usedOnReservationId String?
+  createdAt           DateTime     @default(now())
+  expiresAt           DateTime?
 
   @@index([userId])
   @@index([status])

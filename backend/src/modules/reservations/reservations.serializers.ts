@@ -1,4 +1,4 @@
-import type { Line, Payment, Reservation, Trip } from "@prisma/client";
+import type { Line, Payment, Reservation, RefundStatus, Trip } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 type ReservationWithRelations = Reservation & {
@@ -46,6 +46,7 @@ export function serializeReservationMinimal(
 export interface SafeReservationListItemDto {
   id: string;
   status: Reservation["status"];
+  refundStatus: RefundStatus;
   trip: SafeReservationTripDto;
   payment: SafePaymentDto | null;
   createdAt: string;
@@ -95,6 +96,7 @@ export function serializeReservationListItem(
   return {
     id: reservation.id,
     status: reservation.status,
+    refundStatus: reservation.refundStatus,
     trip: serializeTrip(reservation.trip),
     payment: serializeSafePayment(reservation.payment),
     createdAt: reservation.createdAt.toISOString(),

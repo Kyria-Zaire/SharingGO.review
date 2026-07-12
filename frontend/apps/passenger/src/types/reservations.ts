@@ -39,9 +39,13 @@ export interface UserReservationPayment {
   createdAt: string;
 }
 
+/** Statuts backend `RefundStatus` (Prisma). */
+export type RefundStatus = "NONE" | "PENDING" | "REFUNDED" | "CREDITED";
+
 export interface UserReservationListItem {
   id: string;
   status: string;
+  refundStatus: RefundStatus;
   trip: UserReservationTrip;
   payment: UserReservationPayment | null;
   createdAt: string;

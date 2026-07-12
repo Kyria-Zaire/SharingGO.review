@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Superpowers brainstorm/scratch (mockups, session state)
+.superpowers/
+
 # Build
 dist/
 build/
@@ -11,6 +14,7 @@ frontend/dist/
 .env.local
 .env.*.local
 .env.prod
+backend/.env.test
 
 # Logs
 *.log
