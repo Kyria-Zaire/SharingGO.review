@@ -84,4 +84,34 @@ describe("refundReservation", () => {
     const payment = await testPrisma.payment.findFirstOrThrow({ where: { reservationId: reservation.id } });
     expect(payment.status).toBe(PaymentStatus.SUCCEEDED);
   });
+
+  it("serializes two genuinely concurrent refund calls: one commits, the other gets 409", async () => {
+    const { admin, reservation } = await seedPendingRefund();
+
+    const results = await Promise.allSettled([
+      refundReservation(reservation.id, admin.id),
+      refundReservation(reservation.id, admin.id),
+    ]);
+
+    const fulfilled = results.filter((r) => r.status === "fulfilled");
+    const rejected = results.filter((r) => r.status === "rejected");
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+
+    const loser = rejected[0] as PromiseRejectedResult;
+    expect(loser.reason).toMatchObject({ statusCode: 409, code: "REFUND_NOT_PENDING" });
+
+    // L'Idempotency-Key Stripe garantit qu'aucun double mouvement d'argent n'a lieu, mais les
+    // deux appels peuvent tous deux atteindre l'étape B (hors tx) avant que l'étape C ne
+    // sérialise l'écriture — on ne sur-contraint donc pas le nombre d'appels au mock.
+    expect(refundsCreate.mock.calls.length).toBeGreaterThanOrEqual(1);
+
+    const auditCount = await testPrisma.auditLog.count({
+      where: { action: "RESERVATION_REFUNDED", targetId: reservation.id },
+    });
+    expect(auditCount).toBe(1);
+
+    const updated = await testPrisma.reservation.findUniqueOrThrow({ where: { id: reservation.id } });
+    expect(updated.refundStatus).toBe(RefundStatus.REFUNDED);
+  });
 });

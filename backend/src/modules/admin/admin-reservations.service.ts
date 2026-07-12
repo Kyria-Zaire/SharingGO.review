@@ -143,16 +143,29 @@ export async function refundReservation(reservationId: string, actorUserId: stri
     throw new AppError("Stripe refund failed", 502, "STRIPE_REFUND_FAILED");
   }
 
-  // Étape C — tx courte : commit REFUNDED + payment + audit.
+  // Étape C — tx courte : commit REFUNDED conditionné à refundStatus toujours PENDING.
+  // C'est le vrai point de sérialisation : la garde FOR UPDATE de l'étape A est relâchée
+  // avant l'appel Stripe (étape B), donc deux requêtes concurrentes peuvent toutes deux
+  // passer la garde et appeler Stripe (sans risque argent grâce à l'Idempotency-Key). Le
+  // updateMany conditionnel garantit qu'une seule des deux commite REFUNDED + écrit l'audit ;
+  // l'autre reçoit 409 REFUND_NOT_PENDING sans écriture.
   await prisma.$transaction(async (tx) => {
-    await tx.reservation.update({
-      where: { id: reservationId },
+    const updated = await tx.reservation.updateMany({
+      where: { id: reservationId, refundStatus: RefundStatus.PENDING },
       data: {
         refundStatus: RefundStatus.REFUNDED,
         refundProcessedAt: new Date(),
         refundProcessedByUserId: actorUserId,
       },
     });
+
+    if (updated.count === 0) {
+      // Une requête concurrente a déjà commité ce remboursement entre notre étape A et ici.
+      // Stripe a dédupliqué le vrai refund via l'Idempotency-Key (aucun argent double-mouvementé) ;
+      // on refuse simplement d'écrire l'état/l'audit une seconde fois.
+      throw new AppError("Reservation is not pending refund", 409, "REFUND_NOT_PENDING");
+    }
+
     await tx.payment.updateMany({
       where: { reservationId },
       data: { status: PaymentStatus.REFUNDED },

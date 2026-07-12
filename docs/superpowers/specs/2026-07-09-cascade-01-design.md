@@ -30,7 +30,7 @@ car on manipule de vrais billets payés.
 | Atomicité cascade | Une seule `prisma.$transaction` (trip + réservations + audit) |
 | Audit cascade | 1 log trip + 1 log par réservation impactée |
 | Audit dans tx | Écrit **dans** la transaction — un échec de log → rollback de la cascade |
-| Idempotence refund | Garde d'état `FOR UPDATE` + `Idempotency-Key` Stripe déterministe |
+| Idempotence refund | `Idempotency-Key` Stripe déterministe (aucun double mouvement d'argent) + `updateMany` conditionnel `refundStatus = PENDING` en étape C, qui garantit un commit unique + un seul audit et renvoie 409 au perdant (la garde `FOR UPDATE` d'étape A relâche son verrou avant l'appel Stripe, elle ne suffit donc pas seule à sérialiser) |
 | Verrou concurrent | `SELECT … FOR UPDATE` en tx courte — **pas** de nouvel état `PROCESSING` sur l'enum |
 | Échec Stripe refund | Réservation reste `PENDING`, HTTP **502** `STRIPE_REFUND_FAILED`, retry admin |
 | Séquencement Stripe/tx | Tx courte (garde) → Stripe **hors tx** → tx courte (commit REFUNDED) |
@@ -192,10 +192,19 @@ Toutes sous `/api/admin/reservations`, middleware admin existant. Pattern contro
 | Introuvable | 404 | `RESERVATION_NOT_FOUND` |
 | Échec Stripe | 502 | `STRIPE_REFUND_FAILED` (reste `PENDING`) |
 
-Séquence : tx courte `SELECT … FOR UPDATE` + garde `PENDING` → **hors tx**
+Séquence : tx courte `SELECT … FOR UPDATE` + garde `PENDING` (fast-fail non-concurrent) → **hors tx**
 `stripe.refunds.create({ payment_intent }, { idempotencyKey: 'refund_' + id })` → tx courte
-`update REFUNDED` + `payment REFUNDED` + `writeCascadeAuditLog(tx, RESERVATION_REFUNDED)` (§6.1).
+`updateMany REFUNDED` **conditionné** à `refundStatus = PENDING` + `payment REFUNDED` +
+`writeCascadeAuditLog(tx, RESERVATION_REFUNDED)` (§6.1).
 Client Stripe : `getStripeClient()` (`stripe.service.ts`).
+
+**Concurrence réelle :** la garde `FOR UPDATE` de l'étape A relâche son verrou (commit de la tx
+courte) avant l'appel Stripe — deux requêtes concurrentes peuvent donc toutes deux la franchir et
+appeler Stripe. La sûreté finale vient de deux mécanismes combinés : (a) l'`Idempotency-Key`
+déterministe évite tout double mouvement d'argent côté Stripe ; (b) le `updateMany` conditionné
+sur `refundStatus = PENDING` en étape C garantit qu'un seul appelant commite l'état `REFUNDED` et
+écrit l'audit — le `count === 0` du perdant déclenche le 409 `REFUND_NOT_PENDING`, sans écriture
+double.
 
 ### 7.3 Créditer
 
