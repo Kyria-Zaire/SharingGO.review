@@ -49,7 +49,11 @@ export function BookingDetailHeader({
             <h1 className="text-2xl font-bold tracking-tight text-foreground lg:text-3xl">
               {BOOKING_DETAIL_TITLE}
             </h1>
-            <BookingDetailStatusBadge status={reservation.status} isPastTrip={isPastTrip} />
+            <BookingDetailStatusBadge
+              status={reservation.status}
+              isPastTrip={isPastTrip}
+              refundStatus={reservation.refundStatus}
+            />
           </div>
           <p className="text-sm text-muted-foreground">
             <span className="text-foreground/90">{reference}</span>

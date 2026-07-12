@@ -55,6 +55,7 @@ export function BookingCardActionZone({
       <BookingCardStatusBadge
         status={reservation.status}
         filter={filter}
+        refundStatus={reservation.refundStatus}
         className={isCompletedPast ? undefined : "self-end"}
       />
 
