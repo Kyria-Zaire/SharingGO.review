@@ -147,9 +147,11 @@ jobs:
 
             echo "=== [1/7] Vérification état repo avant modification ==="
             # Exclure .env.prod (fichier local légitime, jamais versionné).
-            # Exclure backups/ (hors tracking Git par .gitignore).
+            # Exclure backups/ explicitement dans le pathspec — NE PAS dépendre du
+            # .gitignore du tag déployé (un rollback vers un vieux tag pourrait faire
+            # reculer ce .gitignore et réintroduire backups/ dans le dirty check).
             # Si des fichiers versionnés sont modifiés localement → arrêt immédiat.
-            DIRTY=$(git -C /opt/sharinggo status --short -- ':!.env.prod')
+            DIRTY=$(git -C /opt/sharinggo status --short -- ':!.env.prod' ':!backups/')
             if [ -n "$DIRTY" ]; then
               echo "ERREUR : fichiers versionnés modifiés localement sur le VPS."
               echo "$DIRTY"
