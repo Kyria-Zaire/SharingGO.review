@@ -164,7 +164,7 @@ git -C /opt/sharinggo stash
 # → intégrer la modification dans un commit/PR sur GitHub avant le prochain déploiement
 
 # 4. Vérifier que le repo est propre
-git -C /opt/sharinggo status --short -- ':!.env.prod'
+git -C /opt/sharinggo status --short -- ':!.env.prod' ':!backups/'
 # Résultat attendu : aucune ligne
 
 # 5. Relancer le déploiement
@@ -186,7 +186,7 @@ ssh deploy@<IP_VPS>
 cd /opt/sharinggo
 
 # 2. Vérifier l'état repo
-git status --short -- ':!.env.prod'
+git status --short -- ':!.env.prod' ':!backups/'
 # Doit être propre (le déploiement échoué a quand même checké le tag)
 
 # 3. Identifier le tag stable précédent
@@ -291,7 +291,7 @@ Actions :
 - [ ] Sentry projet configuré — `SENTRY_DSN` dans `.env.prod` — `test-sentry.mjs` OK
 - [ ] Espace disque VPS > 20% libre (`check-disk.sh`)
 - [ ] Pas de migration destructive sans plan de rollback DB documenté
-- [ ] Repo VPS propre : `git -C /opt/sharinggo status --short -- ':!.env.prod'` → rien
+- [ ] Repo VPS propre : `git -C /opt/sharinggo status --short -- ':!.env.prod' ':!backups/'` → rien
 - [ ] Backup manuel récent vérifié : `check-backup.sh` → VALIDE
 
 ---
