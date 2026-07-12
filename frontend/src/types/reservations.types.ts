@@ -16,6 +16,23 @@ export type PaymentStatus = "PENDING" | "SUCCEEDED" | "FAILED" | "REFUNDED";
 
 export type PaymentType = "TICKET" | "SUBSCRIPTION" | "SUBSCRIPTION_ACCESS";
 
+export type RefundStatus = "NONE" | "PENDING" | "REFUNDED" | "CREDITED";
+
+/** Action kind for the admin refund queue (CASCADE-01 §8.1). */
+export type RefundActionKind = "refund" | "credit";
+
+/** Outcome of a refund/credit confirmation — `conflict: true` means the backend
+ * returned 409 REFUND_NOT_PENDING (already processed by another action). */
+export interface RefundActionResult {
+  ok: boolean;
+  conflict?: boolean;
+}
+
+export interface AdminRefundProcessor {
+  id: string;
+  name: string;
+}
+
 export interface AdminReservationPayment {
   id: string;
   status: PaymentStatus;
@@ -43,6 +60,9 @@ export interface AdminReservation {
   user: AdminUserMinimal;
   trip: AdminReservationTrip;
   payment: AdminReservationPayment | null;
+  refundStatus: RefundStatus;
+  refundProcessedAt?: string | null;
+  refundProcessedBy?: AdminRefundProcessor | null;
   createdAt: string;
   updatedAt: string;
   /** Not returned by admin API yet — reserved for backend follow-up. */
@@ -60,6 +80,7 @@ export interface AdminReservationListResponse {
 
 export interface AdminReservationFilters {
   status?: ReservationStatus;
+  refundStatus?: RefundStatus;
   userId?: string;
   tripId?: string;
   lineId?: string;

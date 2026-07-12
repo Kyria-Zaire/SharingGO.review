@@ -3,6 +3,7 @@ export const ROUTES = {
   dashboard: "/",
   trips: "/trips",
   reservations: "/reservations",
+  refunds: "/refunds",
   payments: "/payments",
   subscriptions: "/subscriptions",
   boarding: "/boarding",
