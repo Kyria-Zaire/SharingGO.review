@@ -55,12 +55,20 @@ export function serializeAdminPayment(
   };
 }
 
+export interface AdminRefundProcessorDto {
+  id: string;
+  name: string;
+}
+
 export interface AdminReservationListItemDto {
   id: string;
   status: Reservation["status"];
   user: AdminUserMinimalDto;
   trip: SafeReservationTripDto;
   payment: SafePaymentDto | null;
+  refundStatus: Reservation["refundStatus"];
+  refundProcessedAt: string | null;
+  refundProcessedBy: AdminRefundProcessorDto | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -70,6 +78,7 @@ export function serializeAdminReservation(
     user: User;
     trip: Trip & { line: Line };
     payment: Payment | null;
+    refundProcessedBy: User | null;
   }
 ): AdminReservationListItemDto {
   return {
@@ -78,6 +87,14 @@ export function serializeAdminReservation(
     user: serializeUserMinimal(reservation.user),
     trip: serializeTrip(reservation.trip),
     payment: serializeSafePayment(reservation.payment),
+    refundStatus: reservation.refundStatus,
+    refundProcessedAt: reservation.refundProcessedAt?.toISOString() ?? null,
+    refundProcessedBy: reservation.refundProcessedBy
+      ? {
+          id: reservation.refundProcessedBy.id,
+          name: `${reservation.refundProcessedBy.firstName ?? ""} ${reservation.refundProcessedBy.lastName ?? ""}`.trim(),
+        }
+      : null,
     createdAt: reservation.createdAt.toISOString(),
     updatedAt: reservation.updatedAt.toISOString(),
   };

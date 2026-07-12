@@ -12,6 +12,7 @@ const reservationInclude = {
   user: true,
   trip: { include: { line: true } },
   payment: true,
+  refundProcessedBy: true,
 } as const;
 
 function buildWhere(query: ListAdminReservationsQuery): Prisma.ReservationWhereInput {
@@ -25,6 +26,9 @@ function buildWhere(query: ListAdminReservationsQuery): Prisma.ReservationWhereI
   }
   if (query.tripId) {
     where.tripId = query.tripId;
+  }
+  if (query.refundStatus) {
+    where.refundStatus = query.refundStatus;
   }
 
   const tripFilter: Prisma.TripWhereInput = {};

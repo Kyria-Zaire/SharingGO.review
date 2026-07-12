@@ -1,6 +1,7 @@
 import {
   PaymentStatus,
   PaymentType,
+  RefundStatus,
   ReservationStatus,
 } from "@prisma/client";
 import { z } from "zod";
@@ -32,6 +33,7 @@ function refineFromBeforeTo<T extends { from?: string; to?: string }>(schema: z.
 export const listAdminReservationsQuerySchema = refineFromBeforeTo(
   z.object({
     status: z.nativeEnum(ReservationStatus).optional(),
+    refundStatus: z.nativeEnum(RefundStatus).optional(),
     userId: z.string().trim().min(1).optional(),
     tripId: z.string().trim().min(1).optional(),
     lineId: z.string().trim().min(1).optional(),
