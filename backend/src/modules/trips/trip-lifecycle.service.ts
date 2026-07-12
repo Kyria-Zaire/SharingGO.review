@@ -177,8 +177,12 @@ export async function cancelTrip(
   const now = new Date();
 
   await prisma.$transaction(async (tx) => {
-    await tx.trip.update({
-      where: { id: tripId },
+    // Conditional update: the WHERE clause pins the expected pre-cancellation status so that,
+    // under concurrent cancelTrip calls on the same trip, only the first transaction to commit
+    // actually flips the row. The loser sees count === 0 and rolls back instead of re-cascading
+    // or writing a duplicate trip audit log (same TOCTOU class as the refund path fix).
+    const result = await tx.trip.updateMany({
+      where: { id: tripId, lifecycleStatus: trip.lifecycleStatus },
       data: {
         lifecycleStatus: TripLifecycleStatus.CANCELLED,
         cancelledAt: now,
@@ -186,6 +190,11 @@ export async function cancelTrip(
         lifecycleUpdatedByUserId: actorUserId,
       },
     });
+    if (result.count === 0) {
+      // A concurrent cancelTrip already transitioned this trip. Roll back so the
+      // loser does not re-cascade or write a duplicate trip audit log.
+      throw new AppError("Trip state changed concurrently", 409, "INVALID_LIFECYCLE_TRANSITION");
+    }
 
     const reservations = await tx.reservation.findMany({
       where: {

@@ -73,13 +73,10 @@ describe("cancelTrip cascade", () => {
   });
 
   it("does not trigger any Stripe call on cancellation", async () => {
-    const stripeSpy = vi.fn();
     // getStripeClient ne doit pas être invoqué par la cascade.
     const getStripeClientSpy = vi.spyOn(stripeService, "getStripeClient");
     const { admin, trip } = await seedTripWithReservations();
     await cancelTrip(trip.id, { reason: "weather" }, admin.id);
-    expect(stripeSpy).not.toHaveBeenCalled();
-    // Renforcement (au-delà du brief) : le point d'intégration Stripe réel n'est jamais sollicité.
     expect(getStripeClientSpy).not.toHaveBeenCalled();
     getStripeClientSpy.mockRestore();
   });
@@ -94,5 +91,46 @@ describe("cancelTrip cascade", () => {
     // refundStatus inchangé après le 2e appel refusé
     const paid = await testPrisma.reservation.findUniqueOrThrow({ where: { id: rPaid.id } });
     expect(paid.refundStatus).toBe(RefundStatus.PENDING);
+  });
+
+  it("serializes truly concurrent cancelTrip calls: one wins, one gets 409, no duplicate audit logs", async () => {
+    const { admin, trip, rPaid } = await seedTripWithReservations();
+
+    const [first, second] = await Promise.allSettled([
+      cancelTrip(trip.id, { reason: "weather" }, admin.id),
+      cancelTrip(trip.id, { reason: "weather" }, admin.id),
+    ]);
+
+    const settled = [first, second];
+    const fulfilled = settled.filter((r) => r.status === "fulfilled");
+    const rejected = settled.filter((r) => r.status === "rejected");
+    expect(fulfilled).toHaveLength(1);
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0]).toMatchObject({
+      reason: { statusCode: 409, code: "INVALID_LIFECYCLE_TRANSITION" },
+    });
+
+    const updatedTrip = await testPrisma.trip.findUniqueOrThrow({ where: { id: trip.id } });
+    expect(updatedTrip.lifecycleStatus).toBe(TripLifecycleStatus.CANCELLED);
+
+    // Exactly one trip audit log — no duplicate written by the losing concurrent call.
+    const tripLogs = await testPrisma.auditLog.count({
+      where: { action: "TRIP_CANCELLED", targetType: "Trip", targetId: trip.id },
+    });
+    expect(tripLogs).toBe(1);
+
+    const paid = await testPrisma.reservation.findUniqueOrThrow({ where: { id: rPaid.id } });
+    expect(paid.status).toBe(ReservationStatus.CANCELED);
+    expect(paid.refundStatus).toBe(RefundStatus.PENDING);
+
+    // Each impacted reservation processed exactly once — no double cascade.
+    const paidReservationLogs = await testPrisma.auditLog.count({
+      where: {
+        action: "RESERVATION_CANCELLED_BY_TRIP",
+        targetType: "Reservation",
+        targetId: rPaid.id,
+      },
+    });
+    expect(paidReservationLogs).toBe(1);
   });
 });
