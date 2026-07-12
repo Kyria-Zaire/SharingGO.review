@@ -92,7 +92,11 @@ Sur `SIGINT` / `SIGTERM` :
 
 ## Prisma — commandes Docker officielles
 
-> **Windows** : ne pas cibler l'IP Docker `172.x.x.x` depuis l'hôte. Risque de conflit si un PostgreSQL local écoute aussi sur le port **5432** — privilégier les commandes **dans le conteneur backend**.
+> **Windows — quelle instance Postgres répond sur `:5432` ?** Deux Postgres peuvent coexister : le conteneur Docker (`sharinggo-postgres-dev`) et un service natif Windows (`postgres.exe`). Les deux peuvent écouter sur **5432** mais sur des adresses de bind différentes (`0.0.0.0` vs `127.0.0.1`) : `localhost:5432` depuis l'hôte peut alors résoudre vers le **natif**, pas le conteneur attendu. Ne pas cibler l'IP Docker `172.x.x.x` depuis l'hôte ; privilégier les commandes **dans le conteneur backend**. Pour les commandes hôte (tests, migrations locales), vérifier explicitement quelle instance `DATABASE_URL` atteint.
+>
+> **Symptôme observé (CASCADE-01, tests d'intégration) :** la base de test `sharinggo_test` créée dans l'instance native Windows était encodée **WIN1252**, ce qui faisait échouer tout seed contenant des accents (`Châlons`) avec l'erreur Postgres `22P05`, indépendamment du schéma. Correctif : recréer la base de test en **UTF-8** (`CREATE DATABASE sharinggo_test ENCODING 'UTF8'`), ou pointer `.env.test` vers le conteneur Docker. Reco équipe : fixer une instance canonique en dev Windows (arrêter le service natif, ou déplacer le conteneur sur un autre port).
+>
+> **Même famille de problème** que la confusion `DATABASE_URL`/`pg_dump` hôte-vs-conteneur documentée dans [`docs/ops/DEPLOY-01-BACKUP-RESTORE.md`](../ops/DEPLOY-01-BACKUP-RESTORE.md) (backup/restore via `docker compose exec`, jamais `pg_dump` sur l'hôte). Règle commune : **toujours savoir quelle instance Postgres une commande atteint** avant de l'exécuter.
 
 ```bash
 docker compose -f docker-compose.dev.yml up -d postgres backend
